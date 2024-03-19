@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from db import PostgresDB
 
 # In the given code, app = Flask(__name__) creates an instance of the Flask class and assigns it to the variable app.
@@ -11,4 +11,13 @@ app = Flask(__name__)  # references this file
 def index():
     db = PostgresDB()
     db.connect()
-    return "Hello, World!"
+    return render_template('index.html')
+    # return "Hello, World!"
+
+
+# # GET, POST
+# @app.route('/dashboard')
+# def dashboard():
+#     pass
+
+# # /jobs/job/id?
