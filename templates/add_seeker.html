@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Seeker</title>
+</head>
+<body>
+    <h1>Add Seeker</h1>
+    <form method="POST" action="/add-seeker">        
+        <label for="fname">First Name:</label>
+        <input type="text" name="fname" required><br>
+        
+        <label for="lname">Last Name:</label>
+        <input type="text" name="lname" required><br>
+        
+        <label for="city">City:</label>
+        <input type="text" name="city" required><br>
+        
+        <label for="state">State:</label>
+        <select name="state" required>
+            <option value="VIC">VIC</option>
+            <option value="NSW">NSW</option>
+            <option value="WA">WA</option>
+            <option value="NT">NT</option>
+            <option value="ACT">ACT</option>
+            <option value="QLD">QLD</option>
+            <option value="TAS">TAS</option>
+            <option value="SA">SA</option>
+        </select><br>
+        
+        <label for="country">Country:</label>
+        <select name="country" required>
+            <option value="New Zealand">New Zealand</option>
+            <option value="Australia">Australia</option>
+        </select><br>
+        
+        <label for="email_id">Email ID:</label>
+        <input type="email" name="email_id" required><br>
+        
+        <input type="submit" value="Add Seeker">
+    </form>
+</body>
+</html>
