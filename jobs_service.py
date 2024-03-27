@@ -1,4 +1,4 @@
-from db import PostgresDB
+from database import PostgresDB
 from flask import Flask, request, jsonify
 
 

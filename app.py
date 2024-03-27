@@ -1,12 +1,17 @@
 from flask import Flask, render_template, request
 import psycopg2
 from config import DB_HOST, DB_NAME, DB_USER, DB_PASSWORD
+from db_setup import setup_tables
 
 app = Flask(__name__)
 
 @app.route('/')
 def home():
     return render_template('index.html')
+
+
+# Set up the database tables
+setup_tables()
 
 @app.route('/add-seeker', methods=['GET', 'POST'])
 def add_seeker():

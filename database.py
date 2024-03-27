@@ -1,30 +1,6 @@
 # import os
 # import psycopg2
 
-
-# data = {
-
-#     "fname": "aaditya",
-#     "lname": "menon",
-#     "city": "Mumbai",
-#     "state": "MH",
-#     "country": "India",
-#     "email": ""
-# }
-
-# filters_and = {
-
-#     "fname": "aaditya",
-#     "lname": "menon",
-# }
-
-# filters_or = {
-
-#     "fname": "aaditya",
-#     "lname": "menon",
-# }
-
-
 # class PostgresDB:
 #     def init_db(self):
 #         pass
