@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Add Job</title>
+  </head>
+  <body>
+    <h1>Add Job</h1>
+    <form method="POST" action="/add_job">
+      <label for="recruiter_id">Recruiter:</label>
+      <select name="recruiter_id" required>
+        {% for recruiter in recruiters %}
+        <option value="{{ recruiter[0] }}">
+          {{ recruiter[1] }} {{ recruiter[2] }}
+        </option>
+        {% endfor %}</select
+      ><br />
+
+      <label for="company_id">Company:</label>
+      <select name="company_id" required>
+        {% for company in companies %}
+        <option value="{{ company[0] }}">{{ company[1] }}</option>
+        {% endfor %}</select
+      ><br />
+
+      <label for="title">Title:</label>
+      <input type="text" name="title" required /><br />
+
+      <label for="description">Description:</label>
+      <textarea name="description" required></textarea><br />
+
+      <label for="specialization">Specialization:</label>
+      <input type="text" name="specialization" required /><br />
+
+      <label for="job_type">Job Type:</label>
+      <select name="job_type" required>
+        <option value="normal">Normal</option>
+        <option value="premium">Premium</option></select
+      ><br />
+
+      <label for="industry">Industry:</label>
+      <select name="industry" required>
+        <option value="Government">Government</option>
+        <option value="Banking & Financial Services">
+          Banking & Financial Services
+        </option></select
+      ><br />
+
+      <label for="salary_range">Salary Range:</label>
+      <select name="salary_range" required>
+        <option value="20000 - 40000">20000 - 40000</option>
+        <option value="40000 - 60000">40000 - 60000</option>
+        <!-- Add more salary range options --></select
+      ><br />
+
+      <label for="salary_type">Salary Type:</label>
+      <select name="salary_type" required>
+        <option value="Annual">Annual</option>
+        <option value="Hourly">Hourly</option></select
+      ><br />
+
+      <label for="work_location">Work Location:</label>
+      <select name="work_location" required>
+        <option value="Office">Office</option>
+        <option value="Remote">Remote</option>
+        <option value="Hybrid">Hybrid</option></select
+      ><br />
+
+      <label for="min_experience_years">Minimum Experience Years:</label>
+      <input type="number" name="min_experience_years" required /><br />
+
+      <label for="experience_level">Experience Level:</label>
+      <select name="experience_level" required>
+        <option value="Entry Level">Entry Level</option>
+        <option value="Associate">Associate</option>
+        <!-- Add more experience level options --></select
+      ><br />
+
+      <label for="tech_stack">Tech Stack:</label>
+      <input type="text" name="tech_stack" required /><br />
+
+      <label for="city">City:</label>
+      <input type="text" name="city" required /><br />
+
+      <label for="state">State:</label>
+      <input type="text" name="state" required /><br />
+
+      <label for="country">Country:</label>
+      <input type="text" name="country" required /><br />
+
+      <label for="jobpost_url">Job Post URL:</label>
+      <input type="url" name="jobpost_url" required /><br />
+
+      <label for="work_rights">Work Rights:</label>
+      <select name="work_rights" multiple required>
+        <option value="Australian Citizen">Australian Citizen</option>
+        <option value="Australian Permanent Resident">
+          Australian Permanent Resident
+        </option>
+        <!-- Add more work rights options --></select
+      ><br />
+
+      <input type="submit" value="Add Job" />
+    </form>
+  </body>
+</html>
