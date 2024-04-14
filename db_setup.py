@@ -12,19 +12,89 @@ def setup_tables():
 
     try:
         cur = conn.cursor()
-    
-    # Need to add in for Seekers as well
-    # CREATE TABLE seekers (
-    # uid SERIAL PRIMARY KEY,
-    # fname VARCHAR(255) NOT NULL,
-    # lname VARCHAR(255) NOT NULL,
-    # city VARCHAR(255) NOT NULL,
-    # state state_enum NOT NULL,
-    # country country_enum NOT NULL,
-    # email_id VARCHAR(255) UNIQUE NOT NULL,
-    # datetimestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+        
+    # Create ENUM types if they don't exist
+        cur.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'job_type') THEN
+                    CREATE TYPE job_type AS ENUM ('premium', 'normal');
+                END IF;
+                
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'industry_type') THEN
+                    CREATE TYPE industry_type AS ENUM (
+                        'Government',
+                        'Banking & Financial Services',
+                        'Fashion',
+                        'Mining',
+                        'Healthcare',
+                        'IT - Software Development',
+                        'IT - Data Analytics',
+                        'IT - Cybersecurity',
+                        'IT - Cloud Computing',
+                        'IT - Artificial Intelligence',
+                        'Agriculture',
+                        'Automotive',
+                        'Construction',
+                        'Education',
+                        'Energy & Utilities',
+                        'Entertainment',
+                        'Hospitality & Tourism',
+                        'Legal',
+                        'Manufacturing',
+                        'Marketing & Advertising',
+                        'Media & Communications',
+                        'Non-Profit & NGO',
+                        'Pharmaceuticals',
+                        'Real Estate',
+                        'Retail & Consumer Goods',
+                        'Telecommunications',
+                        'Transportation & Logistics'
+                    );
+                END IF;
+                
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'salary_range_type') THEN
+                    CREATE TYPE salary_range_type AS ENUM (
+                        '20000 - 40000',
+                        '40000 - 60000',
+                        '60000 - 80000',
+                        '80000 - 100000',
+                        '100000 - 120000',
+                        '120000 - 140000',
+                        '140000 - 160000',
+                        '160000 - 180000',
+                        '180000 - 200000',
+                        '200000 - 220000',
+                        '220000 - 240000',
+                        '240000 - 260000',
+                        '260000+'
+                    );
+                END IF;
+            END $$;
+        """)
 
-        # Check if the companies table exists, and create it if it doesn't
+        # Check for SEEKERS table:
+        cur.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_schema = 'public' AND table_name = 'seekers'
+            )
+        """)
+        table_exists = cur.fetchone()[0]
+        if not table_exists:
+            cur.execute("""
+                CREATE TABLE seekers (
+                uid SERIAL PRIMARY KEY,
+                first_name VARCHAR(255) NOT NULL,
+                last_name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                city VARCHAR(255) NOT NULL,
+                state state_enum NOT NULL,
+                country country_enum NOT NULL,
+                datetimestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+            """)
+
+        # Check for COMPANIES table:
         cur.execute("""
             SELECT EXISTS (
                 SELECT FROM information_schema.tables
@@ -37,54 +107,15 @@ def setup_tables():
                 CREATE TABLE companies (
                     company_id SERIAL PRIMARY KEY,
                     name VARCHAR(255) NOT NULL,
-                    location VARCHAR(255),
+                    city VARCHAR(255),
+                    state VARCHAR(255),
+                    country VARCHAR(255),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-
-        # Check if the jobs table exists, and create it if it doesn't
-        cur.execute("""
-            SELECT EXISTS (
-                SELECT FROM information_schema.tables
-                WHERE table_schema = 'public' AND table_name = 'jobs'
-            )
-        """)
-        table_exists = cur.fetchone()[0]
-        if not table_exists:
-            cur.execute("""
-            CREATE TABLE IF NOT EXISTS jobs (
-                job_id SERIAL PRIMARY KEY,
-                recruiter_id INTEGER,
-                agent_id INTEGER,
-                company_id INTEGER,
-                agency_id INTEGER,
-                title VARCHAR(255) NOT NULL,
-                description TEXT,
-                specialization VARCHAR(255),
-                job_type VARCHAR(20) CHECK (job_type IN ('Contract', 'Part-Time', 'Casual', 'Full-Time', 'Internship')),
-                salary_range VARCHAR(50),
-                salary_type VARCHAR(10) CHECK (salary_type IN ('Annual', 'Hourly')),
-                work_location VARCHAR(20) CHECK (work_location IN ('Office', 'Remote', 'Hybrid')),
-                experience_years VARCHAR(50),
-                experience_level VARCHAR(50) CHECK (experience_level IN ('Entry Level', 'Associate', 'Mid-Senior Level', 'Director', 'Executive')),
-                industry VARCHAR(255),
-                tech_stack TEXT[],
-                city VARCHAR(255),
-                state VARCHAR(255),
-                country VARCHAR(255),
-                expiry_date DATE,
-                jobpost_url VARCHAR(255),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (recruiter_id) REFERENCES recruiters (recruiter_id),
-                FOREIGN KEY (agent_id) REFERENCES agents (agent_id),
-                FOREIGN KEY (company_id) REFERENCES companies (company_id),
-                FOREIGN KEY (agency_id) REFERENCES agencies (agency_id)
-            )
-        """)
-
-        # Check if the recruiters table exists, and create it if it doesn't
+        
+        # Check for RECRUITERS table
         cur.execute("""
             SELECT EXISTS (
                 SELECT FROM information_schema.tables
@@ -104,60 +135,55 @@ def setup_tables():
                     city VARCHAR(255),
                     state VARCHAR(255),
                     country VARCHAR(255),
+                    is_direct_recruiter BOOLEAN,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (company_id) REFERENCES companies (company_id)
                 )
             """)
 
-        # Check if the agencies table exists, and create it if it doesn't
+        # Check for JOBS table:
+    # Check for JOBS table:
         cur.execute("""
             SELECT EXISTS (
                 SELECT FROM information_schema.tables
-                WHERE table_schema = 'public' AND table_name = 'agencies'
+                WHERE table_schema = 'public' AND table_name = 'jobs'
             )
         """)
         table_exists = cur.fetchone()[0]
         if not table_exists:
             cur.execute("""
-                CREATE TABLE agencies (
-                    agency_id SERIAL PRIMARY KEY,
-                    name VARCHAR(255) NOT NULL,
-                    location VARCHAR(255),
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-
-        # Check if the agents table exists, and create it if it doesn't
-        cur.execute("""
-            SELECT EXISTS (
-                SELECT FROM information_schema.tables
-                WHERE table_schema = 'public' AND table_name = 'agents'
+            CREATE TABLE IF NOT EXISTS jobs (
+                job_id SERIAL PRIMARY KEY,
+                recruiter_id INTEGER,
+                company_id INTEGER,
+                title VARCHAR(255) NOT NULL,
+                description TEXT,
+                specialization VARCHAR(255),
+                job_type job_type NOT NULL DEFAULT 'normal',
+                industry industry_type NOT NULL,
+                salary_range salary_range_type,
+                salary_type VARCHAR(10) CHECK (salary_type IN ('Annual', 'Hourly')),
+                work_location VARCHAR(20) CHECK (work_location IN ('Office', 'Remote', 'Hybrid')),
+                min_experience_years INTEGER,
+                experience_level VARCHAR(50) CHECK (experience_level IN ('Entry Level', 'Associate', 'Mid-Senior Level', 'Director', 'Executive')),
+                tech_stack TEXT[],
+                city VARCHAR(255),
+                state VARCHAR(255),
+                country VARCHAR(255),
+                expiry_date DATE DEFAULT CURRENT_DATE + INTERVAL '30 days',
+                jobpost_url VARCHAR(255),
+                work_rights TEXT[],
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (recruiter_id) REFERENCES recruiters (recruiter_id),
+                FOREIGN KEY (company_id) REFERENCES companies (company_id)
             )
         """)
-        table_exists = cur.fetchone()[0]
-        if not table_exists:
-            cur.execute("""
-                CREATE TABLE agents (
-                    agent_id SERIAL PRIMARY KEY,
-                    agency_id INTEGER,
-                    first_name VARCHAR(255) NOT NULL,
-                    last_name VARCHAR(255) NOT NULL,
-                    email VARCHAR(255) NOT NULL,
-                    password VARCHAR(255) NOT NULL,
-                    city VARCHAR(255),
-                    state VARCHAR(255),
-                    country VARCHAR(255),
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (agency_id) REFERENCES agencies (agency_id)
-                )
-            """)
 
         conn.commit()
         print("Tables created successfully!")
-
+        
     except psycopg2.Error as e:
         conn.rollback()
         print(f"Error creating tables: {e}")

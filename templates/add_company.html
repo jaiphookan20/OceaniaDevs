@@ -1,19 +1,13 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Add Seeker</title>
+    <title>Add Company</title>
   </head>
   <body>
-    <h1>Add Seeker</h1>
-    <form method="POST" action="/add_seeker">
-      <label for="fname">First Name:</label>
-      <input type="text" name="first_name" required /><br />
-
-      <label for="lname">Last Name:</label>
-      <input type="text" name="last_name" required /><br />
-
-      <label for="city">Email:</label>
-      <input type="email" name="email" required /><br />
+    <h1>Add Company</h1>
+    <form method="POST" action="/add_company">
+      <label for="name">Company Name:</label>
+      <input type="text" name="name" required /><br />
 
       <label for="city">City:</label>
       <input type="text" name="city" required /><br />
@@ -35,7 +29,8 @@
         <option value="New Zealand">New Zealand</option>
         <option value="Australia">Australia</option></select
       ><br />
-      <input type="submit" value="Add Seeker" />
+
+      <input type="submit" value="Add Company" />
     </form>
   </body>
 </html>

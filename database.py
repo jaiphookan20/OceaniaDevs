@@ -1,31 +1,35 @@
-# import os
-# import psycopg2
+import psycopg2
+from config import DB_HOST, DB_NAME, DB_USER, DB_PASSWORD
 
-# class PostgresDB:
-#     def init_db(self):
-#         pass
+class PostgresDB:
+    def __init__(self):
+        self.conn = psycopg2.connect(
+            host=DB_HOST,
+            database=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD
+        )
 
-#     def connect(self):
-#         conn = psycopg2.connect(
-#             host="localhost",
-#             database="flask_db",
-#             user='aadityamenon',
-#             password='')  # empty
+    def execute_query(self, query, values=None):
+        try:
+            cur = self.conn.cursor()
+            cur.execute(query, values)
+            self.conn.commit()
+            cur.close()
+        except psycopg2.Error as e:
+            print(f"Error executing query: {e}")
+            self.conn.rollback()
 
-#         cur = conn.cursor()
+    def fetch_data(self, query, values=None):
+        try:
+            cur = self.conn.cursor()
+            cur.execute(query, values)
+            data = cur.fetchall()
+            cur.close()
+            return data
+        except psycopg2.Error as e:
+            print(f"Error fetching data: {e}")
+            return None
 
-#         cur.execute('SELECT * FROM seekers;')
-#         rows = cur.fetchall()
-#         print(rows)
-#         cur.execute(f"""INSERT INTO seekers (fname, lname, city, state, country, email, work_auth) 
-# VALUES (%s, %s, %s, %s, %s, %s, %s)""", ("gary", "w", "Mumbai", "MH", "India", "gary@gmail.com", "aus_work_visa"))
-#         conn.commit()
-#         cur.close()
-#         conn.close()
-
-#     def insert_into_table(self, table_name, data: dict):
-#         # rawl sql --> sqlalchemy
-#         pass
-
-#     def select_from_table(self, table_name, filters: dict):
-#         pass
+    def close_connection(self):
+        self.conn.close()
