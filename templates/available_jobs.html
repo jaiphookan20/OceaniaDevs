@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Available Jobs</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      h1 {
+        background-color: #333;
+        color: #fff;
+        padding: 20px;
+        text-align: center;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      th,
+      td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+
+      th {
+        background-color: #f2f2f2;
+      }
+
+      .actions {
+        display: flex;
+        justify-content: space-around;
+      }
+
+      .actions button {
+        background-color: #4caf50;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        margin: 4px 2px;
+        cursor: pointer;
+      }
+    </style>
+    <script>
+      // Your existing JavaScript code
+      $(document).ready(function () {
+        // Function to handle form submission
+        $("#filter-form").submit(function (event) {
+          event.preventDefault();
+          var company = $("#company").val();
+          var experience_level = $("#experience_level").val();
+          var industry = $("#industry").val();
+
+          $.get(
+            "/filter_jobs",
+            {
+              company: company,
+              experience_level: experience_level,
+              industry: industry,
+            },
+            function (data) {
+              // Update the table with the filtered jobs
+              $("tbody").html(data);
+            }
+          );
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <h1>Available Jobs</h1>
+    <form id="filter-form">
+      <label for="company">Company:</label>
+      <select name="company" id="company">
+        <option value="">All</option>
+        {% for company in companies %}
+        <option value="{{ company[0] }}">{{ company[1] }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="experience_level">Experience Level:</label>
+      <select name="experience_level" id="experience_level">
+        <option value="">All</option>
+        <option value="Entry Level">Entry Level</option>
+        <option value="Mid-Level">Mid-Level</option>
+        <option value="Senior Level">Senior Level</option>
+      </select>
+
+      <label for="industry">Industry:</label>
+      <select name="industry" id="industry">
+        <option value="">All</option>
+        {% for industry in industries %}
+        <option value="{{ industry }}">{{ industry }}</option>
+        {% endfor %}
+      </select>
+
+      <button type="submit">Filter</button>
+    </form>
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Company</th>
+          <th>Location</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in jobs %}
+        <tr>
+          <td>{{ job[1] }}</td>
+          <td>{{ job[2] }}</td>
+          <td>{{ job[3] }}, {{ job[4] }}, {{ job[5] }}</td>
+          <td class="actions">
+            <button class="apply-btn" data-jobid="{{ job[0] }}">Apply</button>
+            <button class="bookmark-btn" data-jobid="{{ job[0] }}">
+              Bookmark
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </body>
+</html>

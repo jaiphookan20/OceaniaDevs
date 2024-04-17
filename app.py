@@ -113,5 +113,45 @@ def add_seeker():
     else:
         return render_template('add_seeker.html')
 
+# Apply to a Job
+@app.route('/apply_to_job', methods=['POST'])
+def apply_to_job():
+    userid = request.form['userid']
+    jobid = request.form['jobid']
+
+    jobs_service = JobsService()
+    jobs_service.apply_to_job(userid, jobid)
+
+    return jsonify({"message": "Job application submitted successfully"})
+
+# Bookmark a job
+@app.route('/bookmark_job', methods=['POST'])
+def bookmark_job():
+    userid = request.form['userid']
+    jobid = request.form['jobid']
+
+    jobs_service = JobsService()
+    jobs_service.bookmark_job(userid, jobid)
+
+    return jsonify({"message": "Job bookmarked successfully"})
+
+@app.route('/available_jobs')
+def available_jobs():
+    jobs_service = JobsService()
+    jobs = jobs_service.get_available_jobs()
+    return render_template('available_jobs.html', jobs=jobs)
+
+# Route to filter jobs based on certain criteria:
+@app.route('/filter_jobs')
+def filter_jobs():
+    company_id = request.args.get('company')
+    experience_level = request.args.get('experience_level')
+    industry = request.args.get('industry')
+    
+    jobs_service = JobsService()
+    filtered_jobs = jobs_service.filter_jobs(company_id, experience_level, industry)
+    
+    return render_template('filtered_jobs.html', jobs=filtered_jobs)
+
 if __name__ == '__main__':
     app.run(debug=True)
