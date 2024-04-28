@@ -81,6 +81,8 @@ def setup_tables():
             )
         """)
         table_exists = cur.fetchone()[0]
+
+        # note: I created the state_enum and country_enum inside the db manually directly but have not added it here. Would need to:
         if not table_exists:
             cur.execute("""
                 CREATE TABLE seekers (

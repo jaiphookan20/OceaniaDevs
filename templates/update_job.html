@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Update Job Post</title>
+</head>
+<body>
+    <h1>Update Job Post</h1>
+    <form action="{{ url_for('job_bp.update_job', job_id=job.job_id) }}" method="post">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" value="{{ job.title }}" required><br>
+
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" required>{{ job.description }}</textarea><br>
+
+        <label for="specialization">Specialization:</label>
+        <input type="text" id="specialization" name="specialization" value="{{ job.specialization }}"><br>
+
+        <label for="job_type">Job Type:</label>
+        <select id="job_type" name="job_type">
+            <option value="premium" {% if job.job_type == 'premium' %}selected{% endif %}>Premium</option>
+            <option value="normal" {% if job.job_type == 'normal' %}selected{% endif %}>Normal</option>
+        </select><br>
+
+        <label for="industry">Industry:</label>
+        <select id="industry" name="industry">
+            <!-- Populate dynamically from the database or enum -->
+        </select><br>
+
+        <label for="salary_range">Salary Range:</label>
+        <select id="salary_range" name="salary_range">
+            <!-- Populate dynamically from the database or enum -->
+        </select><br>
+
+        <label for="salary_type">Salary Type:</label>
+        <select id="salary_type" name="salary_type">
+            <option value="Annual" {% if job.salary_type == 'Annual' %}selected{% endif %}>Annual</option>
+            <option value="Hourly" {% if job.salary_type == 'Hourly' %}selected{% endif %}>Hourly</option>
+        </select><br>
+
+        <label for="work_location">Work Location:</label>
+        <select id="work_location" name="work_location">
+            <option value="Office" {% if job.work_location == 'Office' %}selected{% endif %}>Office</option>
+            <option value="Remote" {% if job.work_location == 'Remote' %}selected{% endif %}>Remote</option>
+            <option value="Hybrid" {% if job.work_location == 'Hybrid' %}selected{% endif %}>Hybrid</option>
+        </select><br>
+
+        <label for="min_experience_years">Minimum Experience Years:</label>
+        <input type="number" id="min_experience_years" name="min_experience_years" value="{{ job.min_experience_years }}"><br>
+
+        <label for="experience_level">Experience Level:</label>
+        <input type="text" id="experience_level" name="experience_level" value="{{ job.experience_level }}"><br>
+
+        <label for="tech_stack">Tech Stack:</label>
+        <input type="text" id="tech_stack" name="tech_stack" value="{{ job.tech_stack }}"><br>
+
+        <label for="city">City:</label>
+        <input type="text" id="city" name="city" value="{{ job.city }}"><br>
+
+        <label for="state">State:</label>
+        <input type="text" id="state" name="state" value="{{ job.state }}"><br>
+
+        <label for="country">Country:</label>
+        <input type="text" id="country" name="country" value="{{ job.country }}"><br>
+
+        <label for="jobpost_url">Job Post URL:</label>
+        <input type="url" id="jobpost_url" name="jobpost_url" value="{{ job.jobpost_url }}"><br>
+
+        <input type="submit" value="Update Job">
+    </form>
+</body>
+</html>

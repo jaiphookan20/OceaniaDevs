@@ -4,13 +4,17 @@ class JobsService:
     def __init__(self):
         self.db = PostgresDB()
 
-    def add_job(self, recruiter_id, company_id, title, description, specialization, job_type, industry, salary_range, salary_type, work_location, min_experience_years, experience_level, tech_stack, city, state, country, jobpost_url, work_rights):
-        query = """
-            INSERT INTO jobs (recruiter_id, company_id, title, description, specialization, job_type, industry, salary_range, salary_type, work_location, min_experience_years, experience_level, tech_stack, city, state, country, jobpost_url, work_rights)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    # Retrieve a job post by its ID
+    def get_job_by_id(self, job_id):
         """
-        values = (recruiter_id, company_id, title, description, specialization, job_type, industry, salary_range, salary_type, work_location, min_experience_years, experience_level, tech_stack, city, state, country, jobpost_url, work_rights)
-        self.db.execute_query(query, values)
+        Retrieve a job post by its ID.
+        :param job_id: int - The ID of the job to fetch.
+        :return: job details as a dictionary
+        """
+        query = """
+            SELECT * FROM jobs WHERE job_id = %s;
+        """
+        return self.db.fetch_one(query, (job_id,))
     
     # Return the list of all Recruiters
     def get_recruiters(self):
@@ -26,6 +30,7 @@ class JobsService:
         """
         return self.db.fetch_data(query)
     
+    # Return the list of all available jobs along with job title, company name, job city, state, country
     def get_available_jobs(self):
         query = """
             SELECT j.job_id, j.title, c.name AS company_name, j.city, j.state, j.country
