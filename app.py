@@ -1,18 +1,12 @@
-from flask import Flask, jsonify, render_template, request, session, redirect, url_for, send_from_directory
+from flask import Flask, jsonify, render_template, request, session, redirect, url_for, send_from_directory, current_app
 from flask_session import Session
 from redis import Redis, RedisError
 from config import DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, SECRET_KEY
-from db_setup import setup_tables
-from service.jobs_service import JobsService
-from service.seeker_service import SeekerService
-from service.recruiter_service import RecruiterService
 import logging
 from routes.auth_routes import auth_blueprint
 from routes.job_routes import job_blueprint
 from routes.recruiter_routes import recruiter_blueprint
 from routes.seeker_routes import seeker_blueprint
-from flask_migrate import Migrate
-from flask_bcrypt import Bcrypt
 from extensions import db, bcrypt, migrate
 
 app = Flask(__name__)
@@ -42,12 +36,18 @@ Session(app)
 
 # Set up the database tables
 with app.app_context():
-    print(bcrypt.generate_password_hash('test').decode('utf-8'))
     db.create_all()  # This will create all tables based on your models
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    user_logged_in = 'user_id' in session
+    if (user_logged_in):
+        print("User in session")
+    else:
+        print("User not in session")
+    
+    session_type = current_app.config.get('SESSION_TYPE')
+    return render_template('index.html', user_logged_in=user_logged_in)
 
 # Serve CSS files from 'templates/css'
 @app.route('/<path:name>')
