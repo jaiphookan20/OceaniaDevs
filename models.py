@@ -25,7 +25,7 @@ class Seeker(db.Model):
 
     def verify_password(self, password):
         result = bcrypt.check_password_hash(self.password_hash, password)
-        print(f"Checking password: {password} against hash: {self.password_hash} - Result: {result}")
+        # print(f"Checking password: {password} against hash: {self.password_hash} - Result: {result}")
         return result
     
 class Company(db.Model):
@@ -94,4 +94,3 @@ class Bookmark(db.Model):
     datetimestamp = db.Column(db.DateTime, server_default=db.func.current_timestamp())
 
 
-print("Models loaded")

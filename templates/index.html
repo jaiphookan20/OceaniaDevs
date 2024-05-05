@@ -6,7 +6,8 @@
   </head>
   <body>
     <div class="container">
-      <h1>Welcome to the Job Board</h1>
+      <h1>Welcome to TechPort, the Largest Tech Careers Platform Down Under</h1>
+      {% if user_logged_in %}
       <div class="actions">
         <a href="/add_seeker">Add Seeker</a>
         <a href="/add_company">Add Company</a>
@@ -15,6 +16,12 @@
         <a href="/available_jobs">Job Feed</a>
         <a href="/logout">Logout</a>
       </div>
+      {% else %}
+      <div class="actions">
+        <a href="/login">Login</a>
+        <a href="/register">Register</a>
+      </div>
+      {% endif %}
     </div>
   </body>
 </html>
