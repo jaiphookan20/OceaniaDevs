@@ -76,20 +76,48 @@ class JobsService:
         db.session.commit()
 
     # Filter jobs based on
-    def filter_jobs(self, company_id=None, experience_level=None, industry=None):
+    def filter_jobs(self, company_id=None, experience_level=None, industry=None, job_type=None, salary_range=None,
+                work_location=None, min_experience_years=None, tech_stack=None, city=None, state=None,
+                country=None, expiry_date=None, work_rights=None, specialization=None):
         """
         Filter jobs based on different criteria.
         """
         query = Job.query.join(Company, Job.company_id == Company.company_id).add_columns(
-            Job.job_id, Job.title, Company.name.label('company_name'), Job.city, Job.state, Job.country)
-        
+        Job.job_id, Job.title, Company.name.label('company_name'), Job.city, Job.state, Job.country,
+        Job.work_location, Job.min_experience_years, Job.specialization, Job.experience_level
+    )
+
+        print("Inside filter_jobs service function")
+
         if company_id:
             query = query.filter(Job.company_id == company_id)
         if experience_level:
             query = query.filter(Job.experience_level == experience_level)
         if industry:
             query = query.filter(Job.industry == industry)
-
+        if job_type:
+            query = query.filter(Job.job_type == job_type)
+        if salary_range:
+            query = query.filter(Job.salary_range == salary_range)
+        if work_location:
+            query = query.filter(Job.work_location == work_location)
+        if min_experience_years is not None:
+            query = query.filter(Job.min_experience_years >= min_experience_years)
+        if tech_stack:
+            query = query.filter(Job.tech_stack.contains(tech_stack))
+        if city:
+            query = query.filter(Job.city == city)
+        if state:
+            query = query.filter(Job.state == state)
+        if country:
+            query = query.filter(Job.country == country)
+        if expiry_date:
+            query = query.filter(Job.expiry_date == expiry_date)
+        if work_rights:
+            query = query.filter(Job.work_rights.contains(work_rights))
+        if specialization:
+            query = query.filter(Job.specialization == specialization)
+        
         return query.all()
     
     def populate_job_feed(self, uid, pagination_key, offset):

@@ -57,13 +57,50 @@ def available_jobs():
     return render_template('available_jobs.html', jobs=jobs)
 
 # Route to filter jobs based on certain criteria:
-@job_blueprint.route('/filter_jobs')
+@job_blueprint.route('/filter_jobs', methods=['POST', 'GET'])
 def filter_jobs():
-    company_id = request.args.get('company')
-    experience_level = request.args.get('experience_level')
-    industry = request.args.get('industry')
-    
+    filter_data = request.json
+
+    company_id = filter_data.get('company')
+    experience_level = filter_data.get('experience_level')
+    industry = filter_data.get('industry')
+    job_type = filter_data.get('job_type')
+    salary_range = filter_data.get('salary_range')
+    # salary_type = filter_data.get('salary_type')
+    work_location = filter_data.get('work_location')
+    specialization = filter_data.get('specialization')
+    min_experience_years = filter_data.get('min_experience_years')
+    tech_stack = filter_data.get('tech_stack')
+    city = filter_data.get('city')
+    state = filter_data.get('state')
+    country = filter_data.get('country')
+    expiry_date = filter_data.get('expiry_date')
+    work_rights = filter_data.get('work_rights')
+    experience_level = filter_data.get('experience_level')
+
     jobs_service = JobsService()
-    filtered_jobs = jobs_service.filter_jobs(company_id, experience_level, industry)
+    filtered_jobs = jobs_service.filter_jobs(company_id, experience_level, industry, job_type, salary_range,
+                                             work_location, min_experience_years, tech_stack, city,
+                                             state, country, expiry_date, work_rights, specialization)
     
-    return render_template('filtered_jobs.html', jobs=filtered_jobs)
+    # Convert the filtered jobs to a list of dictionaries
+    jobs_data = [
+        {
+            'job_id': job.job_id,
+            'title': job.title,
+            'company_name': job.company_name,
+            'city': job.city,
+            'state': job.state,
+            'country': job.country,
+            'work_location': job.work_location,
+            'min_experience_years': job.min_experience_years,
+            'specialization': job.specialization,
+            'experience_level': job.experience_level
+        }
+        for job in filtered_jobs
+    ]
+
+    # Return the jobs data as a JSON response
+    return jsonify(jobs_data)
+
+    # return render_template('filtered_jobs.html', jobs=filtered_jobs)
