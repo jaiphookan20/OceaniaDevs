@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Seeker Registration</title>
+    <link rel="stylesheet" href="register.css" />
+  </head>
+  <body>
+    {% with messages = get_flashed_messages() %} {% if messages %}
+    <ul class="flashes">
+      {% for message in messages %}
+      <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %} {% endwith %}
+    <div class="container">
+      <h1>Seeker Registration</h1>
+      <form method="POST" action="{{ url_for('auth.register') }}">
+        <label for="first_name">First Name:</label>
+        <input type="text" name="first_name" required />
+
+        <label for="last_name">Last Name:</label>
+        <input type="text" name="last_name" required />
+
+        <label for="email">Email:</label>
+        <input type="text" name="email" required />
+
+        <label for="password">Password:</label>
+        <input type="password" name="password" required />
+
+        <label for="city">City:</label>
+        <input type="text" name="city" required />
+
+        <label for="state">State:</label>
+        <select name="state" required>
+          <option value="VIC">VIC</option>
+          <option value="NSW">NSW</option>
+          <option value="WA">WA</option>
+          <option value="NT">NT</option>
+          <option value="ACT">ACT</option>
+          <option value="QLD">QLD</option>
+          <option value="TAS">TAS</option>
+          <option value="SA">SA</option></select
+        ><br />
+        <br />
+        <label for="country">Country:</label>
+        <select name="country" required>
+          <option value="New Zealand">New Zealand</option>
+          <option value="Australia">Australia</option></select
+        ><br />
+
+        <button type="submit">Register</button>
+      </form>
+    </div>
+  </body>
+</html>

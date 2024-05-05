@@ -81,6 +81,8 @@ def setup_tables():
             )
         """)
         table_exists = cur.fetchone()[0]
+
+        # note: I created the state_enum and country_enum inside the db manually directly but have not added it here. Would need to:
         if not table_exists:
             cur.execute("""
                 CREATE TABLE seekers (
@@ -180,6 +182,46 @@ def setup_tables():
                 FOREIGN KEY (company_id) REFERENCES companies (company_id)
             )
         """)
+        
+        # Check for APPLICATIONS table:
+        cur.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_schema = 'public' AND table_name = 'applications'
+            )
+        """)
+        table_exists = cur.fetchone()[0]
+        if not table_exists:
+            cur.execute("""
+                CREATE TABLE applications (
+                    applicationid SERIAL PRIMARY KEY,
+                    userid INTEGER NOT NULL,
+                    jobid INTEGER NOT NULL,
+                    datetimestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (userid) REFERENCES seekers (uid),
+                    FOREIGN KEY (jobid) REFERENCES jobs (job_id)
+                )
+            """)
+
+        # Check for BOOKMARKS table:
+        cur.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_schema = 'public' AND table_name = 'bookmarks'
+            )
+        """)
+        table_exists = cur.fetchone()[0]
+        if not table_exists:
+            cur.execute("""
+                CREATE TABLE bookmarks (
+                    bookmarksid SERIAL PRIMARY KEY,
+                    userid INTEGER NOT NULL,
+                    jobid INTEGER NOT NULL,
+                    datetimestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (userid) REFERENCES seekers (uid),
+                    FOREIGN KEY (jobid) REFERENCES jobs (job_id)
+                )
+            """)
 
         conn.commit()
         print("Tables created successfully!")

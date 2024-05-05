@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Add Job</title>
+    <link rel="stylesheet" href="add_job.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Add Job</h1>
+      <form method="POST" action="/add_job">
+        <label for="recruiter_id">Recruiter:</label>
+        <select name="recruiter_id" required>
+          {% for recruiter in recruiters %}
+          <option value="{{ recruiter[0] }}">
+            {{ recruiter[1] }} {{ recruiter[2] }}
+          </option>
+          {% endfor %}
+        </select>
+
+        <label for="company_id">Company:</label>
+        <select name="company_id" required>
+          {% for company in companies %}
+          <option value="{{ company[0] }}">{{ company[1] }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="title">Title:</label>
+        <input type="text" name="title" required />
+
+        <label for="description">Description:</label>
+        <textarea name="description" required></textarea>
+
+        <label for="specialization">Specialization:</label>
+        <input type="text" name="specialization" required />
+
+        <label for="job_type">Job Type:</label>
+        <select name="job_type" required>
+          <option value="normal">Normal</option>
+          <option value="premium">Premium</option>
+        </select>
+
+        <label for="industry">Industry:</label>
+        <select name="industry" required>
+          <option value="Government">Government</option>
+          <option value="Banking & Financial Services">
+            Banking & Financial Services
+          </option>
+          <option value="Fashion">Fashion</option>
+          <option value="Mining">Mining</option>
+          <option value="Healthcare">Healthcare</option>
+          <option value="IT - Software Development">
+            IT - Software Development
+          </option>
+          <option value="IT - Data Analytics">IT - Data Analytics</option>
+          <option value="IT - Cybersecurity">IT - Cybersecurity</option>
+          <option value="IT - Cloud Computing">IT - Cloud Computing</option>
+          <option value="IT - Artificial Intelligence">
+            IT - Artificial Intelligence
+          </option>
+          <option value="Agriculture">Agriculture</option>
+          <option value="Automotive">Automotive</option>
+          <option value="Construction">Construction</option>
+          <option value="Education">Education</option>
+          <option value="Energy & Utilities">Energy & Utilities</option>
+          <option value="Entertainment">Entertainment</option>
+          <option value="Hospitality & Tourism">Hospitality & Tourism</option>
+          <option value="Legal">Legal</option>
+          <option value="Manufacturing">Manufacturing</option>
+          <option value="Marketing & Advertising">
+            Marketing & Advertising
+          </option>
+          <option value="Media & Communications">Media & Communications</option>
+          <option value="Non-Profit & NGO">Non-Profit & NGO</option>
+          <option value="Pharmaceuticals">Pharmaceuticals</option>
+          <option value="Real Estate">Real Estate</option>
+          <option value="Retail & Consumer Goods">
+            Retail & Consumer Goods
+          </option>
+          <option value="Telecommunications">Telecommunications</option>
+          <option value="Transportation & Logistics">
+            Transportation & Logistics
+          </option>
+        </select>
+
+        <label for="salary_range">Salary Range:</label>
+        <select name="salary_range" required>
+          <option value="20000 - 40000">20000 - 40000</option>
+          <option value="40000 - 60000">40000 - 60000</option>
+          <option value="60000 - 80000">60000 - 80000</option>
+          <option value="80000 - 100000">80000 - 100000</option>
+          <option value="100000 - 120000">100000 - 120000</option>
+          <option value="120000 - 140000">120000 - 140000</option>
+          <option value="140000 - 160000">140000 - 160000</option>
+          <option value="160000 - 180000">160000 - 180000</option>
+          <option value="180000 - 200000">180000 - 200000</option>
+          <option value="200000 - 220000">200000 - 220000</option>
+          <option value="220000 - 240000">220000 - 240000</option>
+          <option value="240000 - 260000">240000 - 260000</option>
+          <option value="260000+">260000+</option>
+        </select>
+
+        <label for="salary_type">Salary Type:</label>
+        <select name="salary_type" required>
+          <option value="Annual">Annual</option>
+          <option value="Hourly">Hourly</option>
+        </select>
+
+        <label for="work_location">Work Location:</label>
+        <select name="work_location" required>
+          <option value="Office">Office</option>
+          <option value="Remote">Remote</option>
+          <option value="Hybrid">Hybrid</option>
+        </select>
+
+        <label for="min_experience_years">Minimum Experience Years:</label>
+        <input type="number" name="min_experience_years" required />
+
+        <label for="experience_level">Experience Level:</label>
+        <select name="experience_level" required>
+          <option value="Entry Level">Entry Level</option>
+          <option value="Associate">Associate</option>
+          <option value="Mid-Senior Level">Mid-Senior Level</option>
+          <option value="Director">Director</option>
+          <option value="Executive">Executive</option>
+        </select>
+
+        <label for="tech_stack">Tech Stack:</label>
+        <input type="text" name="tech_stack" required />
+
+        <label for="city">City:</label>
+        <input type="text" name="city" required />
+
+        <label for="state">State:</label>
+        <input type="text" name="state" required />
+
+        <label for="country">Country:</label>
+        <input type="text" name="country" required />
+
+        <label for="jobpost_url">Job Post URL:</label>
+        <input type="url" name="jobpost_url" required />
+
+        <label for="work_rights">Work Rights:</label>
+        <select name="work_rights" multiple required>
+          <option value="Australian Citizen">Australian Citizen</option>
+          <option value="Australian Permanent Resident">
+            Australian Permanent Resident
+          </option>
+          <option value="New Zealand Citizen">New Zealand Citizen</option>
+          <option value="New Zealand Permanent Resident">
+            New Zealand Permanent Resident
+          </option>
+        </select>
+
+        <input type="submit" value="Add Job" />
+      </form>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Available Jobs</title>
+    <link rel="stylesheet" href="available_jobs.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        // Function to handle form submission for filtering
+        $("#filter-form").submit(function (event) {
+          event.preventDefault();
+          var company = $("#company").val();
+          var experience_level = $("#experience_level").val();
+          var industry = $("#industry").val();
+
+          $.get(
+            "/filter_jobs",
+            {
+              company: company,
+              experience_level: experience_level,
+              industry: industry,
+            },
+            function (data) {
+              $("tbody").html(data);
+            }
+          );
+        });
+
+        /* Function to handle Apply button click */
+        $(document).on("click", ".apply-btn", function () {
+          var jobid = $(this).data("jobid");
+          console.log("Applied jobid: " + jobid);
+          $.ajax({
+            url: "/apply_to_job",
+            type: "POST",
+            data: JSON.stringify({ jobid: jobid }),
+            contentType: "application/json",
+            success: function (response) {
+              alert(response.message);
+            },
+            error: function (xhr, status, error) {
+              console.log("Error:", error);
+            },
+          });
+        });
+
+        /* Function to handle Bookmark button click */
+        $(document).on("click", ".bookmark-btn", function () {
+          var jobid = $(this).data("jobid");
+          console.log("Bookmarked jobid: " + jobid);
+          $.ajax({
+            url: "/bookmark_job",
+            type: "POST",
+            data: JSON.stringify({ jobid: jobid }),
+            contentType: "application/json",
+            success: function (response) {
+              alert(response.message);
+            },
+            error: function (xhr, status, error) {
+              console.log("Error:", error);
+            },
+          });
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <h1>Available Jobs</h1>
+    <form id="filter-form">
+      <label for="company">Company:</label>
+      <select name="company" id="company">
+        <option value="">All</option>
+        {% for company in companies %}
+        <option value="{{ company[0] }}">{{ company[1] }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="experience_level">Experience Level:</label>
+      <select name="experience_level" id="experience_level">
+        <option value="">All</option>
+        <option value="Entry Level">Entry Level</option>
+        <option value="Associate">Associate</option>
+        <option value="Mid-Senior Level">Mid-Level</option>
+        <option value="Senior Level">Senior Level</option>
+      </select>
+
+      <label for="industry">Industry:</label>
+      <select name="industry" id="industry">
+        <option value="">All</option>
+        {% for industry in industries %}
+        <option value="{{ industry }}">{{ industry }}</option>
+        {% endfor %}
+      </select>
+
+      <button type="submit">Filter</button>
+    </form>
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Company</th>
+          <th>Location</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in jobs %}
+        <tr>
+          <td>{{ job[1] }}</td>
+          <!-- job.title -->
+          <td>{{ job[2] }}</td>
+          <!-- company_name -->
+          <td>{{ job[3] }}, {{ job[4] }}, {{ job[5] }}</td>
+          <!-- city, state, country -->
+          <td class="actions">
+            <button class="apply-btn" data-jobid="{{ job[1] }}">Apply</button>
+            <button class="bookmark-btn" data-jobid="{{ job[1] }}">
+              Bookmark
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </body>
+</html>
