@@ -18,25 +18,27 @@ def apply_to_job():
     else:
         print('user in session')
         
-    job_id = request.json['jobid']
-    if type(job_id) is not int:
-        print("Invalid job id: ")
-        print(type(job_id))
-        return jsonify({"error": "Invalid job ID"}), 400
-    
-    seeker_uid = session['user']['uid']
-    
-    if seeker_uid:
-        userid = seeker_uid
-        print(f"userid: {userid}")
-    else:
-        return jsonify({"error": "No UserId found"}), 400
-    
-    print("job_id: ", (job_id))
-
-    jobs_service = JobsService()
-    jobs_service.apply_to_job(userid, (job_id))
-    return jsonify({"message": "Job application submitted successfully"})
+        job_id = request.json['jobid']
+        if type(job_id) is not int:
+            print("Invalid job id: ")
+            print(type(job_id))
+            return jsonify({"error": "Invalid job ID"}), 400
+        
+        if session['user']['type'] == "recruiter":
+            print("Unauthorized access: Cannot Apply to Job as a Recruiter")
+            return jsonify({"error": "Unauthorized access"}), 401
+        
+        else:  
+            seeker_id = session['user']['uid'];  
+            if seeker_id is None:
+                return jsonify({"error": "No UserId found"}), 400
+            else:
+                userid = seeker_id
+                print(f"userid: {userid}")
+                print("job_id: ", (job_id))
+                jobs_service = JobsService()
+                jobs_service.apply_to_job(userid, (job_id))
+                return jsonify({"message": "Job application submitted successfully"})
 
 # Bookmark Job Route:
 @job_blueprint.route('/bookmark_job', methods=['GET', 'POST'])
@@ -47,31 +49,29 @@ def bookmark_job():
         return jsonify({"error": "Unauthorized access"}), 401
     else:
         print('user in session')
-    
-    job_id = request.json['jobid']
-    print("Bookmaked job_id", job_id)
-    if type(job_id) is not int:
-        print("Invalid job id: ")
-        print(type(job_id))
-        return jsonify({"error": "Invalid job ID"}), 400
-    
-
-    user_email = session.get('user').get('userinfo').get('email')
-    if user_email is not None:
-        user = Seeker.query.filter_by(email=user_email).first()
-    else:
-        return jsonify({"error": "No User found with that Email"}), 400
-    
-    if user.uid:
-        userid = user.uid
-        print(f"userid: {userid}")
-    else:
-        return jsonify({"error": "No UserId found"}), 400
-
-    jobs_service = JobsService()
-    jobs_service.bookmark_job(userid, job_id)
-    return jsonify({"message": "Job bookmarked successfully"})
-
+        
+        job_id = request.json['jobid']
+        if type(job_id) is not int:
+            print("Invalid job id: ")
+            print(type(job_id))
+            return jsonify({"error": "Invalid job ID"}), 400
+        
+        if session['user']['type'] == "recruiter":
+            print("Unauthorized access: Cannot Bookmark Job as a Recruiter")
+            return jsonify({"error": "Unauthorized access"}), 401
+        
+        else:  
+            seeker_id = session['user']['uid'];  
+            if seeker_id is None:
+                return jsonify({"error": "No UserId found"}), 400
+            else:
+                userid = seeker_id
+                print(f"userid: {userid}")
+                print("job_id: ", (job_id))
+                jobs_service = JobsService()
+                jobs_service.bookmark_job(userid, (job_id))
+                return jsonify({"message": "Job Bookmaked successfully"})
+            
 # Get all available jobs Route
 @job_blueprint.route('/available_jobs')
 def available_jobs():
@@ -84,7 +84,6 @@ def available_jobs():
 @job_blueprint.route('/filter_jobs', methods=['POST', 'GET'])
 def filter_jobs():
     filter_data = request.json
-
     company_id = filter_data.get('company')
     experience_level = filter_data.get('experience_level')
     industry = filter_data.get('industry')

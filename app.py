@@ -51,6 +51,8 @@ def home():
     user_logged_in = 'user' in session
     if (user_logged_in):
         print(session.get('user').get("userinfo").get('name'))
+        user_type = session['user']['type'] in session
+        print(f"User Type: {session['user']['type']}")
         print("User in session")
     else:
         print("User not in session")

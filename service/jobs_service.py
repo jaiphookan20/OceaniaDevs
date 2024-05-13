@@ -27,8 +27,14 @@ class JobsService:
         :return: List of Company objects
         """
         return Company.query.with_entities(Company.company_id, Company.name).all()
-
     
+    def get_company_by_id(self, company_id):
+        """
+        Return a Company object by the id.
+        :return: Return a Company object
+        """
+        return Company.query.filter_by(company_id=company_id).first()
+
     # Return the list of all available jobs along with job title, company name, job city, state, country
     def get_available_jobs(self):
         """
@@ -120,6 +126,5 @@ class JobsService:
         
         return query.all()
     
-    def populate_job_feed(self, uid, pagination_key, offset):
-        # Implement the logic to populate the job feed based on user preferences
-        pass
+    
+

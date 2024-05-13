@@ -73,17 +73,29 @@ class RecruiterService:
         db.session.add(new_company)
         db.session.commit()
 
+    # Retrieve all job posts by a Recruiter
+    def get_all_jobs_by_recruiter(self, recruiter_id):
+        """
+        Retrieve all job posts posted by a recruiter.
+        :param recruiter_id: int - The ID of the recruiter to fetch.
+        """
+        return Job.query.filter_by(recruiter_id=recruiter_id).all()
+
     # Update a job post with given updates
-    def update_job(self, job_id, updates):
+    def update_job(self, job_id, data):
         """
         Update a job post with given updates.
         :param job_id: int - The ID of the job to be updated.
-        :param updates: dict - A dictionary containing the fields to update with their new values.
+        :param data: dict - A dictionary containing the fields to update with their new values.
         """
         job = Job.query.get(job_id)
-        if job:
-            for key, value in updates.items():
-                setattr(job, key, value)
-            db.session.commit()
+        if not job:
+            return None
+        
+        for key, value in data.items():
+            setattr(job, key, value)
+        
+        db.session.commit()
+        return job
 
 

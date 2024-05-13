@@ -5,7 +5,7 @@ from models import Seeker
 seeker_blueprint = Blueprint('seeker', __name__)
 
 # Add Job Seeker Route
-@seeker_blueprint.route('/add_seeker', methods=['GET', 'POST'])
+@seeker_blueprint.route('/update_seeker', methods=['GET', 'POST'])
 def update_seeker():
     if request.method == 'POST':
         if 'user' not in session:

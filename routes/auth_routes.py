@@ -35,34 +35,6 @@ oauth.register(
     },
     server_metadata_url=f'https://{auth0_domain}/.well-known/openid-configuration'
 )
-
-# @auth_blueprint.route("/callback", methods=["GET", "POST"])
-# def callback():
-#     """
-#     Callback redirect from Auth0
-#     """
-#     token = oauth.auth0.authorize_access_token()
-#     session["user"] = token
-
-#     """ Get the email from the user's session """
-#     email = session.get('user').get('userinfo').get('email')
-
-#     """ Check if a Seeker with the same email already exists """
-#     existing_seeker = Seeker.query.filter_by(email=email).first()
-    
-#     if not existing_seeker:
-#         """ If no Seeker with the same email exists, create a new one """
-#         new_seeker = Seeker(email=email)
-#         db.session.add(new_seeker)
-#         db.session.commit()
-
-#     seeker = existing_seeker or Seeker.query.filter_by(email=email).first()
-#     uid = seeker.uid
-#     # Store the uid in the session object
-#     session["user"]["uid"] = uid
-
-#     return redirect(url_for('home'))
-
 @auth_blueprint.route("/callback", methods=["GET", "POST"])
 def callback():
     """
@@ -98,9 +70,6 @@ def callback():
             db.session.add(new_seeker)
             db.session.commit()
 
-    # user = Recruiter.query.filter_by(email=email).first() if registration_type == 'recruiter' else Seeker.query.filter_by(email=email).first()
-    # uid = user.uid
-
     if registration_type == 'recruiter':
         recruiter = Recruiter.query.filter_by(email=email).first()
         recruiter_id = recruiter.recruiter_id
@@ -117,25 +86,6 @@ def callback():
     
     return redirect(url_for('home'))
 
-
-# @auth_blueprint.route("/login")
-# def login():
-#     """
-#     Redirects the user to the Auth0 Universal Login (https://auth0.com/docs/authenticate/login/auth0-universal-login)
-#     """
-#     return oauth.auth0.authorize_redirect(
-#         redirect_uri=url_for("auth.callback", _external=True)
-#     )
-
-# @auth_blueprint.route("/register")
-# def signup():
-#     """
-#     Redirects the user to the Auth0 Universal Login (https://auth0.com/docs/authenticate/login/auth0-universal-login)
-#     """
-#     return oauth.auth0.authorize_redirect(
-#         redirect_uri=url_for("auth.callback", _external=True),
-#         screen_hint="signup"
-#     )
 
 @auth_blueprint.route("/login", defaults={'type': 'seeker'})
 @auth_blueprint.route("/login/<string:type>")
