@@ -1,24 +1,38 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, current_app
 from service.seeker_service import SeekerService
+from models import Seeker
 from service.jobs_service import JobsService
+from auth.decorators import requires_auth
+from flask_cors import CORS
 
-job_blueprint = Blueprint('jobs', __name__)
+job_blueprint = Blueprint('job', __name__)
+cors = CORS(job_blueprint)
 
 # Apply to Job Route:
 @job_blueprint.route('/apply_to_job', methods=['GET', 'POST'])
+# @requires_auth
 def apply_to_job():
-    if 'user_id' not in session:
+    if 'user' not in session:
         print('user not in session!')
         return jsonify({"error": "Unauthorized access"}), 401
-
+    else:
+        print('user in session')
+        
     job_id = request.json['jobid']
     if type(job_id) is not int:
         print("Invalid job id: ")
         print(type(job_id))
         return jsonify({"error": "Invalid job ID"}), 400
-
+    
+    seeker_uid = session['user']['uid']
+    
+    if seeker_uid:
+        userid = seeker_uid
+        print(f"userid: {userid}")
+    else:
+        return jsonify({"error": "No UserId found"}), 400
+    
     print("job_id: ", (job_id))
-    userid = session['user_id']
 
     jobs_service = JobsService()
     jobs_service.apply_to_job(userid, (job_id))
@@ -26,10 +40,13 @@ def apply_to_job():
 
 # Bookmark Job Route:
 @job_blueprint.route('/bookmark_job', methods=['GET', 'POST'])
+# @requires_auth
 def bookmark_job():
-    if 'user_id' not in session:
+    if 'user' not in session:
         print('user not in session!')
         return jsonify({"error": "Unauthorized access"}), 401
+    else:
+        print('user in session')
     
     job_id = request.json['jobid']
     print("Bookmaked job_id", job_id)
@@ -38,7 +55,18 @@ def bookmark_job():
         print(type(job_id))
         return jsonify({"error": "Invalid job ID"}), 400
     
-    userid = session['user_id']
+
+    user_email = session.get('user').get('userinfo').get('email')
+    if user_email is not None:
+        user = Seeker.query.filter_by(email=user_email).first()
+    else:
+        return jsonify({"error": "No User found with that Email"}), 400
+    
+    if user.uid:
+        userid = user.uid
+        print(f"userid: {userid}")
+    else:
+        return jsonify({"error": "No UserId found"}), 400
 
     jobs_service = JobsService()
     jobs_service.bookmark_job(userid, job_id)
@@ -47,10 +75,6 @@ def bookmark_job():
 # Get all available jobs Route
 @job_blueprint.route('/available_jobs')
 def available_jobs():
-    # session_type = current_app.config.get('SESSION_TYPE')
-    # # print("AVAILABLE JOBS session_type: ", session_type)
-    # # print('Available Jobs Session after login:', session, "session user_id:", session['user_id'], "user id in session:", "user_id" in session)
-    # # print("Available Jobs: ", session.get('user_id')["email"])
     jobs_service = JobsService()
     jobs = jobs_service.get_available_jobs()
     print(f"Available jobs: {jobs}")

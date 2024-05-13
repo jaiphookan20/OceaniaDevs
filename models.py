@@ -6,13 +6,13 @@ class Seeker(db.Model):
     __tablename__ = 'seekers'
 
     uid = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String(255), nullable=False)
-    last_name = db.Column(db.String(255), nullable=False)
+    first_name = db.Column(db.String(255))
+    last_name = db.Column(db.String(255))
     email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
-    city = db.Column(db.String(255), nullable=False)
-    state = db.Column(db.Enum('VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA', name='state_enum'), nullable=False)
-    country = db.Column(db.Enum('Australia', 'New Zealand', name='country_enum'), nullable=False)
+    city = db.Column(db.String(255))
+    state = db.Column(db.Enum('VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA', name='state_enum'))
+    country = db.Column(db.Enum('Australia', 'New Zealand', name='country_enum'))
     datetimestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
 
     @property
@@ -43,10 +43,10 @@ class Recruiter(db.Model):
     __tablename__ = 'recruiters'
     recruiter_id = db.Column(db.Integer, primary_key=True)
     company_id = db.Column(db.Integer, db.ForeignKey('companies.company_id'))
-    first_name = db.Column(db.String(255), nullable=False)
-    last_name = db.Column(db.String(255), nullable=False)
+    first_name = db.Column(db.String(255))
+    last_name = db.Column(db.String(255))
     email = db.Column(db.String(255), nullable=False)
-    password = db.Column(db.String(255), nullable=False)
+    password = db.Column(db.String(255))
     city = db.Column(db.String(255))
     state = db.Column(db.String(255))
     country = db.Column(db.String(255))

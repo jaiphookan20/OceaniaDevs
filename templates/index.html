@@ -6,7 +6,11 @@
   </head>
   <body>
     <div class="container">
-      <h1>Welcome to TechPort, the Largest Tech Careers Platform Down Under</h1>
+      <link rel="shortcut icon" href="/images/logo.png" type="image/x-icon" />
+      <h1 style="color: chartreuse">OceaniaDevs</h1>
+      <h2 style="margin-left: 130px">
+        The Largest Tech Careers Platform Down Under
+      </h2>
       {% if user_logged_in %}
       <div class="actions">
         <a href="/add_seeker">Add Seeker</a>
@@ -14,12 +18,19 @@
         <a href="/add_recruiter">Sign Up as a Recruiter</a>
         <a href="/add_job">Add a Job</a>
         <a href="/available_jobs">Job Feed</a>
-        <a href="/logout">Logout</a>
+      </div>
+      <div
+        class="actions"
+        style="display: flex; flex-direction: column; align-items: center"
+      >
+        <h3>Welcome, {{session.get('user').get("userinfo").get('name')}}</h3>
+        <a href="/logout" style="width: fit-content">Logout</a>
       </div>
       {% else %}
       <div class="actions">
         <a href="/login">Login</a>
         <a href="/register">Register</a>
+        <a href="/available_jobs">Job Feed</a>
       </div>
       {% endif %}
     </div>

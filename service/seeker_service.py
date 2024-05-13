@@ -1,13 +1,26 @@
-from database import PostgresDB
-
+from models import Seeker
+from flask import session
+from extensions import db
 class SeekerService:
-    def __init__(self):
-        self.db = PostgresDB()
 
-    def add_seeker(self, first_name, last_name, email, city, state, country):
-        query = """
-            INSERT INTO seekers (first_name, last_name, email, city, state, country)
-            VALUES (%s, %s, %s, %s, %s, %s)
+    def update_seeker(self, first_name, last_name, city, state, country):
         """
-        values = (first_name, last_name, email, city, state, country)
-        self.db.execute_query(query, values)
+        Update Seeker Details in the Seekers table
+        """
+        # Extract Logged In User's Email from Session
+        user_email = session.get('user').get('userinfo').get('email')
+        # Extract Seeker Row to Update using Email
+        seeker = Seeker.query.filter_by(email=user_email).first()
+        
+        if seeker:
+            seeker.first_name = first_name
+            seeker.last_name = last_name
+            seeker.city = city
+            seeker.state = state
+            seeker.country = country
+            db.session.commit()
+            print('Seeker Details Updated Successfully!')
+            return True
+        print('No Seeker Found with provided credentials')
+        return False
+    
