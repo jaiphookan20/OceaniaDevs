@@ -1,56 +1,80 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, current_app
 from service.seeker_service import SeekerService
+from models import Seeker
 from service.jobs_service import JobsService
+from auth.decorators import requires_auth
+from flask_cors import CORS
 
-job_blueprint = Blueprint('jobs', __name__)
+job_blueprint = Blueprint('job', __name__)
+cors = CORS(job_blueprint)
 
 # Apply to Job Route:
 @job_blueprint.route('/apply_to_job', methods=['GET', 'POST'])
+@requires_auth
 def apply_to_job():
-    if 'user_id' not in session:
+    if 'user' not in session:
         print('user not in session!')
-        return jsonify({"error": "Unauthorized access"}), 401
-
-    job_id = request.json['jobid']
-    if type(job_id) is not int:
-        print("Invalid job id: ")
-        print(type(job_id))
-        return jsonify({"error": "Invalid job ID"}), 400
-
-    print("job_id: ", (job_id))
-    userid = session['user_id']
-
-    jobs_service = JobsService()
-    jobs_service.apply_to_job(userid, (job_id))
-    return jsonify({"message": "Job application submitted successfully"})
+        return jsonify({"message": "Unauthorized access"}), 401
+    else:
+        print('user in session')
+        
+        job_id = request.json['jobid']
+        if type(job_id) is not int:
+            print("Invalid job id: ")
+            print(type(job_id))
+            return jsonify({"error": "Invalid job ID"}), 400
+        
+        if session['user']['type'] == "recruiter":
+            print("Unauthorized access: Cannot Apply to Job as a Recruiter")
+            return jsonify({"error": "Unauthorized access"}), 401
+        
+        else:  
+            seeker_id = session['user']['uid'];  
+            if seeker_id is None:
+                return jsonify({"error": "No UserId found"}), 400
+            else:
+                userid = seeker_id
+                print(f"userid: {userid}")
+                print("job_id: ", (job_id))
+                jobs_service = JobsService()
+                jobs_service.apply_to_job(userid, (job_id))
+                return jsonify({"message": "Job application submitted successfully"})
 
 # Bookmark Job Route:
 @job_blueprint.route('/bookmark_job', methods=['GET', 'POST'])
+# @requires_auth
 def bookmark_job():
-    if 'user_id' not in session:
+    if 'user' not in session:
         print('user not in session!')
         return jsonify({"error": "Unauthorized access"}), 401
-    
-    job_id = request.json['jobid']
-    print("Bookmaked job_id", job_id)
-    if type(job_id) is not int:
-        print("Invalid job id: ")
-        print(type(job_id))
-        return jsonify({"error": "Invalid job ID"}), 400
-    
-    userid = session['user_id']
-
-    jobs_service = JobsService()
-    jobs_service.bookmark_job(userid, job_id)
-    return jsonify({"message": "Job bookmarked successfully"})
-
+    else:
+        print('user in session')
+        
+        job_id = request.json['jobid']
+        if type(job_id) is not int:
+            print("Invalid job id: ")
+            print(type(job_id))
+            return jsonify({"error": "Invalid job ID"}), 400
+        
+        if session['user']['type'] == "recruiter":
+            print("Unauthorized access: Cannot Bookmark Job as a Recruiter")
+            return jsonify({"error": "Unauthorized access"}), 401
+        
+        else:  
+            seeker_id = session['user']['uid'];  
+            if seeker_id is None:
+                return jsonify({"error": "No UserId found"}), 400
+            else:
+                userid = seeker_id
+                print(f"userid: {userid}")
+                print("job_id: ", (job_id))
+                jobs_service = JobsService()
+                jobs_service.bookmark_job(userid, (job_id))
+                return jsonify({"message": "Job Bookmaked successfully"})
+            
 # Get all available jobs Route
 @job_blueprint.route('/available_jobs')
 def available_jobs():
-    # session_type = current_app.config.get('SESSION_TYPE')
-    # # print("AVAILABLE JOBS session_type: ", session_type)
-    # # print('Available Jobs Session after login:', session, "session user_id:", session['user_id'], "user id in session:", "user_id" in session)
-    # # print("Available Jobs: ", session.get('user_id')["email"])
     jobs_service = JobsService()
     jobs = jobs_service.get_available_jobs()
     print(f"Available jobs: {jobs}")
@@ -60,7 +84,6 @@ def available_jobs():
 @job_blueprint.route('/filter_jobs', methods=['POST', 'GET'])
 def filter_jobs():
     filter_data = request.json
-
     company_id = filter_data.get('company')
     experience_level = filter_data.get('experience_level')
     industry = filter_data.get('industry')

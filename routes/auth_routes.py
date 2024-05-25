@@ -1,80 +1,119 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app
 from extensions import bcrypt, db
-from models import Seeker
+from models import Seeker, Recruiter
+from authlib.integrations.flask_client import OAuth
+from urllib.parse import quote_plus, urlencode
+
+
+from configparser import ConfigParser
 
 auth_blueprint = Blueprint('auth', __name__)
 
-# Registration route:
-@auth_blueprint.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        # Get form data
-        first_name = request.form.get('first_name').strip()
-        last_name = request.form.get('last_name').strip()
-        email = request.form.get('email').strip()
-        password = request.form.get('password')
-        city = request.form.get('city').strip()
-        state = request.form['state'].strip()
-        country = request.form['country'].strip()
+# Initialize the ConfigParser
+config_parser = ConfigParser()
 
-        # Check if user already exists
-        user_exists = Seeker.query.filter_by(email=email).first()
-        if user_exists:
-            flash('Email already registered.')
-            return redirect(url_for('auth.register'))
-        
-        # Hash the password and print it for verification
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        # print(f"Generated hash for password '{password}': {hashed_password}")
+# Read the configuration from the .config file
+config_parser.read('.config')
 
-        # Create a new seeker object
-        new_seeker = Seeker(
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            password_hash=hashed_password,  # Save the hashed password
-            city=city,
-            state=state,
-            country=country
-        )
-        db.session.add(new_seeker)
-        db.session.commit()
+# Access AUTH0 settings
+auth0_client_id = config_parser.get('AUTH0', 'CLIENT_ID')
+auth0_client_secret = config_parser.get('AUTH0', 'CLIENT_SECRET')
+auth0_domain = config_parser.get('AUTH0', 'DOMAIN')
 
-        flash('Registration successful. Please log in.')
-        return redirect(url_for('auth.login'))
+
+# Access WEBAPP settings
+webapp_secret_key = config_parser.get('WEBAPP', 'SECRET_KEY')
+
+# Initialize OAuth
+oauth = OAuth(current_app)
+oauth.register(
+    "auth0",
+    client_id=auth0_client_id,
+    client_secret=auth0_client_secret,
+    client_kwargs={
+        "scope": "openid profile email",
+    },
+    server_metadata_url=f'https://{auth0_domain}/.well-known/openid-configuration'
+)
+@auth_blueprint.route("/callback", methods=["GET", "POST"])
+def callback():
+    """
+    Callback redirect from Auth0
+    """
+    token = oauth.auth0.authorize_access_token()
+    session["user"] = token
+
+    """ Get the email from the user's session """
+    email = session.get('user').get('userinfo').get('email')
+
+    # Check if the user came from the seeker or recruiter registration route
+    registration_type = request.args.get('type')
+
+    if registration_type == 'recruiter':
+        """ Check if a Recruiter with the same email already exists """
+        existing_recruiter = Recruiter.query.filter_by(email=email).first()
+        print("Existing Recruiter Logged In")
+        if not existing_recruiter:
+            """ If no Recruiter with the same email exists, create a new one """
+            print("New Recruiter Created")
+            new_recruiter = Recruiter(email=email)
+            db.session.add(new_recruiter)
+            db.session.commit()
     else:
-        return render_template('register.html')
+        """ Check if a Seeker with the same email already exists """
+        existing_seeker = Seeker.query.filter_by(email=email).first()
+        print("Existing Seeker Logged In")
+        if not existing_seeker:
+            """ If no Seeker with the same email exists, create a new one """
+            print("New Seeker Created")
+            new_seeker = Seeker(email=email)
+            db.session.add(new_seeker)
+            db.session.commit()
 
-# Login route for seekers:
-@auth_blueprint.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+    if registration_type == 'recruiter':
+        recruiter = Recruiter.query.filter_by(email=email).first()
+        recruiter_id = recruiter.recruiter_id
+        print(f"Recruiter ID: {recruiter_id}")
+        session["user"]["type"] = "recruiter"
+        session["user"]["recruiter_id"] = recruiter_id
+    else:
         seeker = Seeker.query.filter_by(email=email).first()
+        uid=seeker.uid
+        print(f"Seeker ID: ${seeker.uid}")
+        # Store the uid and type=seeker in the session object
+        session["user"]["type"] = "seeker"
+        session["user"]["uid"] = uid
+    
+    return redirect(url_for('home'))
 
-        if seeker:
-            if seeker.verify_password(password):
-                # session['user_id'] = {"uid": seeker.uid, "email": seeker.email}
-                session['user_id'] = seeker.uid
-                # print('Session after login:', session, "session user_id:", session['user_id'], "user id in session:", "user_id" in session)
-                # print(session.get('user_id')["email"])
-                # session_type = current_app.config.get('SESSION_TYPE')
-                # print("session_type: ", session_type)
-                return redirect(url_for('home'))  # Redirect to a home page instead of rendering
-            else:
-                flash('Invalid password. Please try again.')
-        else:
-            flash('No account found with that email.')
 
-        return redirect(url_for('auth.login'))  # Always redirect after form submission
-    else:  # If it's a GET request, render the login page
-        return render_template('login.html')
+@auth_blueprint.route("/login", defaults={'type': 'seeker'})
+@auth_blueprint.route("/login/<string:type>")
+def login(type):
+    """
+    Redirects the user to the Auth0 Universal Login (https://auth0.com/docs/authenticate/login/auth0-universal-login)
+    """
+    return oauth.auth0.authorize_redirect(
+        redirect_uri=url_for("auth.callback", _external=True) + f'?type={type}',
+        screen_hint="login"
+    )
 
-# Logout route for seekers:
-@auth_blueprint.route('/logout')
+@auth_blueprint.route("/register", defaults={'type': 'seeker'})
+@auth_blueprint.route("/register/<string:type>")
+def signup(type):
+    """
+    Redirects the user to the Auth0 Universal Login (https://auth0.com/docs/authenticate/login/auth0-universal-login)
+    """
+    return oauth.auth0.authorize_redirect(
+        redirect_uri=url_for("auth.callback", _external=True) + f'?type={type}',
+        screen_hint="signup"
+    )
+
+@auth_blueprint.route("/logout")
 def logout():
-    print('Current session before clearing:', session)
+    """
+    Logs the user out of the session and from the Auth0 tenant
+    """
     session.clear()
-    print('Session after clearing:', session)
-    return redirect(url_for('auth.login'))
+    # From Auth0 logout - add in code to track/inform Auth0 of logout
+    return redirect(url_for('home'))

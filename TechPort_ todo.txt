@@ -1,0 +1,129 @@
+#TechPort:#
+
+
+1. Fix Job Apply API + Bookmark API: DONE:
+
+&nbsp; &nbsp; a)&nbsp; Show Applied Jobs for the Logged in User
+
+&nbsp; &nbsp; b) Show Bookmarked jobs for the Logged in User
+
+2. Test Filter API on POSTMAN - DONE
+
+
+3. Auth0 Integration: DONE
+
+a) Protect the Views: Running into CORS issues
+
+
+
+
+Today:
+
+Differential Register/Login routes for Recruiters or Seekers - which accordingly stores seeker_id or recruiter_id in respective tables&nbsp;
+
+Conditional Rendering of Links/Buttons depending upon whether logged in user is a Recruiter or Seeker:
+
+Dashboard where Recruiter can see all their own Job Posts
+
+Update Job Post
+
+
+
+
+
+
+
+<u>Schema Integeration/Changes:</u>
+
+Change schema as per Aadi's instructions -&gt; Either base it all on 'email' as PK to identify whether logged in user is a recruiter or job_seeker
+
+OR
+
+create another table 'users' which will have a PK which will server as a FK in the seekers + recruiters tables
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Job Feed available for all users.
+
+
+Job seeker prompted to login/signup on clicking apply button
+
+'Post a Job' link -&gt; will prompt recruiter/company to register/login
+
+
+
+
+Separate Login for Job Seeker &amp; Recruiters:
+
+
+
+
+What are all the APIs needed?
+
+1. Populate Job Feed
+
+2. Apply to Job Post
+
+3. Bookmark/Save Job Post
+
+4. Create/Save Job Seeker Profile ie the virtual Resume to store in the DB
+
+5. Open Job Post -&gt; Clicking on the job to redirect to a window with the job details
+
+6. Filter on basis of 'technology', 'years of experience', ''
+
+7. Notifications?
+
+8. Stripe API
+
+
+
