@@ -56,6 +56,7 @@ def home():
         print("User in session")
     else:
         print("User not in session")
+        # return jsonify({"message": "Unauthorized access"}), 401
     return render_template('index.html', user_logged_in=user_logged_in)
 
 # Serve CSS files from 'templates/css'

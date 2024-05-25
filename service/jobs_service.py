@@ -125,6 +125,3 @@ class JobsService:
             query = query.filter(Job.specialization == specialization)
         
         return query.all()
-    
-    
-

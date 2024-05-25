@@ -36,9 +36,12 @@
             data: JSON.stringify({ jobid: jobid }),
             contentType: "application/json",
             success: function (response) {
+              console.log(`success response: ${response}`);
               alert(response.message);
             },
             error: function (xhr, status, error) {
+              console.log(`error status: ${status}`);
+              console.log(`error: ${error}`);
               alert(error);
             },
           });

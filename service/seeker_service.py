@@ -1,4 +1,4 @@
-from models import Seeker
+from models import Seeker, Application
 from flask import session
 from extensions import db
 class SeekerService:
@@ -24,3 +24,9 @@ class SeekerService:
         print('No Seeker Found with provided credentials')
         return False
     
+    def get_all_applied_jobs_by_seeker(self, userid):
+        """
+        Return all applied jobs by userID.
+        :param userid: int - ID of the user who applied for the job.
+        """
+        return Application.query.filter_by(userid=userid).all()

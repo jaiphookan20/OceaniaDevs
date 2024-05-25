@@ -115,4 +115,5 @@ def logout():
     Logs the user out of the session and from the Auth0 tenant
     """
     session.clear()
+    # From Auth0 logout - add in code to track/inform Auth0 of logout
     return redirect(url_for('home'))

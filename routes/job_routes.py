@@ -10,11 +10,11 @@ cors = CORS(job_blueprint)
 
 # Apply to Job Route:
 @job_blueprint.route('/apply_to_job', methods=['GET', 'POST'])
-# @requires_auth
+@requires_auth
 def apply_to_job():
     if 'user' not in session:
         print('user not in session!')
-        return jsonify({"error": "Unauthorized access"}), 401
+        return jsonify({"message": "Unauthorized access"}), 401
     else:
         print('user in session')
         

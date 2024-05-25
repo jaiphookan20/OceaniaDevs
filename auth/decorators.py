@@ -17,7 +17,7 @@ def requires_auth(f):
         if session.get('user') is None:
             print('Unauthorized 2: Need to login first')
             print(url_for('home'))
-            return redirect(url_for('auth.login'))
+            return redirect(url_for('home'))
 
         return f(*args, **kwargs)
 

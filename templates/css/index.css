@@ -39,3 +39,13 @@ h1 {
 .actions a:hover {
   background-color: #45a049;
 }
+
+.seeker-section {
+  text-align: center
+}
+
+.recruiter-section {
+  text-align: center;
+  margin-bottom: 30px;
+  
+}

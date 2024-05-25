@@ -104,8 +104,6 @@ def add_job():
 
         return jsonify({"message": "Job added successfully"})
     
-#########################################################################
-
 @recruiter_blueprint.route('/jobs_by_recruiter')
 def get_all_jobs_by_recruiter():
     if session['user']['type'] != "recruiter":
