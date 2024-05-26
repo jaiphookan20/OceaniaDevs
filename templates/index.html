@@ -14,7 +14,9 @@
       {% if user_logged_in %}
       <div class="actions">
         {% if session.get('user').get('type') == 'seeker' %}
-        <a href="/update_seeker">Update Seeker</a>
+        <a href="/update_seeker">Update Seeker Details</a>
+        <a href="/applied_jobs">Applied Jobs</a>
+        <a href="/bookmarked_jobs">Bookmarked Jobs</a>
         <a href="/available_jobs">Job Feed</a>
         {% elif session.get('user').get('type') == 'recruiter' %}
         <a href="/add_company">Add Company</a>

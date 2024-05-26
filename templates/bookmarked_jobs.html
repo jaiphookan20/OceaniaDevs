@@ -59,7 +59,7 @@
     </style>
   </head>
   <body>
-    <h1>Applicant Dashboard</h1>
+    <h1>Bookmarked Jobs</h1>
     <div class="container">
       <table>
         <thead>
@@ -73,19 +73,25 @@
           </tr>
         </thead>
         <tbody>
-          {% for job in jobs %}
+          {% for bookmarked_job in bookmarked_jobs %}
           <tr>
-            <td>{{ job.title }}</td>
-            <td>{{ job.company_name }}</td>
-            <td>{{ job.city }}, {{ job.state }}, {{ job.country }}</td>
-            <td>{{ job.experience_level }}</td>
-            <td>{{ job.created_at }}</td>
+            <td>{{ bookmarked_job.title }}</td>
+            <td>{{ bookmarked_job.company_name }}</td>
+            <td>
+              {{ bookmarked_job.city }}, {{ bookmarked_job.state }}, {{
+              bookmarked_job.country }}
+            </td>
+            <td>{{ bookmarked_job.experience_level }}</td>
+            <td>{{ bookmarked_job.created_at }}</td>
             <td class="actions">
-              <a href="/update_job/{{ job.job_id }}"><button>View</button></a>
+              <a href="/update_job/{{ bookmarked_job.job_id }}"
+                ><button>View</button></a
+              >
             </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
+    </div>
   </body>
 </html>
