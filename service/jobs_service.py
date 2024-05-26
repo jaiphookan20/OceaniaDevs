@@ -34,7 +34,15 @@ class JobsService:
         :return: Return a Company object
         """
         return Company.query.filter_by(company_id=company_id).first()
-
+    
+    def get_company_by_jobid(self, jobid):
+        """
+        Return a Company object by the jobid.
+        :return: Return a Company object
+        """
+        job = Job.query.filter_by(job_id=jobid).first()
+        return Company.query.filter_by(company_id=job.company_id).first()
+    
     # Return the list of all available jobs along with job title, company name, job city, state, country
     def get_available_jobs(self):
         """

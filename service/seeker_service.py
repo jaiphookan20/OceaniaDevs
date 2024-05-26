@@ -1,4 +1,4 @@
-from models import Seeker, Application
+from models import Seeker, Application, Bookmark
 from flask import session
 from extensions import db
 class SeekerService:
@@ -30,3 +30,10 @@ class SeekerService:
         :param userid: int - ID of the user who applied for the job.
         """
         return Application.query.filter_by(userid=userid).all()
+    
+    def get_all_bookmarked_jobs_by_seeker(self, userid):
+        """
+        Return all bookmarked jobs by userID.
+        :param userid: int - ID of the user who applied for the job.
+        """
+        return Bookmark.query.filter_by(userid=userid).all()
