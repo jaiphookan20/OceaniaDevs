@@ -2,7 +2,11 @@
 <html>
   <head>
     <title>Available Jobs</title>
-    <link rel="stylesheet" href="available_jobs.css" />
+    <!-- <link rel="stylesheet" href="available_jobs.css" /> -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/available_jobs.css') }}"
+    />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
       $(document).ready(function () {
@@ -65,6 +69,12 @@
             },
           });
         });
+
+        /* Function to handle View button click */
+        $(document).on("click", ".view-btn", function () {
+          var jobid = $(this).data("jobid");
+          window.location.href = `/job_post/${jobid}`;
+        });
       });
     </script>
   </head>
@@ -117,9 +127,12 @@
           <td>{{ job[3] }}, {{ job[4] }}, {{ job[5] }}</td>
           <!-- city, state, country -->
           <td class="actions">
-            <button class="apply-btn" data-jobid="{{ job[1] }}">Apply</button>
-            <button class="bookmark-btn" data-jobid="{{ job[1] }}">
+            <button class="apply-btn" data-jobid="{{ job[0] }}">Apply</button>
+            <button class="bookmark-btn" data-jobid="{{ job[0] }}">
               Bookmark
+            </button>
+            <button class="view-btn" data-jobid="{{ job[0].job_id }}">
+              View
             </button>
           </td>
         </tr>

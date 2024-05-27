@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Job Post</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/job_post.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Ansarada_logo_2022.jpg"
+          alt="Ansarada Logo"
+          class="header-logo"
+        />
+        <nav>
+          <a href="#">Jobs</a>
+          <a href="#">Companies</a>
+          <a href="#">Talent</a>
+          <a href="#">Salaries</a>
+          <a href="#">Pricing</a>
+          <a href="#">Advice</a>
+          <a href="#">Updates</a>
+        </nav>
+        <div class="auth-buttons">
+          <button>Sign Up</button>
+          <button>Log In</button>
+          <button>Post a Job</button>
+        </div>
+      </header>
+      <div class="job-header">
+        <div class="job-header-content">
+          <img
+            src="https://1000logos.net/wp-content/uploads/2022/03/Gitlab-Logo.png"
+            alt="{{ company.name }} Logo"
+            class="company-logo"
+          />
+          <div class="job-info">
+            <h1>{{ job.title }}</h1>
+            <h3 class="company-name">{{ company.name }}</h3>
+            <p class="company-details">
+              {{ job.industry }} | {{ job.salary_range }} USD | {{ job.country
+              }}
+            </p>
+          </div>
+        </div>
+      </div>
+      <main>
+        <div class="job-details">
+          <h2>Job Details</h2>
+          <div class="details-grid">
+            <div><strong>Specialization:</strong> {{ job.specialization }}</div>
+            <div><strong>Salary Type:</strong> {{ job.salary_type }}</div>
+            <div><strong>Work Location:</strong> {{ job.work_location }}</div>
+            <div>
+              <strong>Minimum Experience:</strong> {{ job.min_experience_years
+              }} years
+            </div>
+            <div>
+              <strong>Experience Level:</strong> {{ job.experience_level }}
+            </div>
+            <div><strong>City:</strong> {{ job.city }}</div>
+            <div><strong>State:</strong> {{ job.state }}</div>
+            <div>
+              <strong>Work Rights:</strong> {{ job.work_rights | join(', ') }}
+            </div>
+            <div><strong>Expiry Date:</strong> {{ job.expiry_date }}</div>
+          </div>
+        </div>
+        <div class="job-description">
+          <h2>An overview of this role</h2>
+          <p>{{ job.description }}</p>
+        </div>
+        <aside>
+          <button class="apply-now">Apply Now</button>
+          <button class="bookmark-job">Bookmark Job</button>
+          <a href="{{ job.jobpost_url }}" target="_blank" class="view-job"
+            >View</a
+          >
+        </aside>
+      </main>
+    </div>
+  </body>
+</html>

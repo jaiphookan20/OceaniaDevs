@@ -4,13 +4,13 @@
 body {
   font-family: Arial, sans-serif;
   background-color: #f4f4f4;
-  margin: 0;
+  margin: 10 10;
   padding: 0;
 }
 
 /* Container Styles */
 .container {
-  max-width: 800px;
+  max-width: 600px;
   margin: 0 auto;
   padding: 40px;
   background-color: #fff;
@@ -45,7 +45,16 @@ label {
 
 input[type="text"],
 select {
-  width: 100%;
+  width: 70%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+input[type="url"],
+select {
+  width: 70%;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -54,6 +63,7 @@ select {
 
 input[type="submit"] {
   background-color: #4caf50;
+  width: 70%;
   color: #fff;
   border: none;
   padding: 10px 20px;
@@ -81,6 +91,6 @@ input[type="submit"]:hover {
 
   input[type="text"],
   select {
-    width: 100%;
+    width: 0%;
   }
 }

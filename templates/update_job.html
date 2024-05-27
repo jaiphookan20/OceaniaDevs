@@ -5,56 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Update Job</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='update_job.css') }}">
-    <style>
-        form {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  margin-left: 30px;
-  grid-gap: 10px;
-}
-
-label {
-  font-weight: bold;
-  color: #555;
-  grid-column: 1 / span 2; /* Ensure label spans both columns */
-}
-
-input[type="text"],
-textarea,
-select {
-  width: calc(50% - 20px); /* Adjust width to account for grid gap */
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 16px;
-  grid-column: 1 / span 2; /* Ensure input spans both columns */
-}
-
-textarea {
-  resize: vertical;
-}
-
-input[type="submit"] {
-  grid-column: 1 / -1; /* Span all columns */
-  background-color: #4caf50;
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  width: 50%;
-  font-size: 16px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-input[type="submit"]:hover {
-  background-color: #45a049;
-}
-
-    </style>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/update_job.css') }}"
+    />
 </head>
 <body>
     <h1 style="font-family:Georgia, 'Times New Roman', Times, serif; margin-left: 30px; color: #45a049;">Update Job</h1>

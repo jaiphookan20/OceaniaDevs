@@ -32,12 +32,17 @@ class Company(db.Model):
     __tablename__ = 'companies'
     company_id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
-    city = db.Column(db.String(255))
-    state = db.Column(db.String(255))
-    country = db.Column(db.String(255))
+    website_url = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
     recruiters = db.relationship('Recruiter', backref='company', lazy=True)
+
+    __table_args__ = (
+        db.CheckConstraint(
+            "website_url ~ '^(https?://)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([/\\w\\.-]*)*/?$'",
+            name='ck_companies_website_url'
+        ),
+    )
 
 class Recruiter(db.Model):
     __tablename__ = 'recruiters'

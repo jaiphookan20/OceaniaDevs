@@ -2,7 +2,10 @@
 <html>
   <head>
     <title>Job Board</title>
-    <link rel="stylesheet" href="index.css" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
   </head>
   <body>
     <div class="container">
@@ -19,8 +22,8 @@
         <a href="/bookmarked_jobs">Bookmarked Jobs</a>
         <a href="/available_jobs">Job Feed</a>
         {% elif session.get('user').get('type') == 'recruiter' %}
+        <a href="/add_recruiter">Add Recruiter Details</a>
         <a href="/add_company">Add Company</a>
-        <a href="/add_recruiter">Sign Up as a Recruiter</a>
         <a href="/add_job">Add a Job</a>
         <a href="/jobs_by_recruiter">Update Job Post</a>
         <a href="/available_jobs">Job Feed</a>

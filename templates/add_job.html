@@ -2,27 +2,21 @@
 <html>
   <head>
     <title>Add Job</title>
-    <link rel="stylesheet" href="add_job.css" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/add_job.css') }}"
+    />
   </head>
   <body>
     <div class="container">
       <h1>Add Job</h1>
       <form method="POST" action="/add_job">
-        <label for="recruiter_id">Recruiter:</label>
-        <select name="recruiter_id" required>
-          {% for recruiter in recruiters %}
-          <option value="{{ recruiter[0] }}">
-            {{ recruiter[1] }} {{ recruiter[2] }}
-          </option>
-          {% endfor %}
-        </select>
-
-        <label for="company_id">Company:</label>
+        <!-- <label for="company_id">Company:</label>
         <select name="company_id" required>
           {% for company in companies %}
           <option value="{{ company[0] }}">{{ company[1] }}</option>
           {% endfor %}
-        </select>
+        </select> -->
 
         <label for="title">Title:</label>
         <input type="text" name="title" required />

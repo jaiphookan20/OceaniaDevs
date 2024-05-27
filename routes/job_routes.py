@@ -8,6 +8,17 @@ from flask_cors import CORS
 job_blueprint = Blueprint('job', __name__)
 cors = CORS(job_blueprint)
 
+# @job_blueprint.route('/job_post', methods=['GET'])
+# def get_job_post_page():
+#     return render_template('job_post.html')
+
+@job_blueprint.route('/job_post/<int:job_id>', methods=['GET'])
+def get_job_post_page(job_id):
+    jobs_service = JobsService()
+    job = jobs_service.get_job_by_id(job_id)
+    company = jobs_service.get_company_by_jobid(job.company_id)
+    return render_template('job_post.html', job=job, company=company)
+
 # Apply to Job Route:
 @job_blueprint.route('/apply_to_job', methods=['GET', 'POST'])
 @requires_auth
