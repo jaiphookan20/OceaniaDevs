@@ -16,7 +16,7 @@ cors = CORS(job_blueprint)
 def get_job_post_page(job_id):
     jobs_service = JobsService()
     job = jobs_service.get_job_by_id(job_id)
-    company = jobs_service.get_company_by_jobid(job.company_id)
+    company = jobs_service.get_company_by_jobid(job.job_id)
     return render_template('job_post.html', job=job, company=company)
 
 # Apply to Job Route:
