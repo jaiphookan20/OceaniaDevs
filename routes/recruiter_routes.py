@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify
 from service.recruiter_service import RecruiterService
 from service.jobs_service import JobsService
-from models import Recruiter, Company
+from models import Recruiter, Company, Job
 from extensions import db
 
 recruiter_blueprint = Blueprint('recruiter', __name__)
@@ -91,7 +91,7 @@ def add_job():
         work_location = request.form['work_location']
         min_experience_years = request.form['min_experience_years']
         experience_level = request.form['experience_level']
-        tech_stack = request.form['tech_stack']
+        # tech_stack = request.form['tech_stack']
         city = request.form['city']
         state = request.form['state']
         country = request.form['country']
@@ -100,8 +100,9 @@ def add_job():
 
         recruiter_service.add_job(recruiter_id, company_id, title, description, specialization,
                              job_type, industry, salary_range, salary_type, work_location,
-                             min_experience_years, experience_level, tech_stack, city,
-                             state, country, jobpost_url, work_rights)
+                             min_experience_years, experience_level, city,
+                             state, country, jobpost_url, work_rights) 
+        # tech_stack
 
         return jsonify({"message": "Job added successfully"})
     
@@ -205,3 +206,4 @@ def add_company_and_recruiter():
         return redirect(url_for('some_success_page'))
     
     return render_template('add_company_and_recruiter.html')
+

@@ -73,11 +73,6 @@ def home():
         # return jsonify({"message": "Unauthorized access"}), 401
     return render_template('index.html', user_logged_in=user_logged_in)
 
-# @app.route('/search_jobs', methods=['GET'])
-# @cache.cached(timeout=60, query_string=True)
-# def search_jobs():
-
-
 @app.route('/search_jobs', methods=['GET'])
 @cache.cached(timeout=60, query_string=True)
 def search_jobs():

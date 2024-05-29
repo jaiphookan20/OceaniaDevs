@@ -8,16 +8,48 @@ from flask_cors import CORS
 job_blueprint = Blueprint('job', __name__)
 cors = CORS(job_blueprint)
 
-# @job_blueprint.route('/job_post', methods=['GET'])
-# def get_job_post_page():
-#     return render_template('job_post.html')
+icons = {
+    'aws': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/amazonwebservices/amazonwebservices-original-wordmark.svg" />',
+    "docker": '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/docker/docker-original.svg" />',
+    "gcp": '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/googlecloud/googlecloud-original.svg" />',
+    "kubernetes": '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/kubernetes/kubernetes-original-wordmark.svg" />',
+    'angular': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/angularjs/angularjs-original.svg" />',
+    'grafana': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/grafana/grafana-original.svg" />',
+    'terraform': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/terraform/terraform-original.svg" />',
+    'prometheus': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/prometheus/prometheus-original.svg" />',
+    'azure': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/azure/azure-original.svg" />',
+    'java': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original.svg" />',
+    'linux': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" />',
+    'nextjs': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nextjs/nextjs-original-wordmark.svg" />',
+    'nestjs': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nestjs/nestjs-original-wordmark.svg" />',
+    'nginx': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nginx/nginx-original.svg" />',
+    'postgresql': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/postgresql/postgresql-original.svg" />',
+    'kafka': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apachekafka/apachekafka-original-wordmark.svg" />',
+    'spring': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/spring/spring-original.svg" />',
+    'node.js':'<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nodejs/nodejs-original-wordmark.svg" />',
+    'typescript':'<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/typescript/typescript-original.svg" />',
+    'javascript': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg" />', 
+    'nodejs': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nodejs/nodejs-original-wordmark.svg" />'                   
+}
 
-@job_blueprint.route('/job_post/<int:job_id>', methods=['GET'])
+company_logos = {
+    'airwallex': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQNq25SGwUGZGM72wsSTmoBtUK92v50s_sYQ&s',
+    'xero': 'https://upload.wikimedia.org/wikipedia/en/archive/9/9f/20171204173437%21Xero_software_logo.svg',
+    'canva': 'https://builtin.com/sites/www.builtin.com/files/2021-11/CIRCLE%20LOGO%20-%20GRADIENT%20-%20RGB_0.png',
+    'atlassian': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiQFvSQMZ4Bj8nt60XrWJWW1moOiYmrJ7DRA&s',
+    'cultureamp': 'https://seeklogo.com/images/C/culture-amp-logo-F3EE0956BD-seeklogo.com.png'
+}
+
+@job_blueprint.route('/job_post/<int:job_id>')
 def get_job_post_page(job_id):
     jobs_service = JobsService()
     job = jobs_service.get_job_by_id(job_id)
-    company = jobs_service.get_company_by_jobid(job.job_id)
-    return render_template('job_post.html', job=job, company=company)
+    company = jobs_service.get_company_by_id(job.company_id)
+    
+    company_name_lower = company.name.lower() if company.name else ''
+    company_logo = company_logos.get(company_name_lower, '')
+    
+    return render_template('job_post.html', job=job, company=company, icons=icons, company_logo=company_logo)
 
 # Apply to Job Route:
 @job_blueprint.route('/apply_to_job', methods=['GET', 'POST'])
