@@ -21,7 +21,7 @@
           alt="Ansarada Logo"
           class="header-logo"
         />
-        <nav>
+        <nav class="navbar-links">
           <a href="#">Jobs</a>
           <a href="#">Companies</a>
           <a href="#">Talent</a>
@@ -36,20 +36,33 @@
           <button>Post a Job</button>
         </div>
       </header>
-      <div class="job-header">
-        <div class="job-header-content">
-          <img
-            src="https://1000logos.net/wp-content/uploads/2022/03/Gitlab-Logo.png"
-            alt="{{ company.name }} Logo"
-            class="company-logo"
-          />
-          <div class="job-info">
-            <h1>{{ job.title }}</h1>
-            <h3 class="company-name">{{ company.name }}</h3>
-            <p class="company-details">
-              {{ job.industry }} | {{ job.salary_range }} USD | {{ job.country
-              }}
-            </p>
+      <div class="job-header-and-tech-stack">
+        <div class="job-header">
+          <div class="job-header-content">
+            <img
+              src="{{ company_logo }}"
+              alt="{{ company.name }} Logo"
+              class="company-logo"
+            />
+            <div class="job-info">
+              <h1>{{ job.title }}</h1>
+              <h3 class="company-name">{{ company.name }}</h3>
+              <p class="company-details">
+                {{ job.industry }} | {{ job.salary_range }} USD | {{ job.country
+                }}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="tech-stack">
+          <h2>Technology Stack</h2>
+          <div class="tech-icons">
+            {% if job.tech_stack %} {% for tech in job.tech_stack %} {% set
+            tech_lower = tech.lower() %} {% if tech_lower in icons %}
+            <div class="tech-icon">{{ icons[tech_lower] | safe }}</div>
+            {% endif %} {% endfor %} {% else %}
+            <p>No technologies listed.</p>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -72,7 +85,7 @@
             <div>
               <strong>Work Rights:</strong> {{ job.work_rights | join(', ') }}
             </div>
-            <div><strong>Expiry Date:</strong> {{ job.expiry_date }}</div>
+            <!-- <div><strong>Expiry Date:</strong> {{ job.expiry_date }}</div> -->
           </div>
         </div>
         <div class="job-description">

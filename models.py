@@ -1,6 +1,6 @@
 from extensions import bcrypt, db
 from typing import Union
-from sqlalchemy.dialects.postgresql import ENUM
+from sqlalchemy.dialects.postgresql import ENUM, TSVECTOR
 
 class Seeker(db.Model):
     __tablename__ = 'seekers'
@@ -83,6 +83,7 @@ class Job(db.Model):
     work_rights = db.Column(db.ARRAY(db.String))
     created_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
+    search_vector = db.Column(TSVECTOR)
 
 class Application(db.Model):
     __tablename__ = 'applications'

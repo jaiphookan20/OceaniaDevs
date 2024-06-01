@@ -2,7 +2,7 @@ from database import PostgresDB
 from extensions import db, bcrypt
 from models import Job, Recruiter, Company
 from flask import session, jsonify
-
+from utils.categorize import categorize_words
 class RecruiterService:
 
     def get_recruiter_by_id():
@@ -14,16 +14,13 @@ class RecruiterService:
         return Recruiter.query.get(recruiter_id);
 
     # Add a Job Post to the Jobs table
-    def add_job(self, recruiter_id, company_id, title, description, specialization, job_type, industry, salary_range, salary_type, work_location, min_experience_years, experience_level, tech_stack, city, state, country, jobpost_url, work_rights):
+    def add_job(self, recruiter_id, company_id, title, description, specialization, job_type, industry, salary_range, salary_type, work_location, min_experience_years, experience_level, city, state, country, jobpost_url, work_rights):
         """
         Add a Job Post to the Jobs table.
         """
         if session['user']['type'] != "recruiter":
             return jsonify({"error": "Unauthorized access"}), 401
-        else:
-            # recruiter_id = session['user']['recruiter_id']
-            # print(f"Recruiter ID: {recruiter_id}")
-        
+        else:        
             new_job = Job(
                 recruiter_id=recruiter_id,
                 company_id=company_id,
@@ -37,7 +34,7 @@ class RecruiterService:
                 work_location=work_location,
                 min_experience_years=min_experience_years,
                 experience_level=experience_level,
-                tech_stack=tech_stack,
+                # tech_stack=tech_stack,
                 city=city,
                 state=state,
                 country=country,
@@ -45,6 +42,11 @@ class RecruiterService:
                 work_rights=work_rights
             )
             db.session.add(new_job)
+            db.session.commit()
+
+            # Categorize the job description and update the tech_stack
+            categorized_tech_stack = categorize_words(new_job.description)
+            new_job.tech_stack = categorized_tech_stack
             db.session.commit()
 
     # Add a new Recruiter to the Recruiters table
@@ -128,3 +130,7 @@ class RecruiterService:
         if not company:
             return None
         return company;
+        
+
+
+

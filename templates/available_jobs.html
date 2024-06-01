@@ -2,7 +2,6 @@
 <html>
   <head>
     <title>Available Jobs</title>
-    <!-- <link rel="stylesheet" href="available_jobs.css" /> -->
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/available_jobs.css') }}"
@@ -10,26 +9,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
       $(document).ready(function () {
-        // Function to handle form submission for filtering
-        $("#filter-form").submit(function (event) {
-          event.preventDefault();
-          var company = $("#company").val();
-          var experience_level = $("#experience_level").val();
-          var industry = $("#industry").val();
-
-          $.get(
-            "/filter_jobs",
-            {
-              company: company,
-              experience_level: experience_level,
-              industry: industry,
-            },
-            function (data) {
-              $("tbody").html(data);
-            }
-          );
-        });
-
         /* Function to handle Apply button click */
         $(document).on("click", ".apply-btn", function () {
           var jobid = $(this).data("jobid");
@@ -75,39 +54,94 @@
           var jobid = $(this).data("jobid");
           window.location.href = `/job_post/${jobid}`;
         });
+
+        /* Function to handle Search input key press */
+        $("#search-input").on("input", function () {
+          var query = $(this).val();
+          $.ajax({
+            url: "/search_jobs",
+            type: "GET",
+            data: { query: query },
+            success: function (response) {
+              var jobs = response.results;
+              var tbody = $("tbody");
+              tbody.empty();
+              $.each(jobs, function (index, job) {
+                var row = `<tr>
+                                <td>${job.title}</td>
+                                <td>${job.company_name}</td>
+                                <td>${job.city}, ${job.state}, ${job.country}</td>
+                                <td class="actions">
+                                    <button class="apply-btn" data-jobid="${job.job_id}">Apply</button>
+                                    <button class="bookmark-btn" data-jobid="${job.job_id}">Bookmark</button>
+                                    <button class="view-btn" data-jobid="${job.job_id}">View</button>
+                                </td>
+                            </tr>`;
+                tbody.append(row);
+              });
+            },
+            error: function (xhr, status, error) {
+              console.log("Error:", error);
+            },
+          });
+        });
+      });
+      $(document).ready(function () {
+        // Debounce function to limit the rate of API calls
+        function debounce(func, delay) {
+          let debounceTimer;
+          return function () {
+            const context = this;
+            const args = arguments;
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => func.apply(context, args), delay);
+          };
+        }
+
+        // Function to handle search and populate the job list
+        function handleSearch() {
+          var query = $("#search-input").val();
+          $.ajax({
+            url: "/search_jobs",
+            type: "GET",
+            data: { query: query },
+            success: function (response) {
+              var jobs = response.results;
+              var tbody = $("tbody");
+              tbody.empty();
+              $.each(jobs, function (index, job) {
+                var row = `<tr>
+                            <td>${job.title}</td>
+                            <td>${job.company_name}</td>
+                            <td>${job.city}, ${job.state}, ${job.country}</td>
+                            <td class="actions">
+                                <button class="apply-btn" data-jobid="${job.job_id}">Apply</button>
+                                <button class="bookmark-btn" data-jobid="${job.job_id}">Bookmark</button>
+                                <button class="view-btn" data-jobid="${job.job_id}">View</button>
+                            </td>
+                        </tr>`;
+                tbody.append(row);
+              });
+            },
+            error: function (xhr, status, error) {
+              console.log("Error:", error);
+            },
+          });
+        }
+
+        // Debounced version of the handleSearch function
+        var debouncedSearch = debounce(handleSearch, 300);
+
+        // Event listener for the search input
+        $("#search-input").on("input", debouncedSearch);
       });
     </script>
   </head>
   <body>
     <h1>Available Jobs</h1>
-    <form id="filter-form">
-      <label for="company">Company:</label>
-      <select name="company" id="company">
-        <option value="">All</option>
-        {% for company in companies %}
-        <option value="{{ company[0] }}">{{ company[1] }}</option>
-        {% endfor %}
-      </select>
-
-      <label for="experience_level">Experience Level:</label>
-      <select name="experience_level" id="experience_level">
-        <option value="">All</option>
-        <option value="Entry Level">Entry Level</option>
-        <option value="Associate">Associate</option>
-        <option value="Mid-Senior Level">Mid-Level</option>
-        <option value="Senior Level">Senior Level</option>
-      </select>
-
-      <label for="industry">Industry:</label>
-      <select name="industry" id="industry">
-        <option value="">All</option>
-        {% for industry in industries %}
-        <option value="{{ industry }}">{{ industry }}</option>
-        {% endfor %}
-      </select>
-
-      <button type="submit">Filter</button>
-    </form>
+    <div>
+      <input type="text" id="search-input" placeholder="Search for jobs..." />
+    </div>
     <table>
       <thead>
         <tr>
@@ -121,11 +155,8 @@
         {% for job in jobs %}
         <tr>
           <td>{{ job[1] }}</td>
-          <!-- job.title -->
           <td>{{ job[2] }}</td>
-          <!-- company_name -->
           <td>{{ job[3] }}, {{ job[4] }}, {{ job[5] }}</td>
-          <!-- city, state, country -->
           <td class="actions">
             <button class="apply-btn" data-jobid="{{ job[0] }}">Apply</button>
             <button class="bookmark-btn" data-jobid="{{ job[0] }}">
