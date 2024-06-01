@@ -64,7 +64,7 @@ class JobsService:
         :return: List of tuples with job details
         """
         return Job.query.join(Company, Job.company_id == Company.company_id).add_columns(
-            Job.job_id, Job.title, Company.name.label('company_name'), Job.city, Job.state, Job.country).all()
+            Job.job_id, Job.title, Company.name.label('company_name'), Job.city, Job.state, Job.country, Job.specialization, Job.experience_level).all()
     
     # Apply to a particular job post
     def apply_to_job(self, userid, jobid):

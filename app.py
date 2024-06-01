@@ -8,7 +8,7 @@ from routes.recruiter_routes import recruiter_blueprint
 from routes.seeker_routes import seeker_blueprint
 from extensions import db, bcrypt, migrate
 import json
-from routes.auth_routes import webapp_secret_key;
+from routes.auth_routes import webapp_secret_key
 import logging
 from flask_cors import CORS
 from models import Job, Company
@@ -16,7 +16,8 @@ from sqlalchemy import func
 from flask_caching import Cache
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+# CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})  # Update this line
+CORS(app)  # Apply CORS to the entire app
 app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.logger.setLevel(logging.INFO)
@@ -33,14 +34,14 @@ app.register_blueprint(recruiter_blueprint)
 app.register_blueprint(seeker_blueprint)
 
 # Flask-Session configuration
-app.config['SECRET_KEY']= SECRET_KEY
+app.config['SECRET_KEY'] = SECRET_KEY
 app.config['SESSION_TYPE'] = 'redis'
 app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_USE_SIGNER'] = True
 app.config['SESSION_REDIS'] = Redis(host='localhost', port=6379, db=0)
 app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # Sessions last for one day
 
-#Redis Caching Configuration
+# Redis Caching Configuration
 app.config['CACHE_TYPE'] = 'RedisCache'
 app.config['CACHE_REDIS_HOST'] = 'localhost'
 app.config['CACHE_REDIS_PORT'] = 6379
@@ -50,7 +51,6 @@ app.config['CACHE_DEFAULT_TIMEOUT'] = 300
 
 cache = Cache(app)
 
-
 Session(app)
 
 # Set up the database tables
@@ -59,11 +59,10 @@ with app.app_context():
 
 app.secret_key = webapp_secret_key
 
-
 @app.route('/')
 def home():
     user_logged_in = 'user' in session
-    if (user_logged_in):
+    if user_logged_in:
         print(session.get('user').get("userinfo").get('name'))
         user_type = session['user']['type'] in session
         print(f"User Type: {session['user']['type']}")
