@@ -12,11 +12,11 @@ from routes.auth_routes import webapp_secret_key
 import logging
 from flask_cors import CORS
 from models import Job, Company
-from sqlalchemy import func
+from sqlalchemy import and_, func, or_ 
 from flask_caching import Cache
+from routes.job_routes import company_logos
 
 app = Flask(__name__)
-# CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})  # Update this line
 CORS(app)  # Apply CORS to the entire app
 app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -27,7 +27,6 @@ db.init_app(app)
 bcrypt.init_app(app)
 migrate.init_app(app, db)
 
-# app.register_blueprint(auth_bp, url_prefix='/') # 👈 new code
 app.register_blueprint(auth_blueprint)
 app.register_blueprint(job_blueprint)
 app.register_blueprint(recruiter_blueprint)
@@ -69,29 +68,28 @@ def home():
         print("User in session")
     else:
         print("User not in session")
-        # return jsonify({"message": "Unauthorized access"}), 401
     return render_template('index.html', user_logged_in=user_logged_in)
 
-@app.route('/search_jobs', methods=['GET'])
+@app.route('/instant_search_jobs', methods=['GET'])
 @cache.cached(timeout=60, query_string=True)
-def search_jobs():
+def instant_search_jobs():
     query = request.args.get('query', '')
     if query:
-        # Use plainto_tsquery correctly with the query string
         search_query = func.plainto_tsquery('english', query)
-        # Ensure the search vector is matched correctly
         jobs_query = Job.query.filter(Job.search_vector.op('@@')(search_query)).join(Company, Job.company_id == Company.company_id).add_columns(
-            Job.job_id, Job.title, Job.description, Job.specialization, Job.city, Job.state, Job.country, Company.name.label('company_name'))
+            Job.job_id, Job.title, Job.description, Job.specialization, Job.city, Job.state, Job.country, Job.salary_range, Job.created_at, Job.experience_level, Company.name.label('company_name'))
         jobs = jobs_query.all()
         results = [{
             'job_id': job.job_id,
             'title': job.title,
-            'description': job.description,
-            'specialization': job.specialization,
+            'company': job.company_name,
             'city': job.city,
-            'state': job.state,
+            'specialization': job.specialization,
             'country': job.country,
-            'company_name': job.company_name,
+            'salary_range': job.salary_range,
+            'created_at': job.created_at.strftime('%Y-%m-%d'),
+            'experience_level': job.experience_level,
+            'logo': company_logos.get(job.company_name.lower(), ''),
         } for job in jobs]
         return jsonify({
             'total': len(results),
@@ -102,6 +100,54 @@ def search_jobs():
             'total': 0,
             'results': []
         })
+
+@app.route('/filtered_search_jobs', methods=['GET'])
+@cache.cached(timeout=60, query_string=True)
+def filtered_search_jobs():
+    specialization = request.args.get('specialization')
+    experience_level = request.args.get('experience_level')
+    work_location = request.args.get('work_location')
+    industry = request.args.get('industry')
+    salary_range = request.args.get('salary_range')
+    tech_stack = request.args.get('tech_stack')
+    company = request.args.get('company')
+
+    jobs_query = Job.query
+
+    if specialization:
+        jobs_query = jobs_query.filter(Job.specialization == specialization)
+    if experience_level:
+        jobs_query = jobs_query.filter(Job.experience_level == experience_level)
+    if work_location:
+        jobs_query = jobs_query.filter(or_(Job.city == work_location, Job.state == work_location, Job.country == work_location))
+    if industry:
+        jobs_query = jobs_query.filter(Job.industry == industry)
+    if salary_range:
+        jobs_query = jobs_query.filter(Job.salary_range == salary_range)
+    if company:
+        jobs_query = jobs_query.filter(Job.company_id == company)
+
+    jobs = jobs_query.join(Company, Job.company_id == Company.company_id).add_columns(
+        Job.job_id, Job.title, Job.description, Job.specialization, Job.salary_range, Job.city, Job.state, Job.country, Job.salary_range, Job.created_at, Job.experience_level, Company.name.label('company_name')).all()
+
+    results = [{
+        'job_id': job.job_id,
+        'title': job.title,
+        'company': job.company_name,
+        'city': job.city,
+        'location': f"{job.city}, {job.state}",
+        'country': job.country,
+        'salary_range': job.salary_range,
+        'created_at': job.created_at.strftime('%Y-%m-%d'),
+        'experience_level': job.experience_level,
+        'specialization': job.specialization,
+        'logo': company_logos.get(job.company_name.lower(), ''),
+    } for job in jobs]
+
+    return jsonify({
+        'total': len(results),
+        'results': results
+    })
 
 @app.errorhandler(RedisError)
 def handle_redis_error(error):

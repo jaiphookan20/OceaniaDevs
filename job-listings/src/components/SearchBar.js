@@ -1,0 +1,138 @@
+import React from "react";
+import TechnologyDropdown from "./TechnologyDropdown"; // Import the TechnologyDropdown component
+
+const SearchBar = ({
+  searchQuery,
+  onSearchChange,
+  filters,
+  onFilterChange,
+  onFilterSearch,
+}) => {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        fontFamily: "HK Nova",
+      }}
+    >
+      <div
+        className="bg-white p-4 rounded-lg shadow-md mb-10"
+        style={{ width: "1280px" }}
+      >
+        <div className="flex items-center space-x-4 mb-4">
+          <div className="flex-1 relative">
+            <input
+              type="text"
+              placeholder="Enter Keywords"
+              className="w-full border rounded-lg py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              value={searchQuery}
+              onChange={onSearchChange}
+            />
+            <div className="absolute top-1/2 left-3 transform -translate-y-1/2"></div>
+          </div>
+          <button
+            className="bg-black text-white rounded-lg px-4 py-2"
+            onClick={() => onSearchChange({ target: { value: "" } })}
+          >
+            Clear
+          </button>
+          <button
+            className="bg-purple-600 text-white rounded-lg px-4 py-2"
+            onClick={onFilterSearch}
+          >
+            Search
+          </button>
+        </div>
+        <div className="flex space-x-6">
+          <select
+            name="experience_level"
+            className="border rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200"
+            value={filters.experience_level}
+            onChange={onFilterChange}
+          >
+            <option value="">Experience level</option>
+            <option value="Mid-Senior Level">Mid-Senior Level</option>
+            <option value="Associate">Associate</option>
+            <option value="Entry Level">Entry Level</option>
+            <option value="Intern">Intern</option>
+            <option value="Director">Director</option>
+          </select>
+          <select
+            name="salary_range"
+            className="border rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200"
+            value={filters.salary_range}
+            onChange={onFilterChange}
+          >
+            <option value="">Salary range</option>
+            <option value="20000 - 40000">20000 - 40000</option>
+            <option value="40000 - 60000">40000 - 60000</option>
+            <option value="60000 - 80000">60000 - 80000</option>
+            <option value="80000 - 100000">80000 - 100000</option>
+            <option value="100000 - 120000">100000 - 120000</option>
+            <option value="120000 - 140000">120000 - 140000</option>
+            <option value="140000 - 160000">140000 - 160000</option>
+            <option value="160000 - 180000">160000 - 180000</option>
+            <option value="180000 - 200000">180000 - 200000</option>
+            <option value="200000 - 220000">200000 - 220000</option>
+            <option value="220000 - 240000">220000 - 240000</option>
+            <option value="240000 - 260000">240000 - 260000</option>
+            <option value="260000+">260000+</option>
+          </select>
+          <select
+            name="industry"
+            className="border rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200"
+            value={filters.industry}
+            onChange={onFilterChange}
+          >
+            <option value="">Industry</option>
+            <option value="Banking & Financial Services">
+              Banking & Financial Services
+            </option>
+            <option value="Fashion">Fashion</option>
+            <option value="Mining">Mining</option>
+            <option value="Healthcare">Healthcare</option>
+            <option value="IT - Software Development">
+              IT - Software Development
+            </option>
+            <option value="IT - Data Analytics">IT - Data Analytics</option>
+            <option value="IT - Cybersecurity">IT - Cybersecurity</option>
+            <option value="IT - Cloud Computing">IT - Cloud Computing</option>
+            <option value="IT - Artificial Intelligence">
+              IT - Artificial Intelligence
+            </option>
+            <option value="Agriculture">Agriculture</option>
+            <option value="Automotive">Automotive</option>
+            <option value="Construction">Construction</option>
+            <option value="Education">Education</option>
+            <option value="Energy & Utilities">Energy & Utilities</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Hospitality & Tourism">Hospitality & Tourism</option>
+            <option value="Legal">Legal</option>
+            <option value="Manufacturing">Manufacturing</option>
+            <option value="Marketing & Advertising">
+              Marketing & Advertising
+            </option>
+            <option value="Media & Communications">
+              Media & Communications
+            </option>
+            <option value="Non-Profit & NGO">Non-Profit & NGO</option>
+            <option value="Pharmaceuticals">Pharmaceuticals</option>
+            <option value="Real Estate">Real Estate</option>
+            <option value="Retail & Consumer Goods">
+              Retail & Consumer Goods
+            </option>
+            <option value="Telecommunications">Telecommunications</option>
+            <option value="Transportation & Logistics">
+              Transportation & Logistics
+            </option>
+          </select>
+          <TechnologyDropdown />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SearchBar;

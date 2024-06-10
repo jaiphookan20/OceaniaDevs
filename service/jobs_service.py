@@ -1,5 +1,16 @@
 from extensions import db
 from models import Job, Recruiter, Company,Application, Bookmark
+from flask import jsonify
+from sqlalchemy import and_, func, or_ 
+
+company_logos = {
+    'airwallex': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzDHDDJYBvqPYjfZnQXrnhMFJiRBeNurLCEA&s',
+    'oceaniadevs': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzDHDDJYBvqPYjfZnQXrnhMFJiRBeNurLCEA&s',
+    'xero': 'https://upload.wikimedia.org/wikipedia/en/archive/9/9f/20171204173437%21Xero_software_logo.svg',
+    'canva': 'https://builtin.com/sites/www.builtin.com/files/2021-11/CIRCLE%20LOGO%20-%20GRADIENT%20-%20RGB_0.png',
+    'atlassian': 'https://cdn.prod.website-files.com/6350c9fce59bc08494e7e9e5/6542fe0e8e219ee96075cb7a_638439dd30aa4b831f8f5873_Atlassian-Logo.png',
+    'cultureamp': 'https://seeklogo.com/images/C/culture-amp-logo-F3EE0956BD-seeklogo.com.png'
+}
 
 class JobsService:
 
@@ -64,7 +75,7 @@ class JobsService:
         :return: List of tuples with job details
         """
         return Job.query.join(Company, Job.company_id == Company.company_id).add_columns(
-            Job.job_id, Job.title, Company.name.label('company_name'), Job.city, Job.state, Job.country, Job.specialization, Job.experience_level).all()
+            Job.job_id, Job.title, Company.name.label('company_name'), Job.city, Job.state, Job.country, Job.specialization, Job.experience_level, Job.tech_stack, Job.salary_range).all()
     
     # Apply to a particular job post
     def apply_to_job(self, userid, jobid):
