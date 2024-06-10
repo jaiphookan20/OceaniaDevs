@@ -6,9 +6,10 @@
 }
 
 body {
-  font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+  /* font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif; */
   background-color: #f8f9fa;
   color: #333;
+  font-family: "HeyWow", sans-serif;
 }
 
 .job-header-and-tech-stack {
@@ -26,17 +27,22 @@ body {
   border-radius: 10px;
 }
 
+.oceania-devs-title {
+  color: #615c61;
+}
+
 .navbar-links a {
   color: #007bff;
+  margin-left: 10px;
 }
 
 .navbar-links a:hover {
   color: #9900ff;
+  justify-content: space-between;
 }
 
 header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #e0e0e0;
   padding-bottom: 15px;
@@ -167,7 +173,7 @@ aside {
   cursor: pointer;
   font-size: 16px;
   transition: background-color 0.3s ease;
-  font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+  font-family: "HeyWow", sans-serif;
 }
 
 .apply-now {

@@ -1,8 +1,10 @@
+
 body {
-  font-family: Arial, sans-serif;
+  /* font-family: Arial, sans-serif; */
   margin: 0;
   padding: 0;
   background-color: #f4f4f4;
+  font-family: "HeyWow", sans-serif;
 }
 
 .container {
@@ -41,11 +43,10 @@ h1 {
 }
 
 .seeker-section {
-  text-align: center
+  text-align: center;
 }
 
 .recruiter-section {
   text-align: center;
   margin-bottom: 30px;
-  
 }
