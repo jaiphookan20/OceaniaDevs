@@ -1,144 +1,158 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
-import Header from "./Header";
-import styles from "./SignupForm.module.css";
-
-const JobCard = ({ job }) => {
-  return (
-    <div className="flex items-center justify-between p-4 border-b border-grey-200 mb-2 rounded-lg shadow-md shadow-slate-200/50	">
-      <div className="flex items-center ">
-        <img src={job.logo} alt={job.company} className="w-14 h-14 mr-4" />
-        <div>
-          <h3 className="font-bold text-lg flex items-center">
-            {job.title}
-            {job.new && (
-              <img
-                src="https://remoteok.com/assets/new2x.gif"
-                alt="New"
-                className="w-8 h-6 ml-3"
-              />
-            )}
-          </h3>
-          <p className="text-gray-600 space-x-4">
-            {job.company} • {job.location} • {job.experience_level}
-          </p>
-          {/* • {job.salary} • {job.date} */}
-        </div>
-      </div>
-      <div className="flex space-x-2">
-        <button className="px-4 py-2 border border-gray-300 hover:bg-lime-300 rounded-md">
-          Save
-        </button>
-        <button className="px-4 py-2 bg-violet-400 hover:bg-violet-700 text-white rounded-md">
-          Apply
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const JobSection = ({ title, jobs }) => {
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-4 hover:cursor-pointer">
-        <h2 className="text-3xl font-bold">{title}</h2>
-        <a href="#" className="text-indigo-600">
-          View all {title.toLowerCase()}
-        </a>
-      </div>
-      <div className="bg-white rounded-lg shadow-md cursor-pointer">
-        {jobs.map((job, index) => (
-          <JobCard key={index} job={job} />
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const SignupForm = () => {
-  return (
-    <div className={`${styles.ctHomeBox} ${styles.ctHomeBoxNl}`}>
-      <div className="text-left">
-        <h2 className="text-xl font-bold mb-4">
-          Stay in the loop: Get your dose of frontend twice a week
-        </h2>
-        <p className="mb-4">
-          👾 <strong>Hey! Looking for the latest in frontend?</strong> Twice a
-          week, we'll deliver the freshest frontend news, website inspo, cool
-          code demos, videos and UI animations right to your inbox.
-        </p>
-        <p className="mb-6">
-          <strong>Zero fluff, all quality,</strong> to make your Mondays and
-          Thursdays more creative!
-        </p>
-        <form className="flex flex-col space-y-3">
-          <input
-            type="email"
-            placeholder="Your email"
-            className="px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          />
-          <button className="px-4 py-2 text-white bg-black rounded-md shadow-md hover:bg-gray-800">
-            Subscribe
-          </button>
-        </form>
-        <a href="#" className="mt-3 inline-block text-indigo-600">
-          Find out more →
-        </a>
-      </div>
-    </div>
-  );
-};
+import Header from "./components/Header";
+import JobSection from "./components/JobSection";
+import SignupForm from "./components/SignupForm";
+import BottomContainer from "./components/BottomContainer";
+import Footer from "./components/Footer";
+import SearchBar from "./components/SearchBar";
+import CategoryGrid from "./components/CategoryGrid";
 
 const App = () => {
   const [jobs, setJobs] = useState([]);
-  // const [frontendJobs, setFrontendJobs] = useState([]);
-  // const [devOpsJobs, setDevopsJobs] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [title, SetTitle] = useState("Engineering Jobs");
+  const [filters, setFilters] = useState({
+    specialization: "",
+    experience_level: "",
+    city: "",
+    industry: "",
+    tech_stack: "",
+    salary_range: "",
+  });
 
-  useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        const response = await fetch("http://127.0.0.1:4040/alljobs", {
+  const handleSave = async (jobId) => {
+    try {
+      const response = await fetch("http://127.0.0.1:4040/bookmark_job", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ jobid: jobId }),
+      });
+      const result = await response.json();
+      alert(result.message);
+    } catch (error) {
+      console.error("Error saving job:", error);
+      alert("Failed to save job.");
+    }
+  };
+
+  const handleApply = async (jobId) => {
+    try {
+      const response = await fetch("http://127.0.0.1:4040/apply_to_job", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ jobid: jobId }),
+      });
+      const result = await response.json();
+      alert(result.message);
+    } catch (error) {
+      console.error("Error applying to job:", error);
+      alert("Failed to apply to job.");
+    }
+  };
+
+  const handleView = (jobId) => {
+    window.location.href = `http://127.0.0.1:4040/job_post/${jobId}`;
+  };
+
+  const handleSearch = async (event) => {
+    setSearchQuery(event.target.value);
+    const title = `${event.target.value} Roles`;
+    SetTitle(title);
+    if (event.target.value.trim() === "") {
+      fetchJobs();
+    } else {
+      const response = await fetch(
+        `http://127.0.0.1:4040/instant_search_jobs?query=${event.target.value}`,
+        {
           headers: {
             "Content-Type": "application/json",
           },
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data = await response.json();
-        // setJobs(data.filter((job) => job.specialization === "Backend"));
-        setJobs(data);
-        // setFrontendJobs(
-        //   data.filter((job) => job.specialization === "Frontend")
-        // );
-        // setDevopsJobs(data.filter((job) => job.specialization === "DevOps"));
-      } catch (error) {
-        console.error("Error fetching jobs:", error);
-      }
-    };
+      );
+      const data = await response.json();
+      setJobs(data.results);
+    }
+  };
 
+  const handleFilterSearch = async () => {
+    const queryParams = new URLSearchParams(filters);
+    const response = await fetch(
+      `http://127.0.0.1:4040/filtered_search_jobs?${queryParams.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const data = await response.json();
+    setJobs(data.results);
+  };
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFilters({
+      ...filters,
+      [name]: value,
+    });
+  };
+
+  const fetchJobs = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:4040/alljobs", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setJobs(data);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+    }
+  };
+
+  useEffect(() => {
     fetchJobs();
   }, []);
 
   return (
     <div
-      className="bg-slate-30 p-6"
-      // style={{ fontFamily: "HeyWow, sans-serif" }}
+      className="bg-slate-40 p-6"
       style={{ fontFamily: "Roobert-Regular, sans-serif" }}
     >
       <Navbar />
       <Header />
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <CategoryGrid />
+      <SearchBar
+        searchQuery={searchQuery}
+        onSearchChange={handleSearch}
+        filters={filters}
+        onFilterChange={handleChange}
+        onFilterSearch={handleFilterSearch}
+      />
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
         <div className="col-span-2">
-          <JobSection title="Engineering Jobs" jobs={jobs} />
-          {/* <div className="mt-8">
-            <JobSection title="Frontend jobs" jobs={frontendJobs} />
-          </div>
-          <div className="mt-8">
-            <JobSection title="DevOps jobs" jobs={devOpsJobs} />
-          </div> */}
+          <JobSection
+            title={title}
+            jobs={jobs}
+            onSave={handleSave}
+            onApply={handleApply}
+            onView={handleView}
+          />
         </div>
         <SignupForm />
+      </div>
+      <div className="mt-12">
+        <BottomContainer />
+        <Footer />
       </div>
     </div>
   );
