@@ -76,7 +76,12 @@ def instant_search_jobs():
     query = request.args.get('query', '')
     if query:
         search_query = func.plainto_tsquery('english', query)
-        jobs_query = Job.query.filter(Job.search_vector.op('@@')(search_query)).join(Company, Job.company_id == Company.company_id).add_columns(
+        jobs_query = Job.query.filter(
+            or_(
+                Job.search_vector.op('@@')(search_query),
+                Company.name.ilike(f'%{query}%')
+            )
+        ).join(Company, Job.company_id == Company.company_id).add_columns(
             Job.job_id, Job.title, Job.description, Job.specialization, Job.city, Job.state, Job.country, Job.salary_range, Job.created_at, Job.experience_level, Company.name.label('company_name'))
         jobs = jobs_query.all()
         results = [{
@@ -101,9 +106,9 @@ def instant_search_jobs():
             'results': []
         })
 
-@app.route('/filtered_search_jobs', methods=['GET'])
-@cache.cached(timeout=60, query_string=True)
-def filtered_search_jobs():
+# @app.route('/filtered_search_jobs', methods=['GET'])
+# @cache.cached(timeout=60, query_string=True)
+# def filtered_search_jobs():
     specialization = request.args.get('specialization')
     experience_level = request.args.get('experience_level')
     work_location = request.args.get('work_location')
@@ -148,6 +153,58 @@ def filtered_search_jobs():
         'total': len(results),
         'results': results
     })
+
+@app.route('/filtered_search_jobs', methods=['GET'])
+@cache.cached(timeout=60, query_string=True)
+def filtered_search_jobs():
+    specialization = request.args.get('specialization')
+    experience_level = request.args.get('experience_level')
+    min_experience_years = request.args.get('min_experience_years')
+    work_location = request.args.get('work_location')
+    industry = request.args.get('industry')
+    salary_range = request.args.get('salary_range')
+    city = request.args.get('city')
+    tech_stack = request.args.get('tech_stack')
+
+    jobs_query = Job.query
+
+    if specialization:
+        jobs_query = jobs_query.filter(Job.specialization == specialization)
+    if experience_level:
+        jobs_query = jobs_query.filter(Job.experience_level == experience_level)
+    if min_experience_years:
+        jobs_query = jobs_query.filter(Job.min_experience_years >= min_experience_years)
+    if work_location:
+        jobs_query = jobs_query.filter(or_(Job.city == work_location, Job.state == work_location, Job.country == work_location))
+    if industry:
+        jobs_query = jobs_query.filter(Job.industry == industry)
+    if salary_range:
+        jobs_query = jobs_query.filter(Job.salary_range == salary_range)
+    if tech_stack:
+        jobs_query = jobs_query.filter(Job.tech_stack.any(tech_stack))
+
+    jobs = jobs_query.join(Company, Job.company_id == Company.company_id).add_columns(
+        Job.job_id, Job.title, Job.description, Job.specialization, Job.salary_range, Job.city, Job.state, Job.country, Job.salary_range, Job.created_at, Job.experience_level, Company.name.label('company_name')).all()
+
+    results = [{
+        'job_id': job.job_id,
+        'title': job.title,
+        'company': job.company_name,
+        'city': job.city,
+        'location': f"{job.city}, {job.state}",
+        'country': job.country,
+        'salary_range': job.salary_range,
+        'created_at': job.created_at.strftime('%Y-%m-%d'),
+        'experience_level': job.experience_level,
+        'specialization': job.specialization,
+        'logo': company_logos.get(job.company_name.lower(), ''),
+    } for job in jobs]
+
+    return jsonify({
+        'total': len(results),
+        'results': results
+    })
+
 
 @app.errorhandler(RedisError)
 def handle_redis_error(error):
