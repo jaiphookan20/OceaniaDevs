@@ -74,7 +74,6 @@ def get_jobs():
         'logo': company_logos.get(job.company_name.lower(), ''),
         'specialization': job.specialization,
         'tech_stack': job.tech_stack
-        
         # 'new': job.created_at >= datetime.datetime.utcnow() - datetime.timedelta(days=7)
     } for job in jobs])
 
