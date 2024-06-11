@@ -58,6 +58,7 @@ company_logos = {
 
 @job_blueprint.route('/job_post/<int:job_id>', methods=['GET'])
 def get_job_post_page(job_id):
+    print('ENTERED GET JOB POST')
     jobs_service = JobsService()
     job = jobs_service.get_job_by_id(job_id)
     company = jobs_service.get_company_by_id(job.company_id)
@@ -79,9 +80,11 @@ def get_job_post_page(job_id):
         'specialization': job.specialization,
         'salary_type': job.salary_type,
         'work_location': job.work_location,
+        'location': f"{job.city}, {job.state}",
         'min_experience_years': job.min_experience_years,
         'experience_level': job.experience_level,
         'city': job.city,
+        'description': job.description,
         'state': job.state,
         'work_rights': job.work_rights,
         'description': job.description,
