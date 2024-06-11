@@ -2,12 +2,15 @@ const JobCard = ({ job, onSave, onApply, onView }) => {
   return (
     <div
       className="flex items-center justify-between p-4 border-b border-grey-200 mb-2 rounded-lg shadow-md shadow-slate-200/50 cursor-pointer hover:bg-slate-100 hover:shadow-xl"
-      onClick={() => onView(job.job_id)}
+      // onClick={() => onView(job.job_id)}
     >
       <div className="flex items-center">
         <img src={job.logo} alt={job.company} className="w-14 h-14 mr-4" />
         <div>
-          <h3 className="font-bold text-lg flex items-center">
+          <h3
+            className="font-bold text-lg flex items-center hover:text-violet-500"
+            onClick={() => onView(job.job_id)}
+          >
             {job.title}
             {job.new && (
               <img

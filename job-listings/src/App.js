@@ -7,11 +7,15 @@ import BottomContainer from "./components/BottomContainer";
 import Footer from "./components/Footer";
 import SearchBar from "./components/SearchBar";
 import CategoryGrid from "./components/CategoryGrid";
+// import MarqueeDemo from "./components/magicui/MarqueeDemo";
+import { toast } from "react-hot-toast";
 
 const App = () => {
   const [jobs, setJobs] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [title, SetTitle] = useState("Engineering Jobs");
+  const [isInSession, setisInSession] = useState(false);
+  const [title, SetTitle] = useState("Technology Jobs");
+
   const [filters, setFilters] = useState({
     specialization: "",
     experience_level: "",
@@ -21,6 +25,31 @@ const App = () => {
     salary_range: "",
   });
 
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:4040/check-session", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+        const data = await response.json();
+        if (data.userinfo) {
+          console.log(`${data.userinfo.name} is in session`);
+          setisInSession(true);
+        } else {
+          setisInSession(false);
+        }
+      } catch (error) {
+        console.error("Error checking session:", error);
+      }
+    };
+
+    checkSession();
+  }, []);
+
   const handleSave = async (jobId) => {
     try {
       const response = await fetch("http://127.0.0.1:4040/bookmark_job", {
@@ -28,13 +57,18 @@ const App = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ jobid: jobId }),
       });
       const result = await response.json();
-      alert(result.message);
+      toast.success(result.message);
     } catch (error) {
-      console.error("Error saving job:", error);
-      alert("Failed to save job.");
+      if (isInSession === false) {
+        toast.error("Sign in first to save a job.");
+      } else {
+        console.error("Error saving job:", error);
+        toast.error("Failed to save job.");
+      }
     }
   };
 
@@ -48,10 +82,15 @@ const App = () => {
         body: JSON.stringify({ jobid: jobId }),
       });
       const result = await response.json();
-      alert(result.message);
+      toast.success("Redirecting");
+      window.location.href = `http://127.0.0.1:4040/job_post/${jobId}`;
     } catch (error) {
-      console.error("Error applying to job:", error);
-      alert("Failed to apply to job.");
+      if (isInSession === false) {
+        toast.error("Sign in first to apply.");
+      } else {
+        console.error("Error applying to job:", error);
+        toast.error("Failed to apply to job.");
+      }
     }
   };
 

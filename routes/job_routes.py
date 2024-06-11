@@ -10,8 +10,7 @@ from flask_caching import Cache
 
 
 job_blueprint = Blueprint('job', __name__)
-CORS(job_blueprint)  # Apply CORS to the blueprint
-
+CORS(job_blueprint, supports_credentials=True, resources={r'/*': {'origins': 'http://localhost:3000'}})
 
 icons = {
     'aws': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/amazonwebservices/amazonwebservices-original-wordmark.svg" />',
@@ -79,7 +78,7 @@ def get_jobs():
 
 # Apply to Job Route:
 @job_blueprint.route('/apply_to_job', methods=['GET', 'POST'])
-@requires_auth
+# @requires_auth
 def apply_to_job():
     if 'user' not in session:
         print('user not in session!')
@@ -111,7 +110,7 @@ def apply_to_job():
 
 # Bookmark Job Route:
 @job_blueprint.route('/bookmark_job', methods=['GET', 'POST'])
-# @requires_auth
+@requires_auth
 def bookmark_job():
     if 'user' not in session:
         print('user not in session!')
