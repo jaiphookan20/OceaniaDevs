@@ -80,7 +80,11 @@ const Navbar = () => {
       style={navbarStyles}
     >
       <div className="flex items-center ">
-        <Logo className="h-24 w-auto" alt="Logo" />
+        <Logo
+          className="h-24 w-auto"
+          alt="Logo"
+          onClick={() => (window.location.href = "http://localhost:3000/")}
+        />
         <div className="">
           <a
             href="#"
