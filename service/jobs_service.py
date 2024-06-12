@@ -77,6 +77,31 @@ class JobsService:
         return Job.query.join(Company, Job.company_id == Company.company_id).add_columns(
             Job.job_id, Job.title, Company.name.label('company_name'), Job.city, Job.state, Job.country, Job.specialization, Job.experience_level, Job.tech_stack, Job.salary_range).all()
     
+    # Get Available Jobs (Pagination)
+    def get_available_jobs_with_pagination(self, page, page_size):
+        """
+        Fetch available jobs with pagination.
+        
+        Args:
+            page (int): The page number to fetch.
+            page_size (int): The number of jobs per page.
+        
+        Returns:
+            tuple: A tuple containing a list of jobs and the total job count.
+        """
+        offset = (page - 1) * page_size  # Calculate the offset for pagination
+        
+        # Join Job and Company tables to get job and company details
+        jobs_query = db.session.query(Job, Company).join(Company, Job.company_id == Company.company_id)
+        
+        # Get the total number of jobs
+        total_jobs = jobs_query.count()
+        
+        # Fetch jobs with pagination
+        jobs = jobs_query.offset(offset).limit(page_size).all()
+        
+        return jobs, total_jobs
+
     # Apply to a particular job post
     def apply_to_job(self, userid, jobid):
         """
