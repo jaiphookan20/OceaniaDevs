@@ -45,16 +45,53 @@ company_logos = {
     'cultureamp': 'https://seeklogo.com/images/C/culture-amp-logo-F3EE0956BD-seeklogo.com.png'
 }
 
-@job_blueprint.route('/job_post/<int:job_id>')
+# @job_blueprint.route('/job_post/<int:job_id>')
+# def get_job_post_page(job_id):
+#     jobs_service = JobsService()
+#     job = jobs_service.get_job_by_id(job_id)
+#     company = jobs_service.get_company_by_id(job.company_id)
+    
+#     company_name_lower = company.name.lower() if company.name else ''
+#     company_logo = company_logos.get(company_name_lower, '')
+    
+#     return render_template('job_post.html', job=job, company=company, icons=icons, company_logo=company_logo)
+
+@job_blueprint.route('/job_post/<int:job_id>', methods=['GET'])
 def get_job_post_page(job_id):
+    print('ENTERED GET JOB POST')
     jobs_service = JobsService()
     job = jobs_service.get_job_by_id(job_id)
     company = jobs_service.get_company_by_id(job.company_id)
     
+    if not job or not company:
+        return jsonify({"error": "Job or company not found"}), 404
+
     company_name_lower = company.name.lower() if company.name else ''
     company_logo = company_logos.get(company_name_lower, '')
-    
-    return render_template('job_post.html', job=job, company=company, icons=icons, company_logo=company_logo)
+
+    job_data = {
+        'job_id': job.job_id,
+        'title': job.title,
+        'company': company.name,
+        'company_logo': company_logo,
+        'industry': job.industry,
+        'salary_range': job.salary_range,
+        'country': job.country,
+        'specialization': job.specialization,
+        'salary_type': job.salary_type,
+        'work_location': job.work_location,
+        'location': f"{job.city}, {job.state}",
+        'min_experience_years': job.min_experience_years,
+        'experience_level': job.experience_level,
+        'city': job.city,
+        'description': job.description,
+        'state': job.state,
+        'work_rights': job.work_rights,
+        'description': job.description,
+        'tech_stack': job.tech_stack
+    }
+
+    return jsonify(job_data)
 
 # New API endpoint to fetch jobs data
 @job_blueprint.route('/alljobs')
@@ -78,7 +115,7 @@ def get_jobs():
 
 # Apply to Job Route:
 @job_blueprint.route('/apply_to_job', methods=['GET', 'POST'])
-# @requires_auth
+@requires_auth
 def apply_to_job():
     if 'user' not in session:
         print('user not in session!')
