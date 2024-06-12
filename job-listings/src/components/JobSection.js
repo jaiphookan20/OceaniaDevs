@@ -31,25 +31,24 @@ const JobSection = ({
           />
         ))}
       </div>
-      <div className="flex justify-between items-center mt-4 mb-14">
-        <button
-          disabled={currentPage === 1}
-          onClick={() => onPageChange(currentPage - 1)}
-          className="px-4 py-2 bg-black text-white rounded"
-        >
-          Previous
-        </button>
-        <span>
-          Page {currentPage} of {Math.ceil(totalJobs / pageSize)}
-        </span>
-        <button
-          disabled={currentPage === Math.ceil(totalJobs / pageSize)}
-          onClick={() => onPageChange(currentPage + 1)}
-          className="px-4 py-2 bg-black text-white rounded"
-        >
-          Next
-        </button>
-      </div>
+      {currentPage && totalJobs && pageSize && onPageChange && (
+        <div className="flex justify-center mt-4">
+          <button
+            className="px-4 py-2 mx-1 bg-gray-200 rounded"
+            disabled={currentPage === 1}
+            onClick={() => onPageChange(currentPage - 1)}
+          >
+            Previous
+          </button>
+          <button
+            className="px-4 py-2 mx-1 bg-gray-200 rounded"
+            disabled={currentPage === Math.ceil(totalJobs / pageSize)}
+            onClick={() => onPageChange(currentPage + 1)}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };

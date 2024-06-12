@@ -2,9 +2,20 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from service.seeker_service import SeekerService
 from service.jobs_service import JobsService
 from models import Seeker, Job
+from flask_cors import CORS
 
 # Create a Blueprint for seeker-related routes
 seeker_blueprint = Blueprint('seeker', __name__)
+CORS(seeker_blueprint, supports_credentials=True, resources={r'/*': {'origins': 'http://localhost:3000'}})
+
+company_logos = {
+    'airwallex': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzDHDDJYBvqPYjfZnQXrnhMFJiRBeNurLCEA&s',
+    'oceaniadevs': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzDHDDJYBvqPYjfZnQXrnhMFJiRBeNurLCEA&s',
+    'xero': 'https://upload.wikimedia.org/wikipedia/en/archive/9/9f/20171204173437%21Xero_software_logo.svg',
+    'canva': 'https://builtin.com/sites/www.builtin.com/files/2021-11/CIRCLE%20LOGO%20-%20GRADIENT%20-%20RGB_0.png',
+    'atlassian': 'https://cdn.prod.website-files.com/6350c9fce59bc08494e7e9e5/6542fe0e8e219ee96075cb7a_638439dd30aa4b831f8f5873_Atlassian-Logo.png',
+    'cultureamp': 'https://seeklogo.com/images/C/culture-amp-logo-F3EE0956BD-seeklogo.com.png'
+}
 
 # Update Job Seeker Route
 @seeker_blueprint.route('/update_seeker', methods=['GET', 'POST'])
@@ -76,13 +87,6 @@ def get_all_applied_jobs_by_seeker():
 # Get Bookmarked Jobs Route
 @seeker_blueprint.route('/bookmarked_jobs')
 def get_all_bookmarked_jobs_by_seeker():
-    """
-    Route for retrieving all bookmarked jobs by a job seeker.
-
-    Returns:
-        - Rendered 'bookmarked_jobs.html' template with a list of bookmarked jobs.
-        - 401 Unauthorized error if the user is not a seeker.
-    """
     if session['user']['type'] != "seeker":
         return jsonify({"error": "Unauthorized access"}), 401
     else:
@@ -92,7 +96,6 @@ def get_all_bookmarked_jobs_by_seeker():
         jobs_service = JobsService()
         bookmarked_jobs = seeker_service.get_all_bookmarked_jobs_by_seeker(seeker_id)
 
-        # Fetch company names and job details for each bookmarked job
         for bookmarked_job in bookmarked_jobs:
             company = jobs_service.get_company_by_jobid(bookmarked_job.jobid)
             job = jobs_service.get_job_by_id(bookmarked_job.jobid)
@@ -104,4 +107,14 @@ def get_all_bookmarked_jobs_by_seeker():
             bookmarked_job.experience_level = job.experience_level if job else "N/A"
             bookmarked_job.created_at = job.created_at if job else "N/A"
 
-        return render_template('bookmarked_jobs.html', bookmarked_jobs=bookmarked_jobs)
+        return jsonify(bookmarked_jobs=[{
+            'job_id': job.jobid,
+            'title': job.title,
+            'company': job.company_name,
+            'city': job.city,
+            'state': job.state,
+            'country': job.country,
+            'experience_level': job.experience_level,
+            'logo': company_logos[job.company_name.lower()],
+            'created_at': job.created_at.strftime('%Y-%m-%d')
+        } for job in bookmarked_jobs])

@@ -6,7 +6,7 @@ import { icons } from "./data/tech-icons";
 // import Navbar from "./Navbar";
 // import Footer from "./Footer";
 
-const JobListing = () => {
+const JobListing = ({ onSave, onApply }) => {
   const { jobId } = useParams();
   const [job, setJob] = useState(null);
   const [company, setCompany] = useState(null);
@@ -149,10 +149,16 @@ const JobListing = () => {
               <div className="flex justify-between items-center">
                 {/* <h3 className="text-lg font-semibold">Apply now</h3> */}
               </div>
-              <button className="w-full mt-4 bg-[#c3f53c] text-black border px-4 py-2 rounded-md">
+              <button
+                className="w-full mt-4 bg-[#c3f53c] text-black border px-4 py-2 rounded-md"
+                onClick={() => onApply(job.job_id)}
+              >
                 Apply now
               </button>
-              <button className="w-full mt-4 bg-black text-white px-4 py-2 rounded-md">
+              <button
+                className="w-full mt-4 bg-black text-white px-4 py-2 rounded-md"
+                onClick={() => onSave(job.job_id)}
+              >
                 Bookmark Job
               </button>
             </div>
