@@ -45,17 +45,6 @@ company_logos = {
     'cultureamp': 'https://seeklogo.com/images/C/culture-amp-logo-F3EE0956BD-seeklogo.com.png'
 }
 
-# @job_blueprint.route('/job_post/<int:job_id>')
-# def get_job_post_page(job_id):
-#     jobs_service = JobsService()
-#     job = jobs_service.get_job_by_id(job_id)
-#     company = jobs_service.get_company_by_id(job.company_id)
-    
-#     company_name_lower = company.name.lower() if company.name else ''
-#     company_logo = company_logos.get(company_name_lower, '')
-    
-#     return render_template('job_post.html', job=job, company=company, icons=icons, company_logo=company_logo)
-
 @job_blueprint.route('/job_post/<int:job_id>', methods=['GET'])
 def get_job_post_page(job_id):
     print('ENTERED GET JOB POST')
@@ -93,25 +82,67 @@ def get_job_post_page(job_id):
 
     return jsonify(job_data)
 
-# New API endpoint to fetch jobs data
-@job_blueprint.route('/alljobs')
-def get_jobs():
-    jobs_service = JobsService()
-    jobs = jobs_service.get_available_jobs()
-    return jsonify([{
-        'title': job.title,
-        'company': job.company_name,
-        'location': f"{job.city}, {job.state}",
-        'city': job.city,
-        'experience_level': job.experience_level,
-        'job_id': job.job_id,
-        'salary_range': job.salary_range,
-        # 'date': job.created_at.strftime('%Y-%m-%d'),
-        'logo': company_logos.get(job.company_name.lower(), ''),
-        'specialization': job.specialization,
-        'tech_stack': job.tech_stack
-        # 'new': job.created_at >= datetime.datetime.utcnow() - datetime.timedelta(days=7)
-    } for job in jobs])
+@job_blueprint.route('/alljobs', methods=['GET'])
+def get_all_jobs():
+    """
+    Fetch all jobs with pagination.
+    
+    Query Parameters:
+        page (int): The page number to fetch.
+        page_size (int): The number of jobs per page.
+    
+    Returns:
+        json: A JSON response containing job data, page info, and total job count.
+    """
+    # Get the page number from the request
+    page = request.args.get('page', 1, type=int)  
+    # Get the page size from the request
+    page_size = request.args.get('page_size', 10, type=int)  
+    
+    jobs_service = JobsService()  # Initialize the JobsService
+    jobs, total_jobs = jobs_service.get_available_jobs_with_pagination(page, page_size)  # Fetch paginated jobs
+    
+    # Format the job data for the response
+    jobs_data = [{
+        'title': job.Job.title,
+        'company': job.Company.name,  # Accessing company name from the Company table
+        'location': f"{job.Job.city}, {job.Job.state}",
+        'city': job.Job.city,
+        'experience_level': job.Job.experience_level,
+        'job_id': job.Job.job_id,
+        'salary_range': job.Job.salary_range,
+        'logo': company_logos.get(job.Company.name.lower(), ''),  # Get company logo
+        'specialization': job.Job.specialization,
+        'tech_stack': job.Job.tech_stack
+    } for job in jobs]
+    
+    # Return the job data, page info, and total job count
+    return jsonify({
+        'jobs': jobs_data,
+        'page': page,
+        'page_size': page_size,
+        'total_jobs': total_jobs
+    })
+
+# # New API endpoint to fetch jobs data
+# @job_blueprint.route('/alljobs')
+# def get_jobs():
+#     jobs_service = JobsService()
+#     jobs = jobs_service.get_available_jobs()
+#     return jsonify([{
+#         'title': job.title,
+#         'company': job.company_name,
+#         'location': f"{job.city}, {job.state}",
+#         'city': job.city,
+#         'experience_level': job.experience_level,
+#         'job_id': job.job_id,
+#         'salary_range': job.salary_range,
+#         # 'date': job.created_at.strftime('%Y-%m-%d'),
+#         'logo': company_logos.get(job.company_name.lower(), ''),
+#         'specialization': job.specialization,
+#         'tech_stack': job.tech_stack
+#         # 'new': job.created_at >= datetime.datetime.utcnow() - datetime.timedelta(days=7)
+#     } for job in jobs])
 
 # Apply to Job Route:
 @job_blueprint.route('/apply_to_job', methods=['GET', 'POST'])
@@ -230,3 +261,4 @@ def filter_jobs():
 
     # Return the jobs data as a JSON response
     return jsonify(jobs_data)
+    
