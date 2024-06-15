@@ -181,25 +181,11 @@ const Navbar = () => {
                     Applied Jobs
                   </Link>
                   <Link
-                    to="/followed-employers"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    role="menuitem"
-                  >
-                    Followed Employers
-                  </Link>
-                  <Link
                     to="/job-alerts"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     role="menuitem"
                   >
                     Job Alerts
-                  </Link>
-                  <Link
-                    to="/calendar"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    role="menuitem"
-                  >
-                    Calendar
                   </Link>
                   <Link
                     to="/settings"
