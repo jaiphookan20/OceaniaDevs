@@ -1,3 +1,4 @@
+// Navbar.js
 import React, { useState, useEffect } from "react";
 import Logo from "./Logo";
 import { Link } from "react-router-dom";
@@ -7,7 +8,6 @@ const Navbar = () => {
   const [userName, setUserName] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  /* NOTE: Is it a good idea for this request to run each time the component mounts or we enter home page? */
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -20,7 +20,6 @@ const Navbar = () => {
         });
         const data = await response.json();
         if (data.userinfo) {
-          console.log(`${data.userinfo.name} is in session`);
           setIsLoggedIn(true);
           setUserName(data.userinfo.name);
         } else {
@@ -35,8 +34,6 @@ const Navbar = () => {
     checkSession();
   }, []);
 
-  /* NOTE: Seemingly getting CORS issues when using this, but managing to logout correctly by just setting
-  window.location.href = "http://127.0.0.1:4040/logout") */
   const handleLogout = async () => {
     await fetch("http://127.0.0.1:4040/logout", {
       method: "GET",
@@ -184,25 +181,11 @@ const Navbar = () => {
                     Applied Jobs
                   </Link>
                   <Link
-                    to="/followed-employers"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    role="menuitem"
-                  >
-                    Followed Employers
-                  </Link>
-                  <Link
                     to="/job-alerts"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     role="menuitem"
                   >
                     Job Alerts
-                  </Link>
-                  <Link
-                    to="/calendar"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    role="menuitem"
-                  >
-                    Calendar
                   </Link>
                   <Link
                     to="/settings"
@@ -212,10 +195,7 @@ const Navbar = () => {
                     Settings
                   </Link>
                   <button
-                    // onClick={handleLogout}
-                    onClick={() =>
-                      (window.location.href = "http://127.0.0.1:4040/logout")
-                    }
+                    onClick={handleLogout}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     role="menuitem"
                   >

@@ -10,12 +10,17 @@ import SearchBar from "./components/SearchBar";
 import CategoryGrid from "./components/CategoryGrid";
 import JobPost from "./JobPost";
 import { toast, Toaster } from "react-hot-toast";
+import SavedAppliedJobSection from "./SavedAppliedJobSection";
+import MarqueeDemo from "./components/magicui/MarqueeDemo";
 
 const App = () => {
   const [jobs, setJobs] = useState([]);
+  const [savedJobs, setSavedJobs] = useState([]);
+  const [appliedJobs, setAppliedJobs] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isInSession, setisInSession] = useState(false);
   const [title, setTitle] = useState("Technology Jobs");
+
   const [filters, setFilters] = useState({
     specialization: "",
     experience_level: "",
@@ -28,6 +33,7 @@ const App = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalJobs, setTotalJobs] = useState(0);
   const pageSize = 10;
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -88,8 +94,8 @@ const App = () => {
         body: JSON.stringify({ jobid: jobId }),
       });
       const result = await response.json();
-      toast.success("Redirecting");
-      window.location.href = `http://127.0.0.1:4040/job_post/${jobId}`;
+      toast.success("Boom!");
+      navigate(`/job_post/${jobId}`);
     } catch (error) {
       if (!isInSession) {
         toast.error("Sign in first to apply.");
@@ -136,6 +142,7 @@ const App = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
       }
     );
     const data = await response.json();
@@ -150,28 +157,6 @@ const App = () => {
     });
   };
 
-  // const fetchJobs = async (page = 1, pageSize = 10) => {
-  //   try {
-  //     const response = await fetch(
-  //       `http://127.0.0.1:4040/alljobs?page=${page}&page_size=${pageSize}`,
-  //       {
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //       }
-  //     );
-  //     if (!response.ok) {
-  //       throw new Error(`HTTP error! status: ${response.status}`);
-  //     }
-  //     const data = await response.json();
-  //     setJobs(data.jobs);
-  //     setTotalJobs(data.total_jobs); // Assuming you want to show total job count
-  //     setCurrentPage(page);
-  //   } catch (error) {
-  //     console.error("Error fetching jobs:", error);
-  //   }
-  // };
-
   const fetchJobs = async (page = 1, pageSize = 10) => {
     try {
       const response = await fetch(
@@ -180,6 +165,7 @@ const App = () => {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
         }
       );
       if (!response.ok) {
@@ -197,6 +183,47 @@ const App = () => {
   useEffect(() => {
     fetchJobs();
   }, []);
+
+  const fetchSavedJobs = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:4040/bookmarked_jobs", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setSavedJobs(data.bookmarked_jobs);
+    } catch (error) {
+      console.error("Error fetching saved jobs:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchSavedJobs();
+    fetchAppliedJobs();
+  }, []);
+
+  const fetchAppliedJobs = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:4040/applied_jobs", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setAppliedJobs(data.applied_jobs);
+    } catch (error) {
+      console.error("Error fetching applied jobs:", error);
+    }
+  };
 
   const handlePageChange = (newPage) => {
     fetchJobs(newPage, pageSize);
@@ -216,6 +243,7 @@ const App = () => {
           element={
             <>
               <Header />
+              <MarqueeDemo />
               <CategoryGrid />
               <SearchBar
                 searchQuery={searchQuery}
@@ -244,7 +272,48 @@ const App = () => {
             </>
           }
         />
-        <Route path="/job_post/:jobId" element={<JobPost />} />
+        <Route
+          path="/job_post/:jobId"
+          element={<JobPost onSave={handleSave} onApply={handleApply} />}
+        />
+        <Route
+          path="/saved-jobs"
+          element={
+            <>
+              {/* <h2 className="text-3xl font-bold mb-4">Saved Jobs</h2> */}
+              <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
+                <div className="col-span-2">
+                  <SavedAppliedJobSection
+                    title="Saved Jobs"
+                    onSave={handleSave}
+                    jobs={savedJobs}
+                    onApply={handleApply}
+                    onView={handleView}
+                  />
+                </div>
+              </div>
+            </>
+          }
+        />
+        <Route
+          path="/applied-jobs"
+          element={
+            <>
+              {/* <h2 className="text-3xl font-bold mb-4">Saved Jobs</h2> */}
+              <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
+                <div className="col-span-2">
+                  <SavedAppliedJobSection
+                    title="Applied Jobs"
+                    onSave={handleSave}
+                    jobs={appliedJobs}
+                    onApply={handleApply}
+                    onView={handleView}
+                  />
+                </div>
+              </div>
+            </>
+          }
+        />
       </Routes>
       <Footer />
     </div>
