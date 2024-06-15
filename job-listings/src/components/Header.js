@@ -17,7 +17,7 @@ import face4 from "/Users/jai/Desktop/aus-job-board/job-listings/src/assets/face
 
 const Header = () => {
   return (
-    <header className="text-center py-12 mb-8 rounded-lg max-w-7xl mx-auto">
+    <header className="text-center py-12 mb-8 rounded-lg max-w-8xl mx-auto">
       {/* bg-[#c3f53c] */}
       <div className="flex justify-between items-center bg-[#c3f53c]">
         {/* <div className="flex justify-center items-center space-x-4"> */}
