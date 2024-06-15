@@ -1,8 +1,8 @@
-const JobCard = ({ job, onApply, onSave, onView }) => {
+const SavedAndAppliedJobsCard = ({ job, onApply, onSave, onView }) => {
   return (
     <div
-      className="flex items-center justify-between p-4 border-b border-grey-200 mb-2 rounded-lg shadow-md shadow-slate-200/50 cursor-pointer hover:bg-slate-100 hover:shadow-xl"
-      onClick={() => onView(job.job_id)}
+      className="flex items-center justify-between p-6 border-b border-lime-200 mb-2 rounded-lg shadow-md shadow-slate-200/50 cursor-pointer hover:bg-slate-100 hover:shadow-xl"
+      // onClick={() => onView(job.job_id)}
     >
       <div className="flex items-center">
         <img src={job.logo} alt={job.company} className="w-14 h-14 mr-4" />
@@ -28,13 +28,7 @@ const JobCard = ({ job, onApply, onSave, onView }) => {
       </div>
       <div className="flex space-x-2">
         <button
-          className="px-4 py-2 bg-black hover:bg-violet-700 text-white rounded-md"
-          onClick={() => onSave(job.job_id)}
-        >
-          Save
-        </button>
-        <button
-          className="px-4 py-2 bg-violet-400 hover:bg-violet-700 text-white rounded-md"
+          className="px-4 py-2 bg-lime-400 hover:bg-lime-600 text-black border border-green-600 rounded-md"
           onClick={() => onApply(job.job_id)}
         >
           Apply
@@ -44,4 +38,4 @@ const JobCard = ({ job, onApply, onSave, onView }) => {
   );
 };
 
-export default JobCard;
+export default SavedAndAppliedJobsCard;

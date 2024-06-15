@@ -1,7 +1,8 @@
-import React from "react";
-import JobCard from "./JobCard";
+import React, { useEffect } from "react";
+import SavedAndAppliedJobsCard from "./SavedAndAppliedJobsCard";
+import SavedAndAppliedJobsHeader from "./components/SavedAppliedJobsHeader";
 
-const JobSection = ({
+const SavedAppliedJobSection = ({
   title,
   jobs,
   onSave,
@@ -14,15 +15,16 @@ const JobSection = ({
 }) => {
   return (
     <div>
+      <SavedAndAppliedJobsHeader title={title} />
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-3xl font-bold">{title}</h2>
+        <h2 className="text-5xl font-bold"></h2>
         <a href="#" className="text-indigo-600">
           View all {title.toLowerCase()}
         </a>
       </div>
       <div className="bg-white rounded-lg shadow-md">
         {jobs.map((job, index) => (
-          <JobCard
+          <SavedAndAppliedJobsCard
             key={index}
             job={job}
             onApply={onApply}
@@ -53,4 +55,4 @@ const JobSection = ({
   );
 };
 
-export default JobSection;
+export default SavedAppliedJobSection;

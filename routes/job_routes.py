@@ -7,6 +7,7 @@ from auth.decorators import requires_auth
 from flask_cors import CORS
 from extensions import db
 from flask_caching import Cache
+from utils.misc import get_relative_time
 
 
 job_blueprint = Blueprint('job', __name__)
@@ -112,6 +113,7 @@ def get_all_jobs():
         'salary_range': job.Job.salary_range,
         'logo': company_logos.get(job.Company.name.lower(), ''),  # Get company logo
         'specialization': job.Job.specialization,
+        'created_at': get_relative_time(job.Job.created_at.strftime('%Y-%m-%d')),
         'tech_stack': job.Job.tech_stack
     } for job in jobs]
     

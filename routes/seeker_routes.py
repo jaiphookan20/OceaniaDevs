@@ -3,6 +3,7 @@ from service.seeker_service import SeekerService
 from service.jobs_service import JobsService
 from models import Seeker, Job
 from flask_cors import CORS
+from utils.misc import get_relative_time
 
 # Create a Blueprint for seeker-related routes
 seeker_blueprint = Blueprint('seeker', __name__)
@@ -50,40 +51,6 @@ def update_seeker():
     else:
         return render_template('add_seeker.html')
 
-# Get Applied Jobs Route
-@seeker_blueprint.route('/applied_jobs')
-def get_all_applied_jobs_by_seeker():
-    """
-    Route for retrieving all jobs applied by a job seeker.
-
-    Returns:
-        - Rendered 'applied_jobs.html' template with a list of applied jobs.
-        - 401 Unauthorized error if the user is not a seeker.
-    """
-    if session['user']['type'] != "seeker":
-        return jsonify({"error": "Unauthorized access"}), 401
-    else:
-        seeker_id = session['user']['uid']
-        print(f"seeker_id: {seeker_id}")
-        seeker_service = SeekerService()
-        jobs_service = JobsService()
-        applied_jobs = seeker_service.get_all_applied_jobs_by_seeker(seeker_id)
-        bookmarked_jobs = seeker_service.get_all_bookmarked_jobs_by_seeker(seeker_id)
-
-        # Fetch company names and job details for each applied job
-        for applied_job in applied_jobs:
-            company = jobs_service.get_company_by_jobid(applied_job.jobid)
-            job = jobs_service.get_job_by_id(applied_job.jobid)
-            applied_job.company_name = company.name if company else "N/A"
-            applied_job.title = job.title if job else "N/A"
-            applied_job.city = job.city if job else "N/A"
-            applied_job.state = job.state if job else "N/A"
-            applied_job.country = job.country if job else "N/A"
-            applied_job.experience_level = job.experience_level if job else "N/A"
-            applied_job.created_at = job.created_at if job else "N/A"
-
-        return render_template('applied_jobs.html', jobs=applied_jobs)
-
 # Get Bookmarked Jobs Route
 @seeker_blueprint.route('/bookmarked_jobs')
 def get_all_bookmarked_jobs_by_seeker():
@@ -104,6 +71,8 @@ def get_all_bookmarked_jobs_by_seeker():
             bookmarked_job.city = job.city if job else "N/A"
             bookmarked_job.state = job.state if job else "N/A"
             bookmarked_job.country = job.country if job else "N/A"
+            bookmarked_job.salary_range = job.salary_range if job else "N/A"
+            bookmarked_job.specialization = job.specialization if job else "N/A"
             bookmarked_job.experience_level = job.experience_level if job else "N/A"
             bookmarked_job.created_at = job.created_at if job else "N/A"
 
@@ -116,5 +85,90 @@ def get_all_bookmarked_jobs_by_seeker():
             'country': job.country,
             'experience_level': job.experience_level,
             'logo': company_logos[job.company_name.lower()],
-            'created_at': job.created_at.strftime('%Y-%m-%d')
+            'created_at': get_relative_time(job.created_at.strftime('%Y-%m-%d')),
+            'specialization': job.specialization,
+            'salary_range': job.salary_range
         } for job in bookmarked_jobs])
+    
+
+# Get Applied Jobs Route
+@seeker_blueprint.route('/applied_jobs')
+def get_all_applied_jobs_by_seeker():
+    """
+    Route for retrieving all jobs applied by a job seeker.
+
+    Returns:
+        - Rendered 'applied_jobs.html' template with a list of applied jobs.
+        - 401 Unauthorized error if the user is not a seeker.
+    """
+    if session['user']['type'] != "seeker":
+        return jsonify({"error": "Unauthorized access"}), 401
+    else:
+        seeker_id = session['user']['uid']
+        print(f"seeker_id: {seeker_id}")
+        seeker_service = SeekerService()
+        jobs_service = JobsService()
+        applied_jobs = seeker_service.get_all_applied_jobs_by_seeker(seeker_id)
+
+        # Fetch company names and job details for each applied job
+        for applied_job in applied_jobs:
+            company = jobs_service.get_company_by_jobid(applied_job.jobid)
+            job = jobs_service.get_job_by_id(applied_job.jobid)
+            applied_job.company_name = company.name if company else "N/A"
+            applied_job.title = job.title if job else "N/A"
+            applied_job.city = job.city if job else "N/A"
+            applied_job.state = job.state if job else "N/A"
+            applied_job.country = job.country if job else "N/A"
+            applied_job.experience_level = job.experience_level if job else "N/A"
+            applied_job.specialization = job.specialization if job else "N/A"
+            applied_job.salary_range = job.salary_range if job else "N/A"
+            applied_job.created_at = job.created_at if job else "N/A"
+
+        return jsonify(applied_jobs=[{
+            'job_id': job.jobid,
+            'title': job.title,
+            'company': job.company_name,
+            'city': job.city,
+            'state': job.state,
+            'country': job.country,
+            'experience_level': job.experience_level,
+            'logo': company_logos[job.company_name.lower()],
+            'created_at': get_relative_time(job.created_at.strftime('%Y-%m-%d')),
+            'specialization': job.specialization,
+            'salary_range': job.salary_range
+        } for job in applied_jobs])
+
+
+#     # Get Applied Jobs Route
+# @seeker_blueprint.route('/applied_jobs')
+# def get_all_applied_jobs_by_seeker():
+#     """
+#     Route for retrieving all jobs applied by a job seeker.
+
+#     Returns:
+#         - Rendered 'applied_jobs.html' template with a list of applied jobs.
+#         - 401 Unauthorized error if the user is not a seeker.
+#     """
+#     if session['user']['type'] != "seeker":
+#         return jsonify({"error": "Unauthorized access"}), 401
+#     else:
+#         seeker_id = session['user']['uid']
+#         print(f"seeker_id: {seeker_id}")
+#         seeker_service = SeekerService()
+#         jobs_service = JobsService()
+#         applied_jobs = seeker_service.get_all_applied_jobs_by_seeker(seeker_id)
+#         bookmarked_jobs = seeker_service.get_all_bookmarked_jobs_by_seeker(seeker_id)
+
+#         # Fetch company names and job details for each applied job
+#         for applied_job in applied_jobs:
+#             company = jobs_service.get_company_by_jobid(applied_job.jobid)
+#             job = jobs_service.get_job_by_id(applied_job.jobid)
+#             applied_job.company_name = company.name if company else "N/A"
+#             applied_job.title = job.title if job else "N/A"
+#             applied_job.city = job.city if job else "N/A"
+#             applied_job.state = job.state if job else "N/A"
+#             applied_job.country = job.country if job else "N/A"
+#             applied_job.experience_level = job.experience_level if job else "N/A"
+#             applied_job.created_at = job.created_at if job else "N/A"
+
+#         return render_template('applied_jobs.html', jobs=applied_jobs)
