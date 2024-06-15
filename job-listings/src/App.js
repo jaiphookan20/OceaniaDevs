@@ -12,6 +12,10 @@ import JobPost from "./JobPost";
 import { toast, Toaster } from "react-hot-toast";
 import SavedAppliedJobSection from "./SavedAppliedJobSection";
 import MarqueeDemo from "./components/magicui/MarqueeDemo";
+import EmployerSignupStep1 from "./recruiter/EmployerSignupStep1";
+import EmployerSignupStep2 from "./recruiter/EmployerSignupStep2";
+import EmployerSignupStep3 from "./recruiter/EmployerSignupStep3";
+import FindEmployerForm from "./FindEmployerForm";
 
 const App = () => {
   const [jobs, setJobs] = useState([]);
@@ -313,6 +317,19 @@ const App = () => {
               </div>
             </>
           }
+        />
+        <Route path="/register/employer" element={<EmployerSignupStep1 />} />
+        <Route
+          path="/register/employer/info"
+          element={<EmployerSignupStep2 />}
+        />
+        <Route
+          path="/register/employer/organization-details"
+          element={<EmployerSignupStep3 />}
+        />
+        <Route
+          path="/register/employer/new/organization-details"
+          element={<FindEmployerForm />}
         />
       </Routes>
       <Footer />
