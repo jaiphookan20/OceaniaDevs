@@ -1,51 +1,12 @@
-// Navbar.js
-import React, { useState, useEffect } from "react";
-import Logo from "./Logo";
+import React from "react";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import Logo from "./Logo";
 
-const Navbar = () => {
+const Navbar = ({ user, session, onSignOut }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const response = await fetch("http://127.0.0.1:4040/check-session", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        });
-        const data = await response.json();
-        if (data.userinfo) {
-          setIsLoggedIn(true);
-          setUserName(data.userinfo.name);
-        } else {
-          setIsLoggedIn(false);
-          setUserName("");
-        }
-      } catch (error) {
-        console.error("Error checking session:", error);
-      }
-    };
-
-    checkSession();
-  }, []);
-
-  const handleLogout = async () => {
-    await fetch("http://127.0.0.1:4040/logout", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-    setIsLoggedIn(false);
-    setUserName("");
-    window.location.href = "http://localhost:3000/";
-  };
 
   const navbarStyles = {
     position: "sticky",
@@ -70,6 +31,20 @@ const Navbar = () => {
       document.removeEventListener("click", handleOutsideClick);
     };
   }, [isDropdownOpen]);
+
+  useEffect(() => {
+    const checkSession = () => {
+      if (session) {
+        setIsLoggedIn(true);
+        setUserName(user);
+      } else {
+        setIsLoggedIn(false);
+        setUserName("");
+      }
+    };
+
+    checkSession();
+  }, [session, user]);
 
   return (
     <nav
@@ -195,7 +170,7 @@ const Navbar = () => {
                     Settings
                   </Link>
                   <button
-                    onClick={handleLogout}
+                    onClick={onSignOut}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     role="menuitem"
                   >
@@ -207,27 +182,71 @@ const Navbar = () => {
           </div>
         ) : (
           <>
-            <button
+            {/* <button
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
+              >
+                Log In
+              </button> */}
+            <Link
+              to="/supabase-auth"
               className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
-              onClick={() =>
-                (window.location.href = "http://127.0.0.1:4040/login/seeker")
-              }
-            >
-              Log In
-            </button>
-            <button
-              className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
-              onClick={() =>
-                (window.location.href = "http://127.0.0.1:4040/login/seeker")
-              }
             >
               Sign Up
-            </button>
+            </Link>
+            <Link
+              to="/supabase-auth"
+              className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
+            >
+              Sign In
+            </Link>
+            {/* <button
+                className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
+              >
+                Sign Up
+              </button> */}
           </>
         )}
       </div>
     </nav>
   );
 };
-
 export default Navbar;
+
+// useEffect(({ session, onSignOut }) => {
+//   const checkSession = async () => {
+//     try {
+//       const response = await fetch("http://127.0.0.1:4040/check-session", {
+//         method: "GET",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         credentials: "include",
+//       });
+//       const data = await response.json();
+//       if (data.userinfo) {
+//         setIsLoggedIn(true);
+//         setUserName(data.userinfo.name);
+//       } else {
+//         setIsLoggedIn(false);
+//         setUserName("");
+//       }
+//     } catch (error) {
+//       console.error("Error checking session:", error);
+//     }
+//   };
+
+//   checkSession();
+// }, []);
+
+// const handleLogout = async () => {
+//   await fetch("http://127.0.0.1:4040/logout", {
+//     method: "GET",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//     credentials: "include",
+//   });
+//   setIsLoggedIn(false);
+//   setUserName("");
+//   window.location.href = "http://localhost:3000/";
+// };

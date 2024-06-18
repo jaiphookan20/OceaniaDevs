@@ -1,3 +1,4 @@
+// src/App.js
 import React, { useState, useEffect } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
@@ -11,11 +12,13 @@ import CategoryGrid from "./components/CategoryGrid";
 import JobPost from "./JobPost";
 import { toast, Toaster } from "react-hot-toast";
 import SavedAppliedJobSection from "./SavedAppliedJobSection";
-import MarqueeDemo from "./components/magicui/MarqueeDemo";
 import EmployerSignupStep1 from "./recruiter/EmployerSignupStep1";
 import EmployerSignupStep2 from "./recruiter/EmployerSignupStep2";
 import EmployerSignupStep3 from "./recruiter/EmployerSignupStep3";
 import FindEmployerForm from "./FindEmployerForm";
+import supabase from "./SupabaseClient";
+import SupabaseAuth from "./components/SupabaseAuth";
+// import OAuthCallback from "./components/OAuthCallback";
 
 const App = () => {
   const [jobs, setJobs] = useState([]);
@@ -24,6 +27,86 @@ const App = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isInSession, setisInSession] = useState(false);
   const [title, setTitle] = useState("Technology Jobs");
+  const [session, setSession] = useState(null);
+  const [user, setUser] = useState("");
+
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        if (session) {
+          fetchUser();
+          callBackend(session); // Pass the access token
+        }
+      }
+    );
+
+    return () => {
+      authListener.unsubscribe();
+    };
+  }, []);
+
+  const fetchUser = async () => {
+    const { data } = await supabase.auth.getUser();
+    if (data.user) {
+      setUser(data.user.identities[0].identity_data.name);
+    }
+  };
+
+  const callBackend = async (session) => {
+    try {
+      console.log(session);
+      const response = await fetch("http://127.0.0.1:4040/callback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ session: session }),
+      });
+      const data = await response.json();
+      console.log(data);
+    } catch (error) {
+      console.error("Error calling backend:", error);
+    }
+  };
+
+  // useEffect(() => {
+  // const fetchUser = async () => {
+  //   const { data } = await supabase.auth.getUser();
+  //   if (data.user != null) {
+  //     setUser(data.user.identities[0].identity_data.name); // Set user data
+  //   }
+  // };
+
+  // fetchUser();
+
+  //   const {
+  //     data: { subscription },
+  //   } = supabase.auth.onAuthStateChange((_event, session) => {
+  // setSession(session);
+  // // Update user data or perform other actions based on the new session
+  // if (session) {
+  //   fetchUser(); // Fetch user data when session changes
+  // } else {
+  //   setUser(null); // Set user to null when session ends
+  // }
+  //   });
+
+  //   return () => subscription.unsubscribe();
+  // }, []);
+
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Error signing out:", error);
+      toast.error("Failed to sign out.");
+    } else {
+      toast.success("Signed out successfully.");
+      setSession(null);
+      navigate("/");
+    }
+  };
 
   const [filters, setFilters] = useState({
     specialization: "",
@@ -51,8 +134,9 @@ const App = () => {
           credentials: "include",
         });
         const data = await response.json();
+        console.log(data);
         if (data.userinfo) {
-          console.log(`${data.userinfo.name} is in session`);
+          console.log(`${data.user.email} is in session`);
           setisInSession(true);
         } else {
           setisInSession(false);
@@ -161,6 +245,14 @@ const App = () => {
     });
   };
 
+  const handleCategoryClick = (specialization) => {
+    setFilters({
+      ...filters,
+      specialization,
+    });
+    handleFilterSearch();
+  };
+
   const fetchJobs = async (page = 1, pageSize = 10) => {
     try {
       const response = await fetch(
@@ -207,8 +299,8 @@ const App = () => {
   };
 
   useEffect(() => {
-    fetchSavedJobs();
-    fetchAppliedJobs();
+    // fetchSavedJobs();
+    // fetchAppliedJobs();
   }, []);
 
   const fetchAppliedJobs = async () => {
@@ -239,7 +331,7 @@ const App = () => {
       style={{ fontFamily: "Roobert-Regular, sans-serif" }}
     >
       <Toaster />
-      <Navbar />
+      <Navbar session={session} user={user} onSignOut={signOut} />
       <Routes>
         <Route
           exact
@@ -247,8 +339,6 @@ const App = () => {
           element={
             <>
               <Header />
-              <MarqueeDemo />
-              <CategoryGrid />
               <SearchBar
                 searchQuery={searchQuery}
                 onSearchChange={handleSearch}
@@ -256,6 +346,7 @@ const App = () => {
                 onFilterChange={handleChange}
                 onFilterSearch={handleFilterSearch}
               />
+              <CategoryGrid onCategoryClick={handleCategoryClick} />
               <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
                 <div className="col-span-2">
                   <JobSection
@@ -276,6 +367,8 @@ const App = () => {
             </>
           }
         />
+        <Route path="/supabase-auth" element={<SupabaseAuth />} />
+        {/* <Route path="/callback" element={<OAuthCallback />} /> */}
         <Route
           path="/job_post/:jobId"
           element={<JobPost onSave={handleSave} onApply={handleApply} />}
@@ -283,39 +376,33 @@ const App = () => {
         <Route
           path="/saved-jobs"
           element={
-            <>
-              {/* <h2 className="text-3xl font-bold mb-4">Saved Jobs</h2> */}
-              <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
-                <div className="col-span-2">
-                  <SavedAppliedJobSection
-                    title="Saved Jobs"
-                    onSave={handleSave}
-                    jobs={savedJobs}
-                    onApply={handleApply}
-                    onView={handleView}
-                  />
-                </div>
+            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
+              <div className="col-span-2">
+                <SavedAppliedJobSection
+                  title="Saved Jobs"
+                  onSave={handleSave}
+                  jobs={savedJobs}
+                  onApply={handleApply}
+                  onView={handleView}
+                />
               </div>
-            </>
+            </div>
           }
         />
         <Route
           path="/applied-jobs"
           element={
-            <>
-              {/* <h2 className="text-3xl font-bold mb-4">Saved Jobs</h2> */}
-              <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
-                <div className="col-span-2">
-                  <SavedAppliedJobSection
-                    title="Applied Jobs"
-                    onSave={handleSave}
-                    jobs={appliedJobs}
-                    onApply={handleApply}
-                    onView={handleView}
-                  />
-                </div>
+            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
+              <div className="col-span-2">
+                <SavedAppliedJobSection
+                  title="Applied Jobs"
+                  onSave={handleSave}
+                  jobs={appliedJobs}
+                  onApply={handleApply}
+                  onView={handleView}
+                />
               </div>
-            </>
+            </div>
           }
         />
         <Route path="/register/employer" element={<EmployerSignupStep1 />} />

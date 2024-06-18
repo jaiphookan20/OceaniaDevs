@@ -8,7 +8,7 @@ from routes.recruiter_routes import recruiter_blueprint
 from routes.seeker_routes import seeker_blueprint
 from extensions import db, bcrypt, migrate
 import json
-from routes.auth_routes import webapp_secret_key
+# from routes.auth_routes import webapp_secret_key
 import logging
 from flask_cors import CORS
 from models import Job, Company
@@ -75,7 +75,7 @@ Session(app)
 with app.app_context():
     db.create_all()  # This will create all tables based on your models
 
-app.secret_key = webapp_secret_key
+# app.secret_key = webapp_secret_key
 
 app.config.update(
     SESSION_COOKIE_SECURE=True,
@@ -88,6 +88,7 @@ app.config.update(
 def home():
     # Check if a user is logged in
     user_logged_in = 'user' in session
+    print(f"session: {session}")
     if user_logged_in:
         print(session.get('user').get("userinfo").get('name'))
         user_type = session['user']['type'] in session
@@ -100,9 +101,9 @@ def home():
 @app.route("/check-session", methods=["GET"])
 def check_session():
     if 'user' in session:
-        # print(f"Session data in check-session: {session}")
-        print(f"Session data in check-session: {session['user']['userinfo']['name']}")
-        print(f"Session Type in check-session: {session['user']['type']}")
+        print(f"Session data in check-session: {session}")
+        # print(f"Session data in check-session: {session['user']['userinfo']['name']}")
+        # print(f"Session Type in check-session: {session['user']['type']}")
         return jsonify(session['user'])
     else:
         print("No user in session in check-session")
