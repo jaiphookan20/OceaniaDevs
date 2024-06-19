@@ -50,7 +50,7 @@ def callback():
             'email': user_email,
             'name': user_name,
         }
-        # print(session['user'])
+        print(session['user'])
         return redirect("http://localhost:3000/")
 
     except ExpiredSignatureError:

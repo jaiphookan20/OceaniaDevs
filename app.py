@@ -100,6 +100,7 @@ def home():
 
 @app.route("/check-session", methods=["GET"])
 def check_session():
+    print("Inside check_session")
     if 'user' in session:
         print(f"Session data in check-session: {session}")
         # print(f"Session data in check-session: {session['user']['userinfo']['name']}")

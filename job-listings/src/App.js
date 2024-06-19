@@ -18,7 +18,6 @@ import EmployerSignupStep3 from "./recruiter/EmployerSignupStep3";
 import FindEmployerForm from "./FindEmployerForm";
 import supabase from "./SupabaseClient";
 import SupabaseAuth from "./components/SupabaseAuth";
-// import OAuthCallback from "./components/OAuthCallback";
 
 const App = () => {
   const [jobs, setJobs] = useState([]);
@@ -368,7 +367,6 @@ const App = () => {
           }
         />
         <Route path="/supabase-auth" element={<SupabaseAuth />} />
-        {/* <Route path="/callback" element={<OAuthCallback />} /> */}
         <Route
           path="/job_post/:jobId"
           element={<JobPost onSave={handleSave} onApply={handleApply} />}

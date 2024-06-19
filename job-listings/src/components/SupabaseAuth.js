@@ -10,9 +10,9 @@ const SupabaseAuth = () => {
     const handleOAuthSignIn = async () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: {
-          redirectTo: window.location.origin + "/callback",
-        },
+        // options: {
+        //   redirectTo: window.location.origin + "/callback",
+        // },
       });
       if (error) console.error("OAuth Sign-In Error:", error.message);
     };
