@@ -6,7 +6,7 @@ from routes.auth_routes import auth_blueprint
 from routes.job_routes import job_blueprint
 from routes.recruiter_routes import recruiter_blueprint
 from routes.seeker_routes import seeker_blueprint
-from routes.similarity_search_routes import simsearch_blueprint
+from matching.similarity_search_routes import simsearch_blueprint
 from extensions import db, bcrypt, migrate
 from routes.auth_routes import webapp_secret_key
 import logging

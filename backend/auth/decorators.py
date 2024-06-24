@@ -15,9 +15,8 @@ def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if session.get('user') is None:
-            print('Unauthorized 2: Need to login first')
-            print(url_for('home'))
-            return redirect(url_for('home'))
+            print('Unauthorized: Need to login first')
+            return redirect(url_for('auth.login', type='seeker')) # Need to fix this. Not redirecting to Auth0 login correctly
 
         return f(*args, **kwargs)
 

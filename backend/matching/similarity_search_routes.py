@@ -4,63 +4,10 @@ from extensions import db
 import numpy as np
 from flask_cors import CORS
 from utils.openai import get_embedding
-from service.similarity_search_service import SimilaritySearch
-
+from matching.similarity_search_service import SimilaritySearch
 
 simsearch_blueprint = Blueprint('simsearch', __name__)
 CORS(simsearch_blueprint, supports_credentials=True, resources={r'/*': {'origins': 'http://localhost:3000'}})
-
-# # Add Candidates to the DB & Generate Text Embeddings for Each Candidate added based on their work_experience field
-# @simsearch_blueprint.route('/add_candidates_bulk', methods=['POST'])
-# def add_candidates_bulk():
-#     """
-#     Endpoint to add multiple candidates to the database in bulk 
-#     + Generate text embeddings for each candidate added, based on their 'work_experience' field
-#     Expects a JSON payload with a 'candidates' key containing an array of candidate data.
-#     """
-#     data = request.get_json()
-#     candidates = data['candidates']
-    
-#     for candidate_data in candidates:
-#         # Extract candidate information from the request data
-#         name = candidate_data['name']
-#         years_experience = candidate_data['years_experience']
-#         position = candidate_data['position']
-#         work_experience = candidate_data['work_experience']
-#         favorite_languages = candidate_data['favorite_languages']
-#         technologies = candidate_data['technologies']
-
-#         # Generate embedding from work experience
-#         embedding = get_embedding(work_experience)
-        
-#         # Convert numpy array to list if necessary
-#         if isinstance(embedding, np.ndarray):
-#             embedding = embedding.tolist()
-        
-#         # Ensure the embedding is the correct length (1536 for OpenAI's embeddings)
-#         if len(embedding) != 1536:
-#             return jsonify({'status': 'error', 'message': f'Invalid embedding dimension for {name}'}), 400
-
-#         # Create a new Candidate object and add it to the database session
-#         candidate = Candidate(
-#             name=name,
-#             years_experience=years_experience,
-#             position=position,
-#             work_experience=work_experience,
-#             favorite_languages=favorite_languages,
-#             technologies=technologies,
-#             embedding=embedding
-#         )
-#         db.session.add(candidate)
-
-#     try:
-#         # Commit all changes to the database
-#         db.session.commit()
-#         return jsonify({'status': 'success', 'message': 'Candidates added successfully'}), 200
-#     except Exception as e:
-#         # If an error occurs, rollback the session and return an error message
-#         db.session.rollback()
-#         return jsonify({'status': 'error', 'message': str(e)}), 500
     
 @simsearch_blueprint.route('/add_candidates_bulk', methods=['POST'])
 def add_candidates_bulk():

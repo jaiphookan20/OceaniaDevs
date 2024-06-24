@@ -4,7 +4,7 @@ from service.jobs_service import JobsService
 from models import Seeker, Job
 from flask_cors import CORS
 from utils.time import get_relative_time
-
+import os
 # Create a Blueprint for seeker-related routes
 seeker_blueprint = Blueprint('seeker', __name__)
 CORS(seeker_blueprint, supports_credentials=True, resources={r'/*': {'origins': 'http://localhost:3000'}})
@@ -75,6 +75,11 @@ def get_all_bookmarked_jobs_by_seeker():
             bookmarked_job.specialization = job.specialization if job else "N/A"
             bookmarked_job.experience_level = job.experience_level if job else "N/A"
             bookmarked_job.created_at = job.created_at if job else "N/A"
+            bookmarked_job.logo = company.logo_url if  company.logo_url  else company_logos[company.name.lower()];
+            
+            if company.logo_url: 
+                if not bookmarked_job.logo.startswith('http'):
+                    bookmarked_job.logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company.logo_url)}"
 
         return jsonify(bookmarked_jobs=[{
             'job_id': job.jobid,
@@ -84,7 +89,7 @@ def get_all_bookmarked_jobs_by_seeker():
             'state': job.state,
             'country': job.country,
             'experience_level': job.experience_level,
-            'logo': company_logos[job.company_name.lower()],
+            'logo': job.logo,
             'created_at': get_relative_time(job.created_at.strftime('%Y-%m-%d')),
             'specialization': job.specialization,
             'salary_range': job.salary_range

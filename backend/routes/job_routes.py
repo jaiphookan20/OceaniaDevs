@@ -107,7 +107,7 @@ def get_all_jobs():
     # Get the page number from the request
     page = request.args.get('page', 1, type=int)  
     # Get the page size from the request
-    page_size = request.args.get('page_size', 25, type=int)  
+    page_size = request.args.get('page_size', 25, type=int)   
     
     jobs_service = JobsService()  # Initialize the JobsService
 
@@ -183,7 +183,7 @@ def apply_to_job():
 @requires_auth
 def bookmark_job():
     if 'user' not in session:
-        print('user not in session!')
+        print('Cannot Bookmark. User not in session!')
         return jsonify({"error": "Unauthorized access"}), 401
     else:
         print('user in session')

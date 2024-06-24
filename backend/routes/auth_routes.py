@@ -111,7 +111,7 @@ def callback():
         return redirect("http://localhost:3000/")
 
 # Login Route:
-@auth_blueprint.route("/login", defaults={'type': 'seeker'})
+# @auth_blueprint.route("/login", defaults={'type': 'seeker'})
 @auth_blueprint.route("/login/<string:type>")
 def login(type):
     """
@@ -125,7 +125,7 @@ def login(type):
     )
 
 # Registration Route:
-@auth_blueprint.route("/register", defaults={'type': 'seeker'})
+# @auth_blueprint.route("/register", defaults={'type': 'seeker'})
 @auth_blueprint.route("/register/<string:type>")
 def signup(type):
     """
