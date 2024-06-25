@@ -1,5 +1,5 @@
 import React from "react";
-import { cn } from "/Users/jai/Desktop/aus-job-board/frontend/src/lib/utils.ts";
+import { cn } from "../../lib/utils.ts";
 
 const Marquee = ({
   className,
