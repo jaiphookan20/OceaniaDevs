@@ -1,19 +1,35 @@
 import React from "react";
-import hero1 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-1-orange.png";
-import hero2 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-2-blue.png";
-import hero3 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-3-orange.png";
-import hero4 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-4-orange.png";
-import hero5 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-purple-flower.png";
-import hero6 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-stream-purple.png";
-import hero7 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-blue-stream.png";
-import hero8 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-green-circle-spikes.png";
-import hero9 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-yellow-daisy.png";
-import hero10 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-green-circle-spikes.png";
-import hero11 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-green-circle.png";
-import face1 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/face-1.png";
-import face2 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/face-2.png";
-import face3 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/face-3.png";
-import face4 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/face-4.png";
+// import hero1 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-1-orange.png";
+
+import face1 from "../assets/face-1.png";
+import face2 from "../assets/face-2.png";
+import face3 from "../assets/face-3.png";
+import face4 from "../assets/face-4.png";
+import hero2 from "../assets/hero-2-blue.png";
+import hero3 from "../assets/hero-3-orange.png";
+// import hero4 from "OceaniaDevs\frontendsrcassetshero-4-orange.png";
+import hero5 from "../assets/hero-purple-flower.png";
+import hero6 from "../assets/hero-stream-purple.png";
+import hero7 from "../assets/hero-blue-stream.png";
+// import hero8 from "OceaniaDevs\frontendsrcassetshero-green-circle-spikes.png";
+import hero9 from "../assets/hero-yellow-daisy.png";
+// import hero10 from "OceaniaDevs\frontendsrcassetshero-green-circle-spikes.png";
+// import hero11 from "OceaniaDevs\frontendsrcassetshero-green-circle.png";
+
+// import hero2 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-2-blue.png";
+// import hero3 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-3-orange.png";
+// import hero4 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-4-orange.png";
+// import hero5 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-purple-flower.png";
+// import hero6 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-stream-purple.png";
+// import hero7 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-blue-stream.png";
+// import hero8 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-green-circle-spikes.png";
+// import hero9 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-yellow-daisy.png";
+// import hero10 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-green-circle-spikes.png";
+// import hero11 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/hero-green-circle.png";
+// import face1 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/face-1.png";
+// import face2 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/face-2.png";
+// import face3 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/face-3.png";
+// import face4 from "/Users/jai/Desktop/aus-job-board/frontend/src/assets/face-4.png";
 
 const Header = () => {
   return (

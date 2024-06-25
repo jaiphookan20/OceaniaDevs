@@ -1,6 +1,6 @@
 import React from "react";
 import Marquee from "./marquee.js";
-import { cn } from "/Users/jai/Desktop/aus-job-board/frontend/src/lib/utils.ts";
+import { cn } from "../../lib/utils.ts";
 
 const icons = {
   aws: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/amazonwebservices/amazonwebservices-original-wordmark.svg",
