@@ -97,3 +97,4 @@ yarg==0.1.9
 zipp==3.19.2
 tenacity==8.2.2
 psycopg2-binary==2.9.9
+pgvector==0.3.0

@@ -2,7 +2,8 @@ from extensions import bcrypt, db
 from sqlalchemy.dialects.postgresql import ENUM, TSVECTOR
 from sqlalchemy import event, text
 from sqlalchemy.schema import DDL
-from matching.custom_types import Vector
+# from matching.custom_types import Vector
+from pgvector.sqlalchemy import Vector
 
 # Define all ENUM types
 state_enum = ENUM('VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA', name='state_enum', create_type=False)
@@ -11,42 +12,6 @@ job_type_enum = ENUM('premium', 'normal', name='job_type', create_type=False)
 industry_enum = ENUM('Government', 'Banking & Financial Services', 'Fashion', 'Mining', 'Healthcare', 'IT - Software Development', 'IT - Data Analytics', 'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 'Marketing & Advertising', 'Media & Communications', 'Non-Profit & NGO', 'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 'Telecommunications', 'Transportation & Logistics', name='industry_type', create_type=False)
 salary_range_enum = ENUM('20000 - 40000', '40000 - 60000', '60000 - 80000', '80000 - 100000', '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000', '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+', name='salary_range_type', create_type=False)
 
-def create_enum_type(name, values):
-    return DDL(f"""
-    DO $$
-    BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = '{name}') THEN
-            CREATE TYPE {name} AS ENUM ({', '.join(repr(v) for v in values)});
-        END IF;
-    END$$;
-    """)
-
-# Create ENUM types
-event.listen(
-    db.metadata,
-    'before_create',
-    create_enum_type('state_enum', state_enum.enums)
-)
-event.listen(
-    db.metadata,
-    'before_create',
-    create_enum_type('country_enum', country_enum.enums)
-)
-event.listen(
-    db.metadata,
-    'before_create',
-    create_enum_type('job_type', job_type_enum.enums)
-)
-event.listen(
-    db.metadata,
-    'before_create',
-    create_enum_type('industry_type', industry_enum.enums)
-)
-event.listen(
-    db.metadata,
-    'before_create',
-    create_enum_type('salary_range_type', salary_range_enum.enums)
-)
 
 class Seeker(db.Model):
     __tablename__ = 'seekers'
