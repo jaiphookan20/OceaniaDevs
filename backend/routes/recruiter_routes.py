@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, current_app
+from flask import Blueprint, app, render_template, request, redirect, url_for, session, jsonify, current_app
 from service.recruiter_service import RecruiterService
 from service.jobs_service import JobsService
 from models import Recruiter, Company, Job
@@ -6,6 +6,7 @@ from extensions import db
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import os
+from flask import current_app
 
 
 # Create a Blueprint for recruiter-related routes
@@ -85,27 +86,101 @@ def add_company():
 
         return "Company added successfully!"
 
+# @recruiter_blueprint.route('/api/add_job', methods=['POST'])
+# def add_job():
+#     """
+#     Route for adding a new job post.
+    
+#     POST: Extracts JSON data and calls the 'add_job' method of the RecruiterService.
+    
+#     Returns:
+#         - JSON response with a success message or an error message.
+#     """
+#     recruiter_service = RecruiterService()
+    
+#     if request.method == 'POST':
+#         if 'user' not in session:
+#             current_app.logger.warning('Add job failed: User not in session')
+#             return jsonify({"error": "User not logged in"}), 401
+        
+#         if 'recruiter_id' not in session['user']:
+#             return jsonify({"error": "User is not a recruiter"}), 403
+        
+#         recruiter_id = session['user']['recruiter_id']
+#         recruiter = Recruiter.query.get(recruiter_id)
+        
+#         if not recruiter:
+#             return jsonify({"error": "Recruiter not found"}), 404
+        
+#         company_id = recruiter.company_id
+        
+#         data = request.json  # Expecting JSON data
+        
+        # # Extract form data from JSON
+        # try:
+        #     title = data['title']
+        #     description = data['description']
+        #     specialization = data['specialization']
+        #     job_type = data['job_type']
+        #     industry = data['industry']
+        #     salary_range = data['salary_range']
+        #     salary_type = data['salary_type']
+        #     work_location = data['work_location']
+        #     min_experience_years = data['min_experience_years']
+        #     experience_level = data['experience_level']
+        #     city = data['city']
+        #     state = data['state']
+        #     country = data['country']
+        #     jobpost_url = data['jobpost_url']
+        #     work_rights = data['work_rights']
+        # except KeyError as e:
+        #     return jsonify({"error": f"Missing required field: {str(e)}"}), 400
+
+#         # Call the add_job method of RecruiterService
+#         try:
+#             recruiter_service.add_job(recruiter_id, company_id, title, description, specialization,
+#                                       job_type, industry, salary_range, salary_type, work_location,
+#                                       min_experience_years, experience_level, city,
+#                                       state, country, jobpost_url, work_rights)
+#         except Exception as e:
+#             return jsonify({"error": f"Failed to add job: {str(e)}"}), 500
+
+#         return jsonify({"message": "Job added successfully"})
+
+#     return jsonify({"error": "Invalid request method"}), 405
 @recruiter_blueprint.route('/api/add_job', methods=['POST'])
 def add_job():
-    """
-    Route for adding a new job post.
+    current_app.logger.info("Entering add_job route")
+    current_app.logger.info(f"Session state: {session}")
     
-    POST: Extracts JSON data and calls the 'add_job' method of the RecruiterService.
+    if 'user' not in session:
+        current_app.logger.warning("User not in session")
+        return jsonify({"error": "User not logged in"}), 401
     
-    Returns:
-        - JSON response with a success message.
-    """
-    recruiter_service = RecruiterService()
+    if session['user'].get('type') != 'recruiter':
+        current_app.logger.warning(f"User is not a recruiter. User type: {session['user'].get('type')}")
+        return jsonify({"error": "User is not a recruiter"}), 403
     
-    if request.method == 'POST':
-        data = request.json  # Expecting JSON data
+    current_app.logger.info(f"Session in Add_Job: {session['user']}")
+    recruiter_id = session['user'].get('recruiter_id')
+    if not recruiter_id:
+        current_app.logger.error("No recruiter_id in session")
+        return jsonify({"error": "Recruiter ID not found"}), 400
 
-        # Get the recruiter and company details from the session and form data
-        recruiter_id = session['user']['recruiter_id']
-        recruiter = Recruiter.query.get(recruiter_id)
-        company_id = recruiter.company_id
-        
-        # Extract form data from JSON
+    current_app.logger.info(f"Recruiter ID: {recruiter_id}")
+    
+    recruiter = Recruiter.query.get(recruiter_id)
+    if not recruiter:
+        current_app.logger.error(f"No recruiter found for ID: {recruiter_id}")
+        return jsonify({"error": "Recruiter not found"}), 404
+    
+    company_id = recruiter.company_id
+    current_app.logger.info(f"Company ID: {company_id}")
+    
+    data = request.json
+    current_app.logger.info(f"Received job data: {data}")
+    
+    try:
         title = data['title']
         description = data['description']
         specialization = data['specialization']
@@ -121,14 +196,22 @@ def add_job():
         country = data['country']
         jobpost_url = data['jobpost_url']
         work_rights = data['work_rights']
+    
+    except KeyError as e:
+        return jsonify({"error": f"Missing required field: {str(e)}"}), 400
 
+    try:
         # Call the add_job method of RecruiterService
-        recruiter_service.add_job(recruiter_id, company_id, title, description, specialization,
+        recruiter_service = RecruiterService()
+        new_job = recruiter_service.add_job(recruiter_id, company_id, title, description, specialization,
                                    job_type, industry, salary_range, salary_type, work_location,
                                    min_experience_years, experience_level, city,
                                    state, country, jobpost_url, work_rights)
-
-        return jsonify({"message": "Job added successfully"})
+        current_app.logger.info(f"Job added successfully: {new_job}")
+        return jsonify({"message": "Job added successfully", "job_id": new_job.job_id})
+    except Exception as e:
+        current_app.logger.error(f"Error adding job: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 @recruiter_blueprint.route('/api/jobs_by_recruiter')
 def get_all_jobs_by_recruiter():

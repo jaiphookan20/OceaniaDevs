@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  frontend:
+    build: ./frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - REACT_APP_API_URL=http://localhost/api
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    volumes:
+      - ./backend:/app
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+      - DB_HOST=postgres
+      - DB_NAME=job_board
+      - DB_USER=jai
+      - DB_PASSWORD=techboard
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - SECRET_KEY=${SECRET_KEY:-your_secret_key_here}
+      - AUTH0_CLIENT_ID=3sGw77fl2BfCmhS3SknAwZviTFeWpAwq
+      - AUTH0_CLIENT_SECRET=R9ZGC2WeqLwEuWDzmeYamHAHySmiECfkcU-dd3QdBgZRVZInYKCvE4alE0RGzvLr
+      - AUTH0_DOMAIN=dev-oeq0mjghj1zj746x.us.auth0.com
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "4040:4040"
+
+  postgres:
+    image: ankane/pgvector:latest
+    environment:
+      POSTGRES_DB: job_board
+      POSTGRES_USER: jai
+      POSTGRES_PASSWORD: techboard
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:6
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend/build:/usr/share/nginx/html
+      - ./nginx/job-board.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - backend
+
+volumes:
+  postgres_data:
+  node_modules:

@@ -36,7 +36,8 @@ const PostJob = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://127.0.0.1:4040/api/add_job", {
+      const response = await fetch("/api/add_job", {
+        // Updated URL
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -45,10 +46,12 @@ const PostJob = () => {
         body: JSON.stringify(formData),
       });
       if (response.ok) {
-        toast.success("Job successfully added!");
+        const data = await response.json();
+        toast.success(data.message || "Job successfully added!");
         navigate("/");
       } else {
-        toast.error("Failed to add job.");
+        const errorData = await response.json();
+        toast.error(errorData.error || "Failed to add job.");
       }
     } catch (error) {
       console.error("Error submitting the form:", error);

@@ -14,7 +14,6 @@ import SavedAppliedJobSection from "./SavedAppliedJobSection";
 import MarqueeDemo from "./components/magicui/MarqueeDemo";
 import EmployerSignupStep1 from "./recruiter/EmployerSignupStep1";
 import EmployerSignupStep2 from "./recruiter/EmployerSignupStep2";
-import EmployerSignupStep3 from "./recruiter/RegisterNewEmployer";
 import FindEmployerForm from "./FindEmployerForm";
 import RegisterNewEmployer from "./recruiter/RegisterNewEmployer";
 import PostJob from "./recruiter/PostJob";
@@ -24,8 +23,10 @@ const App = () => {
   const [savedJobs, setSavedJobs] = useState([]);
   const [appliedJobs, setAppliedJobs] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isInSession, setisInSession] = useState(false);
+  const [isInSession, setIsInSession] = useState(false);
   const [title, setTitle] = useState("Technology Jobs");
+
+  const apiUrl = "/api"; // Updated to use the Nginx reverse proxy
 
   const [filters, setFilters] = useState({
     specialization: "",
@@ -45,24 +46,21 @@ const App = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const response = await fetch(
-          "http://127.0.0.1:4040/api/check-session",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-          }
-        );
+        const response = await fetch(`${apiUrl}/check-session`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
         const data = await response.json();
         if (data.userinfo) {
           console.log(`${data.userinfo.name} is in session`);
-          setisInSession(true);
+          setIsInSession(true);
           fetchSavedJobs();
           fetchAppliedJobs();
         } else {
-          setisInSession(false);
+          setIsInSession(false);
         }
       } catch (error) {
         console.error("Error checking session:", error);
@@ -74,7 +72,7 @@ const App = () => {
 
   const handleSave = async (jobId) => {
     try {
-      const response = await fetch("http://127.0.0.1:4040/api/bookmark_job", {
+      const response = await fetch(`${apiUrl}/bookmark_job`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -96,7 +94,7 @@ const App = () => {
 
   const handleApply = async (jobId) => {
     try {
-      const response = await fetch("http://127.0.0.1:4040/api/apply_to_job", {
+      const response = await fetch(`${apiUrl}/apply_to_job`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -131,7 +129,7 @@ const App = () => {
     } else {
       console.log("Calling Instant Search Jobs");
       const response = await fetch(
-        `http://127.0.0.1:4040/api/instant_search_jobs?query=${event.target.value}`,
+        `${apiUrl}/instant_search_jobs?query=${event.target.value}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -147,7 +145,7 @@ const App = () => {
   const handleFilterSearch = async () => {
     const queryParams = new URLSearchParams(filters);
     const response = await fetch(
-      `http://127.0.0.1:4040/api/filtered_search_jobs?${queryParams.toString()}`,
+      `${apiUrl}/filtered_search_jobs?${queryParams.toString()}`,
       {
         method: "GET",
         headers: {
@@ -171,7 +169,7 @@ const App = () => {
   const fetchJobs = async (page = 1, pageSize = 10) => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:4040/api/alljobs?page=${page}&page_size=${pageSize}`,
+        `${apiUrl}/alljobs?page=${page}&page_size=${pageSize}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -197,15 +195,12 @@ const App = () => {
 
   const fetchSavedJobs = async () => {
     try {
-      const response = await fetch(
-        "http://127.0.0.1:4040/api/bookmarked_jobs",
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        }
-      );
+      const response = await fetch(`${apiUrl}/bookmarked_jobs`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -216,14 +211,9 @@ const App = () => {
     }
   };
 
-  // useEffect(() => {
-  //   // fetchSavedJobs();
-  //   // fetchAppliedJobs();
-  // }, []);
-
   const fetchAppliedJobs = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:4040/api/applied_jobs", {
+      const response = await fetch(`${apiUrl}/applied_jobs`, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -293,39 +283,33 @@ const App = () => {
         <Route
           path="/saved-jobs"
           element={
-            <>
-              {/* <h2 className="text-3xl font-bold mb-4">Saved Jobs</h2> */}
-              <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
-                <div className="col-span-2">
-                  <SavedAppliedJobSection
-                    title="Saved Jobs"
-                    onSave={handleSave}
-                    jobs={savedJobs}
-                    onApply={handleApply}
-                    onView={handleView}
-                  />
-                </div>
+            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
+              <div className="col-span-2">
+                <SavedAppliedJobSection
+                  title="Saved Jobs"
+                  onSave={handleSave}
+                  jobs={savedJobs}
+                  onApply={handleApply}
+                  onView={handleView}
+                />
               </div>
-            </>
+            </div>
           }
         />
         <Route
           path="/applied-jobs"
           element={
-            <>
-              {/* <h2 className="text-3xl font-bold mb-4">Saved Jobs</h2> */}
-              <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
-                <div className="col-span-2">
-                  <SavedAppliedJobSection
-                    title="Applied Jobs"
-                    onSave={handleSave}
-                    jobs={appliedJobs}
-                    onApply={handleApply}
-                    onView={handleView}
-                  />
-                </div>
+            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
+              <div className="col-span-2">
+                <SavedAppliedJobSection
+                  title="Applied Jobs"
+                  onSave={handleSave}
+                  jobs={appliedJobs}
+                  onApply={handleApply}
+                  onView={handleView}
+                />
               </div>
-            </>
+            </div>
           }
         />
         <Route path="/register/employer" element={<EmployerSignupStep1 />} />

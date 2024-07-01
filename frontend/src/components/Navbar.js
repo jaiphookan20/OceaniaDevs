@@ -7,20 +7,19 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  // const apiUrl = "http://localhost:4040"; // This should point to your backend service in Docker
+  const apiUrl = "http://localhost/api"; // Updated to work with Nginx reverse proxy
 
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const response = await fetch(
-          "http://127.0.0.1:4040/api/check-session",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-          }
-        );
+        const response = await fetch(`${apiUrl}/check-session`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
         const data = await response.json();
         if (data.userinfo) {
           setIsLoggedIn(true);
@@ -38,7 +37,7 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = async () => {
-    await fetch("http://127.0.0.1:4040/api/logout", {
+    await fetch(`${apiUrl}/logout`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -47,7 +46,7 @@ const Navbar = () => {
     });
     setIsLoggedIn(false);
     setUserName("");
-    window.location.href = "http://localhost:3000/";
+    window.location.href = "/";
   };
 
   const navbarStyles = {
@@ -83,7 +82,7 @@ const Navbar = () => {
         <Logo
           className="h-24 w-auto"
           alt="Logo"
-          onClick={() => (window.location.href = "http://localhost:3000/")}
+          onClick={() => (window.location.href = "/")}
         />
         <div className="">
           <a
@@ -129,17 +128,22 @@ const Navbar = () => {
       <div className="flex items-center space-x-4">
         <button
           className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
-          onClick={() =>
-            (window.location.href = "http://127.0.0.1:4040/login/recruiter")
-          }
+          // onClick={() => (window.location.href = `${apiUrl}/login/recruiter`)}
+          onClick={() => (window.location.href = "/employer/post-job")}
+        >       
+          Post Job
+        </button>
+        <button
+          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
+          // onClick={() => (window.location.href = `${apiUrl}/login/recruiter`)}
+          onClick={() => (window.location.href = "/login/recruiter")}
         >
           Recruiter Login
         </button>
         <button
           className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
-          onClick={() =>
-            (window.location.href = "http://127.0.0.1:4040/login/recruiter")
-          }
+          // onClick={() => (window.location.href = `${apiUrl}/login/recruiter`)}
+          onClick={() => (window.location.href = "/register/recruiter")}
         >
           Recruiter Sign-Up
         </button>
@@ -215,10 +219,7 @@ const Navbar = () => {
                     Settings
                   </Link>
                   <button
-                    // onClick={handleLogout}
-                    onClick={() =>
-                      (window.location.href = "http://127.0.0.1:4040/logout")
-                    }
+                    onClick={handleLogout}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     role="menuitem"
                   >
@@ -232,17 +233,15 @@ const Navbar = () => {
           <>
             <button
               className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
-              onClick={() =>
-                (window.location.href = "http://127.0.0.1:4040/login/seeker")
-              }
+              // onClick={() => (window.location.href = `${apiUrl}/login/seeker`)}
+              onClick={() => (window.location.href = "/login/seeker")}
             >
               Log In
             </button>
             <button
               className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
-              onClick={() =>
-                (window.location.href = "http://127.0.0.1:4040/login/seeker")
-              }
+              // onClick={() => (window.location.href = `${apiUrl}/login/seeker`)}
+              onClick={() => (window.location.href = "/register/seeker")}
             >
               Sign Up
             </button>

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app, jsonify
 from extensions import bcrypt, db
 from models import Seeker, Recruiter
 from authlib.integrations.flask_client import OAuth
@@ -6,25 +6,18 @@ from urllib.parse import quote_plus, urlencode
 from configparser import ConfigParser
 from flask_cors import CORS
 
-# Create a Blueprint for authentication routes
 auth_blueprint = Blueprint('auth', __name__)
-CORS(auth_blueprint, supports_credentials=True, resources={r"/*": {"origins": "*"}})
+CORS(auth_blueprint, supports_credentials=True, resources={r"/*": {"origins": "http://localhost"}})
 
-# Initialize the ConfigParser
 config_parser = ConfigParser()
-
-# Read the configuration from the .config file
 config_parser.read('.config')
 
-# Access AUTH0 settings
 auth0_client_id = config_parser.get('AUTH0', 'CLIENT_ID')
 auth0_client_secret = config_parser.get('AUTH0', 'CLIENT_SECRET')
 auth0_domain = config_parser.get('AUTH0', 'DOMAIN')
 
-# Access WEBAPP settings
 webapp_secret_key = config_parser.get('WEBAPP', 'SECRET_KEY')
 
-# Initialize OAuth
 oauth = OAuth(current_app)
 oauth.register(
     "auth0",
@@ -36,7 +29,86 @@ oauth.register(
     server_metadata_url=f'https://{auth0_domain}/.well-known/openid-configuration'
 )
 
-# Callback route for handling the redirect from Auth0 after authentication
+# @auth_blueprint.route("/callback", methods=["GET", "POST"])
+# @auth_blueprint.route("/callback", methods=["GET", "POST"])
+# def callback():
+#     current_app.logger.info("Entering callback route")
+#     try:
+#         token = oauth.auth0.authorize_access_token()
+#         current_app.logger.info(f"Access token obtained: {token}")
+        
+#         session["user"] = token
+#         current_app.logger.info(f"Session after setting user: {session}")
+
+#         # Get the email from the user's session
+#         email = session.get('user', {}).get('userinfo', {}).get('email')
+#         current_app.logger.info(f"User email: {email}")
+
+#         if not email:
+#             current_app.logger.error("No email found in user info")
+#             return jsonify({"error": "No email found"}), 400
+
+#         # Check if the user came from the seeker or recruiter registration route
+#         registration_type = request.args.get('type')
+#         current_app.logger.info(f"Registration type: {registration_type}")
+
+#         if registration_type == 'recruiter':
+#         # Check if a Recruiter with the same email already exists
+#             existing_recruiter = Recruiter.query.filter_by(email=email).first()
+#             print("Existing Recruiter Logged In")
+            
+#             if not existing_recruiter:
+#             # If no Recruiter with the same email exists, create a new one
+#                 print("New Recruiter Created")
+#                 new_recruiter = Recruiter(email=email)
+#                 db.session.add(new_recruiter)
+#                 db.session.commit()
+#         else:
+#             # Check if a Seeker with the same email already exists
+#             existing_seeker = Seeker.query.filter_by(email=email).first()
+#             if not existing_seeker:
+#                 # If no Seeker with the same email exists, create a new one
+#                 print("New Seeker Created")
+#                 new_seeker = Seeker(email=email)
+#                 db.session.add(new_seeker)
+#                 db.session.commit()
+
+#         # If the user is registering as a recruiter
+#         if registration_type == 'recruiter':
+#             # Extract Email
+#             recruiter = Recruiter.query.filter_by(email=email).first()
+#             # Get the recruiter_id from the retrieved recruiter record
+#             recruiter_id = recruiter.recruiter_id
+#             print(f"Recruiter ID: {recruiter_id}")
+
+#             # Store the user type as "recruiter" in the session
+#             session["user"]["type"] = "recruiter"
+#             # Store the recruiter_id in the session
+#             session["user"]["recruiter_id"] = recruiter_id
+#         else:
+#             seeker = Seeker.query.filter_by(email=email).first()
+#             uid = seeker.uid
+#             print(f"Seeker ID: {seeker.uid}")
+
+#         # Store the uid and type=seeker in the session object
+#         session["user"]["type"] = "seeker"
+#         session["user"]["uid"] = uid
+
+#         print(f"Session data after login: {session}")
+
+#         # Redirect to the React application homepage or recruiter signup page
+#         if session["user"]["type"] == "recruiter":
+#             if existing_recruiter:
+#                 return redirect("http://localhost/")        
+#             else:
+#                 return redirect("http://localhost/register/employer/info")
+#         else:
+#             return redirect("http://localhost/")
+
+#     except Exception as e:
+#         current_app.logger.error(f"Error in callback: {str(e)}")
+#         return jsonify({"error": str(e)}), 500
+
 @auth_blueprint.route("/callback", methods=["GET", "POST"])
 def callback():
     """
@@ -49,106 +121,96 @@ def callback():
     5. Storing the user type and ID in the session
     6. Redirecting the user to the React app homepage or recruiter signup page
     """
-    token = oauth.auth0.authorize_access_token()
-    session["user"] = token
-
-    # Get the email from the user's session
-    email = session.get('user').get('userinfo').get('email')
-
-    # Check if the user came from the seeker or recruiter registration route
-    registration_type = request.args.get('type')
-
-    if registration_type == 'recruiter':
-        # Check if a Recruiter with the same email already exists
-        existing_recruiter = Recruiter.query.filter_by(email=email).first()
-        print("Existing Recruiter Logged In")
-        if not existing_recruiter:
-            # If no Recruiter with the same email exists, create a new one
-            print("New Recruiter Created")
-            new_recruiter = Recruiter(email=email)
-            db.session.add(new_recruiter)
-            db.session.commit()
-    else:
-        # Check if a Seeker with the same email already exists
-        existing_seeker = Seeker.query.filter_by(email=email).first()
-        if not existing_seeker:
-            # If no Seeker with the same email exists, create a new one
-            print("New Seeker Created")
-            new_seeker = Seeker(email=email)
-            db.session.add(new_seeker)
-            db.session.commit()
-
-    # If the user is registering as a recruiter
-    if registration_type == 'recruiter':
-        # Extract Email
-        recruiter = Recruiter.query.filter_by(email=email).first()
-        # Get the recruiter_id from the retrieved recruiter record
-        recruiter_id = recruiter.recruiter_id
-        print(f"Recruiter ID: {recruiter_id}")
-
-        # Store the user type as "recruiter" in the session
-        session["user"]["type"] = "recruiter"
-        # Store the recruiter_id in the session
-        session["user"]["recruiter_id"] = recruiter_id
-    else:
-        seeker = Seeker.query.filter_by(email=email).first()
-        uid = seeker.uid
-        print(f"Seeker ID: {seeker.uid}")
+    try:
+        token = oauth.auth0.authorize_access_token()
+        session["user"] = token
         
-        # Store the uid and type=seeker in the session object
-        session["user"]["type"] = "seeker"
-        session["user"]["uid"] = uid
+        # Get the email from the user's session
+        email = session.get('user', {}).get('userinfo', {}).get('email')
+        if not email:
+            current_app.logger.error("No email found in user info")
+            return jsonify({"error": "No email found"}), 400
 
-    print(f"Session data after login: {session}")
-    
-    # Redirect to the React application homepage or recruiter signup page
-    if session["user"]["type"] == "recruiter":
-        if existing_recruiter:
-            return redirect("http://localhost:3000/")        
+        # Check if the user came from the seeker or recruiter registration route
+        registration_type = request.args.get('type')
+        current_app.logger.info(f"Registration type: {registration_type}")
+        
+        if registration_type == 'recruiter':
+            # Check if a Recruiter with the same email already exists
+            existing_recruiter = Recruiter.query.filter_by(email=email).first()
+            current_app.logger.info("Existing Recruiter Logged In" if existing_recruiter else "New Recruiter Created")
+            
+            if not existing_recruiter:
+                # If no Recruiter with the same email exists, create a new one
+                new_recruiter = Recruiter(email=email)
+                db.session.add(new_recruiter)
+                db.session.commit()
+            
+            recruiter = existing_recruiter or new_recruiter
+            recruiter_id = recruiter.recruiter_id
+            current_app.logger.info(f"Recruiter ID: {recruiter_id}")
+            
+            # Store the user type and recruiter_id in the session
+            session["user"].update({
+                "type": "recruiter",
+                "recruiter_id": recruiter_id
+            })
         else:
-            return redirect("http://localhost:3000/register/employer/info")
-    else:
-        return redirect("http://localhost:3000/")
+            # Check if a Seeker with the same email already exists
+            existing_seeker = Seeker.query.filter_by(email=email).first()
+            current_app.logger.info("Existing Seeker Logged In" if existing_seeker else "New Seeker Created")
+            
+            if not existing_seeker:
+                # If no Seeker with the same email exists, create a new one
+                new_seeker = Seeker(email=email)
+                db.session.add(new_seeker)
+                db.session.commit()
+            
+            seeker = existing_seeker or new_seeker
+            uid = seeker.uid
+            current_app.logger.info(f"Seeker ID: {uid}")
+            
+            # Store the uid and type=seeker in the session object
+            session["user"].update({
+                "type": "seeker",
+                "uid": uid
+            })
 
-# Login Route:
-# @auth_blueprint.route("/login", defaults={'type': 'seeker'})
+        current_app.logger.info(f"Final session state: {session}")
+        
+        # Redirect to the React application homepage or recruiter signup page
+        if session["user"]["type"] == "recruiter":
+            if existing_recruiter:
+                return redirect("http://localhost/")        
+            else:
+                return redirect("http://localhost/register/employer/info")
+        else:
+            return redirect("http://localhost/")
+
+    except Exception as e:
+        current_app.logger.error(f"Error in callback: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 @auth_blueprint.route("/login/<string:type>")
 def login(type):
-    """
-    Route for initiating the login process with Auth0.
-    Redirects the user to the Auth0 Universal Login page.
-    The 'type' parameter determines whether the user is a seeker or recruiter.
-    """
+    current_app.logger.info('User authenticated. Session: %s', session)
     return oauth.auth0.authorize_redirect(
-        redirect_uri=url_for("auth.callback", _external=True) + f'?type={type}',
+        redirect_uri=url_for("auth.callback", _external=True, _scheme='http') + f'?type={type}',
         screen_hint="login"
     )
 
-# Registration Route:
-# @auth_blueprint.route("/register", defaults={'type': 'seeker'})
 @auth_blueprint.route("/register/<string:type>")
 def signup(type):
-    """
-    Route for initiating the registration process with Auth0.
-    Redirects the user to the Auth0 Universal Login page.
-    The 'type' parameter determines whether the user is a seeker or recruiter.
-    """
     return oauth.auth0.authorize_redirect(
-        redirect_uri=url_for("auth.callback", _external=True) + f'?type={type}',
+        redirect_uri=url_for("auth.callback", _external=True, _scheme='http') + f'?type={type}',
         screen_hint="signup"
     )
 
-# Logout Route:
 @auth_blueprint.route("/logout", methods=["GET"])
 def logout():
-    """
-    Route for logging out the user from the application.
-    Clears the session and redirects the user to the home page.
-    """
+    current_app.logger.info('Logout. Session before clear: %s', session)
     session.clear()
-    return redirect("http://localhost:3000/")
-
-
+    return redirect("http://localhost")
 
 # from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app
 # from extensions import bcrypt, db
@@ -160,7 +222,8 @@ def logout():
 
 # # Create a Blueprint for authentication routes
 # auth_blueprint = Blueprint('auth', __name__)
-# # CORS(auth_blueprint)
+# CORS(auth_blueprint, supports_credentials=True, resources={r"/*": {"origins": "*"}})
+
 
 # # Initialize the ConfigParser
 # config_parser = ConfigParser()
@@ -175,8 +238,6 @@ def logout():
 
 # # Access WEBAPP settings
 # webapp_secret_key = config_parser.get('WEBAPP', 'SECRET_KEY')
-
-# CORS(auth_blueprint, supports_credentials=True, resources={r"/*": {"origins": "*"}})
 
 # # Initialize OAuth
 # oauth = OAuth(current_app)
@@ -201,7 +262,7 @@ def logout():
 #     3. Checking if the user is a new or existing Seeker/Recruiter
 #     4. Creating a new Seeker/Recruiter record if the user is new
 #     5. Storing the user type and ID in the session
-#     6. Redirecting the user to the React app homepage
+#     6. Redirecting the user to the React app homepage or recruiter signup page
 #     """
 #     token = oauth.auth0.authorize_access_token()
 #     session["user"] = token
@@ -255,11 +316,17 @@ def logout():
 
 #     print(f"Session data after login: {session}")
     
-#     # Redirect to the React application homepage
-#     return redirect("http://localhost:3000/")
+#     # Redirect to the React application homepage or recruiter signup page
+#     if session["user"]["type"] == "recruiter":
+#         if existing_recruiter:
+#             return redirect("http://localhost:3000/")        
+#         else:
+#             return redirect("http://localhost:3000/register/employer/info")
+#     else:
+#         return redirect("http://localhost:3000/")
 
 # # Login Route:
-# @auth_blueprint.route("/login", defaults={'type': 'seeker'})
+# # @auth_blueprint.route("/login", defaults={'type': 'seeker'})
 # @auth_blueprint.route("/login/<string:type>")
 # def login(type):
 #     """
@@ -273,7 +340,7 @@ def logout():
 #     )
 
 # # Registration Route:
-# @auth_blueprint.route("/register", defaults={'type': 'seeker'})
+# # @auth_blueprint.route("/register", defaults={'type': 'seeker'})
 # @auth_blueprint.route("/register/<string:type>")
 # def signup(type):
 #     """
@@ -294,5 +361,4 @@ def logout():
 #     Clears the session and redirects the user to the home page.
 #     """
 #     session.clear()
-#     # From Auth0 logout - add in code to track/inform Auth0 of logout
 #     return redirect("http://localhost:3000/")
