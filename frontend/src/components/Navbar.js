@@ -130,9 +130,15 @@ const Navbar = () => {
           className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
           // onClick={() => (window.location.href = `${apiUrl}/login/recruiter`)}
           onClick={() => (window.location.href = "/employer/post-job")}
-        >       
+        >
           Post Job
         </button>
+        <Link
+          to="/employer/add-details"
+          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
+        >
+          Add Recruiter Details
+        </Link>
         <button
           className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
           // onClick={() => (window.location.href = `${apiUrl}/login/recruiter`)}

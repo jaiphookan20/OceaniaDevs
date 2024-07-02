@@ -17,6 +17,7 @@ import EmployerSignupStep2 from "./recruiter/EmployerSignupStep2";
 import FindEmployerForm from "./FindEmployerForm";
 import RegisterNewEmployer from "./recruiter/RegisterNewEmployer";
 import PostJob from "./recruiter/PostJob";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
   const [jobs, setJobs] = useState([]);
@@ -313,9 +314,17 @@ const App = () => {
           }
         />
         <Route path="/register/employer" element={<EmployerSignupStep1 />} />
-        <Route
+        {/* <Route
           path="/register/employer/info"
           element={<EmployerSignupStep2 />}
+        /> */}
+        <Route
+          path="/employer/add-details"
+          element={
+            <ProtectedRoute>
+              <EmployerSignupStep2 />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/register/employer/organization-details"
