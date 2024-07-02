@@ -129,6 +129,18 @@ const Navbar = () => {
       <div className="flex items-center space-x-4">
         <button
           className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
+          onClick={() => (window.location.href = "/register/employer/info")}
+        >
+          Add Recruiter Details
+        </button>
+        <button
+          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
+          onClick={() => (window.location.href = "/employer/post-job")}
+        >
+          Post Job
+        </button>
+        <button
+          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
           onClick={() =>
             (window.location.href = "http://127.0.0.1:4040/login/recruiter")
           }
