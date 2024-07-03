@@ -17,6 +17,10 @@ import RecruiterPersonalDetails from "./recruiter/2-RecruiterPersonalDetails";
 import FindEmployerForm from "./recruiter/4-FindEmployerForm";
 import RegisterNewEmployer from "./recruiter/3-RegisterNewEmployer";
 import PostJob from "./recruiter/PostJob";
+import JobsPostedByRecruiterSection from "./components/JobsPostedByRecruiterSection";
+import JobsPostedByRecruiterCard from "./components/JobsPostedByRecruiterCard";
+import RecruiterDashboard from "./components/RecruiterDashboard";
+import EditJob from "./components/EditJob";
 
 const App = () => {
   const [jobs, setJobs] = useState([]);
@@ -321,6 +325,8 @@ const App = () => {
             </>
           }
         />
+        <Route path="/recruiter-dashboard" element={<RecruiterDashboard />} />
+        <Route path="/edit-job/:jobId" element={<EditJob />} />
         <Route path="/register/employer" element={<EmployerSignupStep1 />} />
         <Route
           path="/register/employer/info"

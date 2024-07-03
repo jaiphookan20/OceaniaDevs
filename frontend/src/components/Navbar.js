@@ -163,7 +163,7 @@ const Navbar = () => {
           </>
         )}
 
-        {isLoggedIn ? (
+        {isLoggedIn ? ( // Show dropdown menu if user is logged in
           <div className="relative inline-block text-left">
             <div>
               <button
@@ -205,14 +205,30 @@ const Navbar = () => {
                   >
                     My Profile
                   </Link>
-                  {userType === "recruiter" ? (
-                    <Link
-                      to="/register/employer/info"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      role="menuitem"
-                    >
-                      Add Recruiter Details
-                    </Link>
+                  {userType === "recruiter" ? ( // Show Add Recruiter Details link only for recruiters
+                    <>
+                      <Link
+                        to="/register/employer/info"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        Add Recruiter Details
+                      </Link>
+                      <Link
+                        to="/register/employer/new/organization-details"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        Register Employer
+                      </Link>
+                      <Link
+                        to="/recruiter-dashboard"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        Recruiter Dashboard
+                      </Link>
+                    </>
                   ) : (
                     <>
                       <Link

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import SavedAndAppliedJobsCard from "../components/SavedAndAppliedJobsCard";
 import SavedAndAppliedJobsHeader from "../components/SavedAppliedJobsHeader";
 
