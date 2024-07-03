@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { icons } from "./data/tech-icons";
+import { icons } from "../data/tech-icons";
 
 const JobListing = ({ onSave, onApply }) => {
   const { jobId } = useParams();

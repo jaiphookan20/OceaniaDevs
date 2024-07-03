@@ -8,15 +8,14 @@ import SignupForm from "./components/SignupForm";
 import BottomContainer from "./components/BottomContainer";
 import SearchBar from "./components/SearchBar";
 import CategoryGrid from "./components/CategoryGrid";
-import JobPost from "./JobPost";
+import JobPost from "./components/JobPost";
 import { toast, Toaster } from "react-hot-toast";
-import SavedAppliedJobSection from "./SavedAppliedJobSection";
+import SavedAppliedJobSection from "./components/SavedAppliedJobSection";
 import MarqueeDemo from "./components/magicui/MarqueeDemo";
-import EmployerSignupStep1 from "./recruiter/EmployerSignupStep1";
-import EmployerSignupStep2 from "./recruiter/EmployerSignupStep2";
-import EmployerSignupStep3 from "./recruiter/RegisterNewEmployer";
-import FindEmployerForm from "./FindEmployerForm";
-import RegisterNewEmployer from "./recruiter/RegisterNewEmployer";
+import EmployerSignupStep1 from "./recruiter/1-EmployerSignupStep1";
+import RecruiterPersonalDetails from "./recruiter/2-RecruiterPersonalDetails";
+import FindEmployerForm from "./recruiter/4-FindEmployerForm";
+import RegisterNewEmployer from "./recruiter/3-RegisterNewEmployer";
 import PostJob from "./recruiter/PostJob";
 
 const App = () => {
@@ -216,11 +215,6 @@ const App = () => {
     }
   };
 
-  // useEffect(() => {
-  //   // fetchSavedJobs();
-  //   // fetchAppliedJobs();
-  // }, []);
-
   const fetchAppliedJobs = async () => {
     try {
       const response = await fetch("http://127.0.0.1:4040/api/applied_jobs", {
@@ -294,7 +288,6 @@ const App = () => {
           path="/saved-jobs"
           element={
             <>
-              {/* <h2 className="text-3xl font-bold mb-4">Saved Jobs</h2> */}
               <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
                 <div className="col-span-2">
                   <SavedAppliedJobSection
@@ -331,7 +324,7 @@ const App = () => {
         <Route path="/register/employer" element={<EmployerSignupStep1 />} />
         <Route
           path="/register/employer/info"
-          element={<EmployerSignupStep2 />}
+          element={<RecruiterPersonalDetails />}
         />
         <Route
           path="/register/employer/organization-details"

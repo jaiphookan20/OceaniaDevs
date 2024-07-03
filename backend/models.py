@@ -1,7 +1,7 @@
 from extensions import bcrypt, db
 from typing import Union
 from sqlalchemy.dialects.postgresql import ENUM, TSVECTOR
-from matching.custom_types import Vector #Import custom Vector type
+from pgvector.sqlalchemy import Vector
 
 class Seeker(db.Model):
     __tablename__ = 'seekers'

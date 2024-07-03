@@ -1,4 +1,3 @@
-// Navbar.js
 import React, { useState, useEffect } from "react";
 import Logo from "./Logo";
 import { Link } from "react-router-dom";
@@ -6,8 +5,10 @@ import { Link } from "react-router-dom";
 const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
+  const [userType, setUserType] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  /* Effect to check the session and update the state accordingly */
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -25,9 +26,11 @@ const Navbar = () => {
         if (data.userinfo) {
           setIsLoggedIn(true);
           setUserName(data.userinfo.name);
+          setUserType(data.type);
         } else {
           setIsLoggedIn(false);
           setUserName("");
+          setUserType("");
         }
       } catch (error) {
         console.error("Error checking session:", error);
@@ -38,16 +41,18 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = async () => {
-    await fetch("http://127.0.0.1:4040/api/logout", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-    setIsLoggedIn(false);
-    setUserName("");
-    window.location.href = "http://localhost:3000/";
+    window.location.href = "http://127.0.0.1:4040/logout";
+    // await fetch("http://127.0.0.1:4040/api/logout", {
+    //   method: "GET",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   credentials: "include",
+    // });
+    // setIsLoggedIn(false);
+    // setUserName("");
+    // setUserType("");
+    // window.location.href = "http://localhost:3000/";
   };
 
   const navbarStyles = {
@@ -56,6 +61,7 @@ const Navbar = () => {
     zIndex: 10,
   };
 
+  /* Effect to handle clicks outside the dropdown menu */
   useEffect(() => {
     const handleOutsideClick = (event) => {
       if (
@@ -127,34 +133,35 @@ const Navbar = () => {
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        <button
-          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
-          onClick={() => (window.location.href = "/register/employer/info")}
-        >
-          Add Recruiter Details
-        </button>
-        <button
-          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
-          onClick={() => (window.location.href = "/employer/post-job")}
-        >
-          Post Job
-        </button>
-        <button
-          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
-          onClick={() =>
-            (window.location.href = "http://127.0.0.1:4040/login/recruiter")
-          }
-        >
-          Recruiter Login
-        </button>
-        <button
-          className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
-          onClick={() =>
-            (window.location.href = "http://127.0.0.1:4040/login/recruiter")
-          }
-        >
-          Recruiter Sign-Up
-        </button>
+        {isLoggedIn && userType === "recruiter" ? (
+          <>
+            <button
+              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
+              onClick={() => (window.location.href = "/employer/post-job")}
+            >
+              Post Job
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
+              onClick={() =>
+                (window.location.href = "http://127.0.0.1:4040/login/recruiter")
+              }
+            >
+              Recruiter Login
+            </button>
+            <button
+              className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
+              onClick={() =>
+                (window.location.href = "http://127.0.0.1:4040/login/recruiter")
+              }
+            >
+              Recruiter Sign-Up
+            </button>
+          </>
+        )}
 
         {isLoggedIn ? (
           <div className="relative inline-block text-left">
@@ -198,20 +205,32 @@ const Navbar = () => {
                   >
                     My Profile
                   </Link>
-                  <Link
-                    to="/saved-jobs"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    role="menuitem"
-                  >
-                    Saved Jobs
-                  </Link>
-                  <Link
-                    to="/applied-jobs"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    role="menuitem"
-                  >
-                    Applied Jobs
-                  </Link>
+                  {userType === "recruiter" ? (
+                    <Link
+                      to="/register/employer/info"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      role="menuitem"
+                    >
+                      Add Recruiter Details
+                    </Link>
+                  ) : (
+                    <>
+                      <Link
+                        to="/saved-jobs"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        Saved Jobs
+                      </Link>
+                      <Link
+                        to="/applied-jobs"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        Applied Jobs
+                      </Link>
+                    </>
+                  )}
                   <Link
                     to="/job-alerts"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -227,10 +246,7 @@ const Navbar = () => {
                     Settings
                   </Link>
                   <button
-                    // onClick={handleLogout}
-                    onClick={() =>
-                      (window.location.href = "http://127.0.0.1:4040/logout")
-                    }
+                    onClick={handleLogout}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     role="menuitem"
                   >

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const EmployerSignupStep2 = () => {
+const RecruiterPersonalDetails = () => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -92,4 +92,4 @@ const EmployerSignupStep2 = () => {
   );
 };
 
-export default EmployerSignupStep2;
+export default RecruiterPersonalDetails;

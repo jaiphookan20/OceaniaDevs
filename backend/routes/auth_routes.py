@@ -5,35 +5,25 @@ from authlib.integrations.flask_client import OAuth
 from urllib.parse import quote_plus, urlencode
 from configparser import ConfigParser
 from flask_cors import CORS
+import config
 
 # Create a Blueprint for authentication routes
 auth_blueprint = Blueprint('auth', __name__)
 CORS(auth_blueprint, supports_credentials=True, resources={r"/*": {"origins": "*"}})
 
-# Initialize the ConfigParser
-config_parser = ConfigParser()
-
-# Read the configuration from the .config file
-config_parser.read('.config')
-
-# Access AUTH0 settings
-auth0_client_id = config_parser.get('AUTH0', 'CLIENT_ID')
-auth0_client_secret = config_parser.get('AUTH0', 'CLIENT_SECRET')
-auth0_domain = config_parser.get('AUTH0', 'DOMAIN')
-
 # Access WEBAPP settings
-webapp_secret_key = config_parser.get('WEBAPP', 'SECRET_KEY')
+webapp_secret_key = config.AUTH0_SECRET_KEY
 
 # Initialize OAuth
 oauth = OAuth(current_app)
 oauth.register(
     "auth0",
-    client_id=auth0_client_id,
-    client_secret=auth0_client_secret,
+    client_id=config.AUTH0_CLIENT_ID,
+    client_secret=config.AUTH0_CLIENT_SECRET,
     client_kwargs={
         "scope": "openid profile email",
     },
-    server_metadata_url=f'https://{auth0_domain}/.well-known/openid-configuration'
+    server_metadata_url=f'https://{config.AUTH0_DOMAIN}/.well-known/openid-configuration'
 )
 
 # Callback route for handling the redirect from Auth0 after authentication

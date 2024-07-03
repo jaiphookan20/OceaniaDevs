@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
-import SavedAndAppliedJobsCard from "./SavedAndAppliedJobsCard";
-import SavedAndAppliedJobsHeader from "./components/SavedAppliedJobsHeader";
+import SavedAndAppliedJobsCard from "../components/SavedAndAppliedJobsCard";
+import SavedAndAppliedJobsHeader from "../components/SavedAppliedJobsHeader";
 
 const SavedAppliedJobSection = ({
   title,
