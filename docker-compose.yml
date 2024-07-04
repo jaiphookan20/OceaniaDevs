@@ -1,20 +1,20 @@
 services:
   frontend:
-    build: ./frontend
+    build: ./frontend # Build the frontend service from the Dockerfile in the ./frontend directory
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - ./frontend:/app # mounting the local frontend directory to /app in the container for live updates
+      - /app/node_modules # added volume for /app/node_modules to prevent overwriting the installed packages
     environment:
       - REACT_APP_API_URL=http://localhost/api
-    command: npm start
+    command: npm start # command to run the development server
     depends_on:
-      - backend
+      - backend # Ensure backend is started before frontend
 
   backend:
-    build: ./backend
+    build: ./backend # Build the backend service using the Dockerfile in ./backend
     volumes:
-      - ./backend:/app
-    command: gunicorn --bind 0.0.0.0:4040 --config gunicorn_config.py "app:create_app()"
+      - ./backend:/app # Mount local backend directory to /app in the container
+    command: gunicorn --bind 0.0.0.0:4040 --config gunicorn_config.py "app:create_app()" # # Start Gunicorn server
     environment:
       - FLASK_APP=app.py
       - FLASK_ENV=production
@@ -26,24 +26,24 @@ services:
       - REDIS_PORT=6379
       - SECRET_KEY=${SECRET_KEY:-1234567890}
     ports:
-      - "4040:4040"
+      - "4040:4040" # Map container port 4040 to host port 4040
     depends_on:
       postgres:
-        condition: service_healthy
+        condition: service_healthy # Ensure postgres is healthy before starting backend
 
   postgres:
-    image: ankane/pgvector:latest
+    image: ankane/pgvector:latest # Use pgvector image for PostgreSQL
     environment:
       POSTGRES_DB: job_board
       POSTGRES_USER: jai
       POSTGRES_PASSWORD: techboard
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./postgres/init-pgvector.sql:/docker-entrypoint-initdb.d/init-pgvector.sql
+      - postgres_data:/var/lib/postgresql/data # Persist PostgreSQL data
+      - ./postgres/init-pgvector.sql:/docker-entrypoint-initdb.d/init-pgvector.sql # Initialize pgvector
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U jai -d job_board"]
+      test: ["CMD-SHELL", "pg_isready -U jai -d job_board"] # Check if PostgreSQL is ready
       interval: 5s
       timeout: 5s
 
@@ -53,14 +53,14 @@ services:
       - "6379:6379"
 
   nginx:
-    build: ./nginx
+    build: ./nginx # Build the nginx service using the Dockerfile in ./nginx
     ports:
       - "80:80"
     volumes:
-      - ./nginx/job-board.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/job-board.conf:/etc/nginx/conf.d/default.conf # Mount Nginx configuration
     depends_on:
-      - frontend
-      - backend
+      - frontend # Ensure frontend is started before nginx
+      - backend # Ensure backend is started before nginx
 
 volumes:
-  postgres_data:
+  postgres_data: # Define a named volume for PostgreSQL data persistence
