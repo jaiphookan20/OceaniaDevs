@@ -1,12 +1,12 @@
-version: "3.8"
-
 services:
   frontend:
     build: ./frontend
     volumes:
-      - frontend_build:/app/build
+      - ./frontend:/app
+      - /app/node_modules
     environment:
       - REACT_APP_API_URL=http://localhost/api
+    command: npm start
     depends_on:
       - backend
 
@@ -57,7 +57,6 @@ services:
     ports:
       - "80:80"
     volumes:
-      - frontend_build:/usr/share/nginx/html
       - ./nginx/job-board.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - frontend
@@ -65,8 +64,3 @@ services:
 
 volumes:
   postgres_data:
-  frontend_build:
-# The key change that allowed the frontend updates to be reflected was likely the modification of the Docker setup, particularly:
-# a) Updating the volume mounting in the docker-compose.yml file to ensure that local changes are immediately reflected in the container.
-# b) Ensuring that the build process in the Dockerfile for the frontend correctly copies and builds the latest source code.
-# c) Configuring Nginx to serve the latest built files and disable caching.
