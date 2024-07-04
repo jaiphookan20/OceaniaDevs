@@ -2,7 +2,6 @@ from extensions import bcrypt, db
 from sqlalchemy.dialects.postgresql import ENUM, TSVECTOR
 from sqlalchemy import event, text
 from sqlalchemy.schema import DDL
-# from matching.custom_types import Vector
 from pgvector.sqlalchemy import Vector
 
 # Define all ENUM types
@@ -12,7 +11,25 @@ job_type_enum = ENUM('premium', 'normal', name='job_type', create_type=False)
 industry_enum = ENUM('Government', 'Banking & Financial Services', 'Fashion', 'Mining', 'Healthcare', 'IT - Software Development', 'IT - Data Analytics', 'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 'Marketing & Advertising', 'Media & Communications', 'Non-Profit & NGO', 'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 'Telecommunications', 'Transportation & Logistics', name='industry_type', create_type=False)
 salary_range_enum = ENUM('20000 - 40000', '40000 - 60000', '60000 - 80000', '80000 - 100000', '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000', '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+', name='salary_range_type', create_type=False)
 
+# Helper function to create ENUM types
+# Helper function to create ENUM types
+def create_enum_type(enum):
+    enum_values = ",".join([f"'{val}'" for val in enum.enums])
+    return f"""
+        DO $$ 
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = '{enum.name}') THEN
+                CREATE TYPE {enum.name} AS ENUM ({enum_values});
+            END IF;
+        END$$;
+    """
 
+# Register ENUM types in the database before table creation
+for enum in [state_enum, country_enum, job_type_enum, industry_enum, salary_range_enum]:
+    event.listen(db.metadata, 'before_create', DDL(create_enum_type(enum)))
+    event.listen(db.metadata, 'after_drop', DDL(f'DROP TYPE IF EXISTS {enum.name} CASCADE'))
+
+# Define your models
 class Seeker(db.Model):
     __tablename__ = 'seekers'
 
@@ -66,7 +83,6 @@ class Company(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
     recruiters = db.relationship('Recruiter', backref='company', lazy=True)
-
 
 class Job(db.Model):
     __tablename__ = 'jobs'
