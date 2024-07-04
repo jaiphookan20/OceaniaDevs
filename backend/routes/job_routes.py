@@ -11,35 +11,13 @@ from utils.time import get_relative_time
 from flask_caching import Cache
 from sqlalchemy import and_, func, or_
 from extensions import cache
+from utils.technologies import icons
 import os
 
 
 job_blueprint = Blueprint('job', __name__)
 CORS(job_blueprint, supports_credentials=True, resources={r'/*': {'origins': 'http://localhost:3000'}})
 
-icons = {
-    'aws': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/amazonwebservices/amazonwebservices-original-wordmark.svg" />',
-    "docker": '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/docker/docker-original.svg" />',
-    "gcp": '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/googlecloud/googlecloud-original.svg" />',
-    "kubernetes": '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/kubernetes/kubernetes-original-wordmark.svg" />',
-    'angular': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/angularjs/angularjs-original.svg" />',
-    'grafana': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/grafana/grafana-original.svg" />',
-    'terraform': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/terraform/terraform-original.svg" />',
-    'prometheus': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/prometheus/prometheus-original.svg" />',
-    'azure': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/azure/azure-original.svg" />',
-    'java': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original.svg" />',
-    'linux': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" />',
-    'nextjs': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nextjs/nextjs-original-wordmark.svg" />',
-    'nestjs': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nestjs/nestjs-original-wordmark.svg" />',
-    'nginx': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nginx/nginx-original.svg" />',
-    'postgresql': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/postgresql/postgresql-original.svg" />',
-    'kafka': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apachekafka/apachekafka-original-wordmark.svg" />',
-    'spring': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/spring/spring-original.svg" />',
-    'node.js':'<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nodejs/nodejs-original-wordmark.svg" />',
-    'typescript':'<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/typescript/typescript-original.svg" />',
-    'javascript': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg" />', 
-    'nodejs': '<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nodejs/nodejs-original-wordmark.svg" />'                   
-}
 
 company_logos = {
     'airwallex': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzDHDDJYBvqPYjfZnQXrnhMFJiRBeNurLCEA&s',
@@ -49,7 +27,6 @@ company_logos = {
     'atlassian': 'https://cdn.prod.website-files.com/6350c9fce59bc08494e7e9e5/6542fe0e8e219ee96075cb7a_638439dd30aa4b831f8f5873_Atlassian-Logo.png',
     'cultureamp': 'https://seeklogo.com/images/C/culture-amp-logo-F3EE0956BD-seeklogo.com.png'
 }
-
 
 @job_blueprint.route('/api/job_post/<int:job_id>', methods=['GET'])
 def get_job_post_page(job_id):
@@ -64,7 +41,7 @@ def get_job_post_page(job_id):
     company_logo = company.logo_url if company.logo_url else company_logos.get(company_name_lower, '')
 
     # Ensure the logo path is fully qualified
-    if company_logo and not company_logo.startswith('http'):
+    if company_logo:
         company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company_logo)}"
 
     job_data = {
@@ -86,7 +63,7 @@ def get_job_post_page(job_id):
         'state': job.state,
         'work_rights': job.work_rights,
         'description': job.description,
-        'tech_stack': job.tech_stack
+        'tech_stack': job.tech_stack,
     }
 
     return jsonify(job_data)
@@ -187,7 +164,7 @@ def bookmark_job():
         return jsonify({"error": "Unauthorized access"}), 401
     else:
         print('user in session')
-        
+
         job_id = request.json['jobid']
         if type(job_id) is not int:
             print("Invalid job id: ")
@@ -331,7 +308,6 @@ def instant_search_jobs():
             'results': []
         })
 
-# NOTE: Need to inspect this route again - IS NOT WORKING CORRECTLY. DOES NOT give the right answers as before for some queries? for eg: choosing backend for specialization returning only 2 jobs, which is incorrect
 # Filtered search jobs route
 @job_blueprint.route('/api/filtered_search_jobs', methods=['GET'])
 @cache.cached(timeout=60, query_string=True)
