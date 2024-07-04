@@ -96,7 +96,7 @@ def callback():
         if existing_recruiter:
             return redirect("http://localhost")        
         else:
-            return redirect("http://localhost/register/employer/info")
+            return redirect("http://localhost//employer/add-details")
     else:
         return redirect("http://localhost")
 
@@ -136,4 +136,4 @@ def logout():
     Clears the session and redirects the user to the home page.
     """
     session.clear()
-    return redirect("http://localhost:3000/")
+    return redirect("http://localhost/")
