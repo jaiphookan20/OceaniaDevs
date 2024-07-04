@@ -145,16 +145,17 @@ def get_all_jobs_by_recruiter():
         recruiter_service = RecruiterService()
         jobs_service = JobsService()
         recruiter_jobs = recruiter_service.get_all_jobs_by_recruiter(recruiter_id)
-        
         # Build the response data
         response_data = []
         for job in recruiter_jobs:
             company = jobs_service.get_company_by_id(job.company_id)
             company_logo=company.logo_url
             if company_logo: 
-                company_logo = f"/uploads/{os.path.basename(company_logo)}"
+                    company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company.logo_url)}"
 
             print(f"compay logo: {company.logo_url}")
+
+            
             job_data = {
                 "job_id": job.job_id,
                 "recruiter_id": job.recruiter_id,
@@ -409,5 +410,23 @@ def create_company():
             return jsonify({"message": "Company created and recruiter updated successfully"}), 200
         else:
             return jsonify({"message": "Recruiter not found"}), 404
+    else:
+        return jsonify({"message": "Unauthorized"}), 401
+    
+@recruiter_blueprint.route('/api/remove-job-by-recruiter/<int:job_id>', methods=['POST'])
+def remove_job(job_id):
+    if "user" in session and session["user"]["type"] == "recruiter":
+        recruiter_id = session["user"]["recruiter_id"]
+        job_service = JobsService()
+        recruiter_service = RecruiterService()
+        job_post = job_service.get_job_by_id(job_id)
+
+        if not job_post or job_post.recruiter_id != recruiter_id:
+            return jsonify({"error": "Job not found or unauthorized"}), 404
+        
+        if recruiter_service.remove_job(job_id, recruiter_id):
+            return jsonify({"message": "Job post removed successfully"}), 200
+        else:
+            return jsonify({"error": "Job not found or unauthorized"}), 404
     else:
         return jsonify({"message": "Unauthorized"}), 401

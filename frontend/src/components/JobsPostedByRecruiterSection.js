@@ -2,7 +2,13 @@ import React from "react";
 import JobsPostedByRecruiterCard from "../components/JobsPostedByRecruiterCard";
 import SavedAndAppliedJobsHeader from "../components/SavedAppliedJobsHeader";
 
-const JobsPostedByRecruiterSection = ({ title, jobs, onEdit, onView }) => {
+const JobsPostedByRecruiterSection = ({
+  title,
+  jobs,
+  onEdit,
+  onView,
+  onRemove,
+}) => {
   return (
     <div className="mb-10">
       <SavedAndAppliedJobsHeader title={title} />
@@ -16,6 +22,7 @@ const JobsPostedByRecruiterSection = ({ title, jobs, onEdit, onView }) => {
             job={job}
             onEdit={onEdit}
             onView={onView}
+            onRemove={onRemove}
           />
         ))}
       </div>

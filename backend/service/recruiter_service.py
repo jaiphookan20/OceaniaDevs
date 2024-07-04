@@ -137,5 +137,11 @@ class RecruiterService:
         return company;
         
 
-
+    def remove_job(self, job_id, recruiter_id):
+        job = Job.query.filter_by(job_id=job_id, recruiter_id=recruiter_id).first()
+        if job:
+            db.session.delete(job)
+            db.session.commit()
+            return True
+        return False
 

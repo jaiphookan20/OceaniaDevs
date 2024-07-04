@@ -31,6 +31,24 @@ const RecruiterDashboard = () => {
     navigate(`/edit-job/${jobId}`);
   };
 
+  const handleRemove = async (jobId) => {
+    try {
+      const response = await fetch(`/api/remove-job-by-recruiter/${jobId}`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (response.ok) {
+        console.log(`Job with jobId ${jobId} successfully removed`);
+        /* Remove the job from the local state */
+        setJobs(jobs.filter((job) => job.job_id !== jobId));
+      } else {
+        console.error(`Failed to remove jobId ${jobId}`);
+      }
+    } catch (error) {
+      console.error("Error removing job:", error);
+    }
+  };
+
   return (
     <div className="max-w-5xl mx-auto">
       <JobsPostedByRecruiterSection
@@ -38,6 +56,7 @@ const RecruiterDashboard = () => {
         jobs={jobs}
         onEdit={handleEdit}
         onView={(jobId) => navigate(`/job_post/${jobId}`)}
+        onRemove={handleRemove}
       />
     </div>
   );
