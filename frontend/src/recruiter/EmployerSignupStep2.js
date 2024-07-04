@@ -18,20 +18,17 @@ const EmployerSignupStep2 = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(
-        "http://127.0.0.1:4040/api/register/employer/info",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(formData),
-        }
-      );
+      const response = await fetch("/api/register/employer/info", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(formData),
+      });
       const result = await response.json();
       console.log(result.message);
-      navigate("/register/employer/new/organization-details");
+      navigate("/employer/new/organization-details");
     } catch (error) {
       console.error("Error updating recruiter info:", error);
     }
