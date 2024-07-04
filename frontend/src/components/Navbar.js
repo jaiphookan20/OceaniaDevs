@@ -6,11 +6,13 @@ import { Link, useNavigate } from "react-router-dom";
 const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
+  const [userType, setUserType] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
   // const apiUrl = "http://localhost:4040"; // This should point to your backend service in Docker
   const apiUrl = "http://localhost/api"; // Updated to work with Nginx reverse proxy
 
+  /* Effect to check the session and update the state accordingly */
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -25,9 +27,11 @@ const Navbar = () => {
         if (data.userinfo) {
           setIsLoggedIn(true);
           setUserName(data.userinfo.name);
+          setUserType(data.type);
         } else {
           setIsLoggedIn(false);
           setUserName("");
+          setUserType("");
         }
       } catch (error) {
         console.error("Error checking session:", error);
@@ -38,16 +42,18 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = async () => {
-    await fetch(`${apiUrl}/logout`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-    setIsLoggedIn(false);
-    setUserName("");
-    window.location.href = "/";
+    window.location.href = `/logout`;
+    // await fetch("http://127.0.0.1:4040/api/logout", {
+    //   method: "GET",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   credentials: "include",
+    // });
+    // setIsLoggedIn(false);
+    // setUserName("");
+    // setUserType("");
+    // window.location.href = "http://localhost:3000/";
   };
 
   const navbarStyles = {
@@ -56,6 +62,7 @@ const Navbar = () => {
     zIndex: 10,
   };
 
+  /* Effect to handle clicks outside the dropdown menu */
   useEffect(() => {
     const handleOutsideClick = (event) => {
       if (
@@ -127,61 +134,33 @@ const Navbar = () => {
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        <button
-          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
-          // onClick={() => (window.location.href = `${apiUrl}/login/recruiter`)}
-          onClick={() => (window.location.href = "/employer/post-job")}
-        >
-          Post Job
-        </button>
-        {/* <button
-          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
-          // onClick={() => (window.location.href = `${apiUrl}/login/recruiter`)}
-          onClick={() => (window.location.href = "/employer/add-details")}
-        >
-          Add Recruiter Details
-      </button> */}
-        {/* <Link
-          to="/employer/add-details"
-          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
-        >
-          Add Recruiter Details
-        </Link> */}
-        {/* <button
-          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
-          // onClick={() => (window.location.href = `${apiUrl}/login/recruiter`)}
-          onClick={() => (window.location.href = "/login/recruiter")}
-        >
-          Recruiter Login
-        </button> */}
-        <button
-          className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
-          // onClick={() => (window.location.href = `${apiUrl}/login/recruiter`)}
-          onClick={() => (window.location.href = "/register/recruiter")}
-        >
-          Recruiter Sign-Up
-        </button>
-        <button
-          className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
-          // onClick={() => (window.location.href = `${apiUrl}/login/recruiter`)}
-          onClick={() => navigate("/employer/organization-details")}
-        >
-          Add Org Details
-        </button>
-        <button
-          className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
-          onClick={() => navigate("/employer/add-details")}
-        >
-          Add Recruiter Details
-        </button>
-        <button
-          className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
-          onClick={() => navigate("/employer/new/organization-details")}
-        >
-          New Employer
-        </button>
+        {isLoggedIn && userType === "recruiter" ? (
+          <>
+            <button
+              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
+              onClick={() => (window.location.href = "/employer/post-job")}
+            >
+              Post Job
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
+              onClick={() => (window.location.href = "/login/recruiter")}
+            >
+              Recruiter Login
+            </button>
+            <button
+              className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
+              onClick={() => (window.location.href = "/login/recruiter")}
+            >
+              Recruiter Sign-Up
+            </button>
+          </>
+        )}
 
-        {isLoggedIn ? (
+        {isLoggedIn ? ( // Show dropdown menu if user is logged in
           <div className="relative inline-block text-left">
             <div>
               <button
@@ -223,20 +202,48 @@ const Navbar = () => {
                   >
                     My Profile
                   </Link>
-                  <Link
-                    to="/saved-jobs"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    role="menuitem"
-                  >
-                    Saved Jobs
-                  </Link>
-                  <Link
-                    to="/applied-jobs"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    role="menuitem"
-                  >
-                    Applied Jobs
-                  </Link>
+                  {userType === "recruiter" ? ( // Show Add Recruiter Details link only for recruiters
+                    <>
+                      <Link
+                        to="/employer/add-details"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        Add Recruiter Details
+                      </Link>
+                      <Link
+                        to="/employer/new/organization-details"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        Register Employer
+                      </Link>
+                      <Link
+                        to="/recruiter-dashboard"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        Recruiter Dashboard
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        to="/saved-jobs"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        Saved Jobs
+                      </Link>
+                      <Link
+                        to="/applied-jobs"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        Applied Jobs
+                      </Link>
+                    </>
+                  )}
                   <Link
                     to="/job-alerts"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -266,15 +273,13 @@ const Navbar = () => {
           <>
             <button
               className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
-              // onClick={() => (window.location.href = `${apiUrl}/login/seeker`)}
               onClick={() => (window.location.href = "/login/seeker")}
             >
               Log In
             </button>
             <button
               className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
-              // onClick={() => (window.location.href = `${apiUrl}/login/seeker`)}
-              onClick={() => (window.location.href = "/register/seeker")}
+              onClick={() => (window.location.href = "/login/seeker")}
             >
               Sign Up
             </button>

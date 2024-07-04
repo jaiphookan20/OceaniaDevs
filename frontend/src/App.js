@@ -8,16 +8,16 @@ import SignupForm from "./components/SignupForm";
 import BottomContainer from "./components/BottomContainer";
 import SearchBar from "./components/SearchBar";
 import CategoryGrid from "./components/CategoryGrid";
-import JobPost from "./JobPost";
+import JobPost from "./components/JobPost";
 import { toast, Toaster } from "react-hot-toast";
-import SavedAppliedJobSection from "./SavedAppliedJobSection";
+import SavedAppliedJobSection from "./components/SavedAppliedJobSection";
 import MarqueeDemo from "./components/magicui/MarqueeDemo";
-import EmployerSignupStep1 from "./recruiter/EmployerSignupStep1";
 import EmployerSignupStep2 from "./recruiter/EmployerSignupStep2";
-import FindEmployerForm from "./FindEmployerForm";
+import FindEmployerForm from "./components/FindEmployerForm";
 import RegisterNewEmployer from "./recruiter/RegisterNewEmployer";
 import PostJob from "./recruiter/PostJob";
-import ProtectedRoute from "./components/ProtectedRoute";
+import RecruiterDashboard from "./components/RecruiterDashboard";
+import EditJob from "./components/EditJob";
 
 const App = () => {
   const [jobs, setJobs] = useState([]);
@@ -313,11 +313,8 @@ const App = () => {
             </div>
           }
         />
-        {/* <Route path="/register/employer" element={<EmployerSignupStep1 />} /> */}
-        {/* <Route
-          path="/register/employer/info"
-          element={<EmployerSignupStep2 />}
-        /> */}
+        <Route path="/recruiter-dashboard" element={<RecruiterDashboard />} />
+        <Route path="/edit-job/:jobId" element={<EditJob />} />
         <Route path="/employer/post-job" element={<PostJob />} />
         <Route path="/employer/add-details" element={<EmployerSignupStep2 />} />
         <Route
