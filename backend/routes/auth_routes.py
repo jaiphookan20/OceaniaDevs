@@ -96,7 +96,7 @@ def callback():
         if existing_recruiter:
             return redirect("http://localhost")        
         else:
-            return redirect("http://localhost//employer/add-details")
+            return redirect("http://localhost/employer/add-details")
     else:
         return redirect("http://localhost")
 
