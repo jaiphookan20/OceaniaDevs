@@ -1,12 +1,13 @@
 // Navbar.js
 import React, { useState, useEffect } from "react";
 import Logo from "./Logo";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const navigate = useNavigate();
   // const apiUrl = "http://localhost:4040"; // This should point to your backend service in Docker
   const apiUrl = "http://localhost/api"; // Updated to work with Nginx reverse proxy
 
@@ -133,25 +134,51 @@ const Navbar = () => {
         >
           Post Job
         </button>
-        <Link
+        {/* <button
+          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
+          // onClick={() => (window.location.href = `${apiUrl}/login/recruiter`)}
+          onClick={() => (window.location.href = "/employer/add-details")}
+        >
+          Add Recruiter Details
+      </button> */}
+        {/* <Link
           to="/employer/add-details"
           className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
         >
           Add Recruiter Details
-        </Link>
-        <button
+        </Link> */}
+        {/* <button
           className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
           // onClick={() => (window.location.href = `${apiUrl}/login/recruiter`)}
           onClick={() => (window.location.href = "/login/recruiter")}
         >
           Recruiter Login
-        </button>
+        </button> */}
         <button
           className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
           // onClick={() => (window.location.href = `${apiUrl}/login/recruiter`)}
           onClick={() => (window.location.href = "/register/recruiter")}
         >
           Recruiter Sign-Up
+        </button>
+        <button
+          className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
+          // onClick={() => (window.location.href = `${apiUrl}/login/recruiter`)}
+          onClick={() => navigate("/employer/organization-details")}
+        >
+          Add Org Details
+        </button>
+        <button
+          className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
+          onClick={() => navigate("/employer/add-details")}
+        >
+          Add Recruiter Details
+        </button>
+        <button
+          className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
+          onClick={() => navigate("/employer/new/organization-details")}
+        >
+          New Employer
         </button>
 
         {isLoggedIn ? (

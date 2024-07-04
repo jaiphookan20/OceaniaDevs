@@ -313,28 +313,21 @@ const App = () => {
             </div>
           }
         />
-        <Route path="/register/employer" element={<EmployerSignupStep1 />} />
+        {/* <Route path="/register/employer" element={<EmployerSignupStep1 />} /> */}
         {/* <Route
           path="/register/employer/info"
           element={<EmployerSignupStep2 />}
         /> */}
+        <Route path="/employer/post-job" element={<PostJob />} />
+        <Route path="/employer/add-details" element={<EmployerSignupStep2 />} />
         <Route
-          path="/employer/add-details"
-          element={
-            <ProtectedRoute>
-              <EmployerSignupStep2 />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/register/employer/organization-details"
+          path="/employer/organization-details"
           element={<RegisterNewEmployer />}
         />
         <Route
-          path="/register/employer/new/organization-details"
+          path="/employer/new/organization-details"
           element={<FindEmployerForm />}
         />
-        <Route path="/employer/post-job" element={<PostJob />} />
       </Routes>
       <Footer />
     </div>
