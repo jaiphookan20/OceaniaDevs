@@ -34,7 +34,8 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 # Use test database if in testing environment
 if os.getenv("FLASK_ENV") == "testing":
     print('Running Test DB');
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{TEST_DB_USER}:{TEST_DB_PASSWORD}@{DB_HOST}/{TEST_DB_NAME}'
+    # app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{TEST_DB_USER}:{TEST_DB_PASSWORD}@{DB_HOST}/{TEST_DB_NAME}'
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{os.getenv("DB_USER")}:{os.getenv("DB_PASSWORD")}@{os.getenv("DB_HOST")}/{os.getenv("DB_NAME")}'
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
 
