@@ -1,12 +1,3 @@
-__pycache__
 __pycache__/
 *.pyc
-routes/__pycache__
-backend/routes/__pycache__
-backend/routes/__pycache__/
-service/__pycache__
-matching/__pycache__
-service/__pycache__/
-backend/service/__pycache__/
 **/__pycache__/
-service/__pycache__
