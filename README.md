@@ -23,13 +23,7 @@ Should be accessible by typing localhost on the browser
 docker ps
 
 Example:
-(venv) jai@192-168-1-100 aus-job-board % docker ps
-CONTAINER ID   IMAGE                    COMMAND                  CREATED          STATUS          PORTS                    NAMES
-864c1891a13c   aus-job-board-nginx      "/docker-entrypoint.…"   25 minutes ago   Up 25 minutes   0.0.0.0:80->80/tcp       aus-job-board-nginx-1
-7bd9fd1cad1d   aus-job-board-frontend   "docker-entrypoint.s…"   25 minutes ago   Up 25 minutes   3000/tcp                 aus-job-board-frontend-1
-685c43b4c24c   aus-job-board-backend    "./entrypoint.sh"        25 minutes ago   Up 25 minutes   0.0.0.0:4040->4040/tcp   aus-job-board-backend-1
-f02da6704eec   aus-job-board-postgres   "docker-entrypoint.s…"   25 minutes ago   Up 25 minutes   0.0.0.0:5432->5432/tcp   aus-job-board-postgres-1
-6f8cf5cb6fc1   redis:6                  "docker-entrypoint.s…"   25 minutes ago   Up 25 minutes   0.0.0.0:6379->6379/tcp   aus-job-board-redis-1
+![Screenshot 2024-07-08 at 4 56 26 AM](https://github.com/jaiphookan20/OceaniaDevs/assets/52240311/281039fa-d956-4bc2-96c4-19fa6c9c1590)
 
 **Check out the tables of your DB**
 docker exec -it aus-job-board-postgres-1 bash (REPLACE with name of image OR CONTAINER ID of your postgres container)
