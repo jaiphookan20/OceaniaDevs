@@ -1,4 +1,3 @@
-// Navbar.js
 import React, { useState, useEffect } from "react";
 import Logo from "./Logo";
 import { Link, useNavigate } from "react-router-dom";
@@ -12,6 +11,7 @@ const Navbar = () => {
   // const apiUrl = "http://localhost:4040"; // This should point to your backend service in Docker
   const apiUrl = "http://localhost/api"; // Updated to work with Nginx reverse proxy
 
+  /* Effect to check the session and update the state accordingly */
   /* Effect to check the session and update the state accordingly */
   useEffect(() => {
     const checkSession = async () => {
@@ -28,9 +28,11 @@ const Navbar = () => {
           setIsLoggedIn(true);
           setUserName(data.userinfo.name);
           setUserType(data.type);
+          setUserType(data.type);
         } else {
           setIsLoggedIn(false);
           setUserName("");
+          setUserType("");
           setUserType("");
         }
       } catch (error) {
@@ -62,6 +64,7 @@ const Navbar = () => {
     zIndex: 10,
   };
 
+  /* Effect to handle clicks outside the dropdown menu */
   /* Effect to handle clicks outside the dropdown menu */
   useEffect(() => {
     const handleOutsideClick = (event) => {

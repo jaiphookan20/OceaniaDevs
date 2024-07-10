@@ -244,13 +244,16 @@ def update_recruiter_info():
 
 # Update Job Route
 @recruiter_blueprint.route('/api/update_job/<int:job_id>', methods=['POST'])
+@recruiter_blueprint.route('/api/update_job/<int:job_id>', methods=['POST'])
 def update_job(job_id):
     """
     Route for updating an existing job post.
     
     POST: Extracts JSON data and calls the 'update_job' method of the RecruiterService.
+    POST: Extracts JSON data and calls the 'update_job' method of the RecruiterService.
     
     Returns:
+        - JSON response with a success message.
         - JSON response with a success message.
         - 401 Unauthorized error if the user is not a recruiter or does not have access to the job post.
         - 404 Not Found error if the job post does not exist.
@@ -265,7 +268,32 @@ def update_job(job_id):
 
     if not job_post or job_post.recruiter_id != recruiter_id:
         return jsonify({"error": "Job not found or unauthorized"}), 404
+        return jsonify({"error": "Job not found or unauthorized"}), 404
 
+    data = request.get_json()
+    updated_data = {
+        'title': data['title'],
+        'description': data['description'],
+        'specialization': data['specialization'],
+        'job_type': data['job_type'],
+        'industry': data['industry'],
+        'salary_range': data['salary_range'],
+        'salary_type': data['salary_type'],
+        'work_location': data['work_location'],
+        'min_experience_years': data['min_experience_years'],
+        'experience_level': data['experience_level'],
+        'tech_stack': data['tech_stack'],
+        'city': data['city'],
+        'state': data['state'],
+        'country': data['country'],
+        'jobpost_url': data['jobpost_url'],
+        'work_rights': data['work_rights']
+    }
+    updated_job = recruiter_service.update_job(job_id, updated_data)
+    if updated_job:
+        return jsonify({"message": "Job updated successfully"})
+    else:
+        return jsonify({"error": "Job not found"}), 404
     data = request.get_json()
     updated_data = {
         'title': data['title'],
@@ -411,7 +439,6 @@ def create_company():
         else:
             return jsonify({"message": "Recruiter not found"}), 404
     else:
-        return jsonify({"message": "Unauthorized"}), 401
     
 @recruiter_blueprint.route('/api/remove-job-by-recruiter/<int:job_id>', methods=['POST'])
 def remove_job(job_id):
