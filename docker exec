@@ -1,0 +1,2 @@
+docker exec -it aus-job-board-postgres-1 bash
+psql -U jai -d job_board;

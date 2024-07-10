@@ -11,9 +11,7 @@ const JobListing = ({ onSave, onApply }) => {
   useEffect(() => {
     const fetchJob = async () => {
       try {
-        const response = await fetch(
-          `http://127.0.0.1:4040/api/job_post/${jobId}`
-        );
+        const response = await fetch(`/api/job_post/${jobId}`);
         const data = await response.json();
         if (response.ok) {
           setJob(data);

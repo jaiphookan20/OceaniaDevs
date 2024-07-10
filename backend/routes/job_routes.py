@@ -41,7 +41,7 @@ def get_job_post_page(job_id):
     company_logo = company.logo_url if company.logo_url else company_logos.get(company_name_lower, '')
 
     # Ensure the logo path is fully qualified
-    if company_logo and not company_logo.startswith('http'):
+    if company_logo:
         company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company_logo)}"
 
     job_data = {
@@ -63,7 +63,7 @@ def get_job_post_page(job_id):
         'state': job.state,
         'work_rights': job.work_rights,
         'description': job.description,
-        'tech_stack': job.tech_stack
+        'tech_stack': job.tech_stack,
     }
 
     return jsonify(job_data)

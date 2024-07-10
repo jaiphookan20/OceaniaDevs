@@ -46,28 +46,50 @@ class JobsService:
         return Company.query.filter_by(company_id=job.company_id).first()
     
     # Return the list of all available jobs along with job title, company name, job city, state, country
-    def get_available_jobs(self):
-        """
-        Return the list of all available jobs along with job_id, job title, company name, job city, state, and country.
+    # def get_available_jobs(self):
+    #     """
+    #     Return the list of all available jobs along with job_id, job title, company name, job city, state, and country.
 
-        The structure of the job tuple is as follows:
-        So, job[0] refers to the Job object instance, and job[0].job_id accesses the job_id attribute of that Job object instance.
-        For example, if the job tuple looks like this:
-        job = (
-            <Job 5>,
-            'Principal Frontend Software Engineer',
-            'Atlassian',
-            'Sydney',
-            'NSW',
-            'Australia'
-        )
-        Then, job[0] would be <Job 5>, which is the Job object instance with job_id 5. Therefore, job[0].job_id would give you the value 5.
-        So, job[0].job_id represents the job_id of the specific Job object instance in that tuple, not the first job in the list.
-        :return: List of tuples with job details
-        """
-        return Job.query.join(Company, Job.company_id == Company.company_id).add_columns(
-            Job.job_id, Job.title, Company.name.label('company_name'), Job.city, Job.state, Job.country, Job.specialization, Job.experience_level, Job.tech_stack, Job.salary_range).all()
+    #     The structure of the job tuple is as follows:
+    #     So, job[0] refers to the Job object instance, and job[0].job_id accesses the job_id attribute of that Job object instance.
+    #     For example, if the job tuple looks like this:
+    #     job = (
+    #         <Job 5>,
+    #         'Principal Frontend Software Engineer',
+    #         'Atlassian',
+    #         'Sydney',
+    #         'NSW',
+    #         'Australia'
+    #     )
+    #     Then, job[0] would be <Job 5>, which is the Job object instance with job_id 5. Therefore, job[0].job_id would give you the value 5.
+    #     So, job[0].job_id represents the job_id of the specific Job object instance in that tuple, not the first job in the list.
+    #     :return: List of tuples with job details
+    #     """
+    #     return Job.query.join(Company, Job.company_id == Company.company_id).add_columns(
+    #         Job.job_id, Job.title, Company.name.label('company_name'), Job.city, Job.state, Job.country, Job.specialization, Job.experience_level, Job.tech_stack, Job.salary_range).all()
     
+    def get_available_jobs(self):
+            """
+            Return the list of all available jobs along with job_id, job title, company name, job city, state, and country.
+
+            The structure of the job tuple is as follows:
+            So, job[0] refers to the Job object instance, and job[0].job_id accesses the job_id attribute of that Job object instance.
+            For example, if the job tuple looks like this:
+            job = (
+                <Job 5>,
+                'Principal Frontend Software Engineer',
+                'Atlassian',
+                'Sydney',
+                'NSW',
+                'Australia'
+            )
+            Then, job[0] would be <Job 5>, which is the Job object instance with job_id 5. Therefore, job[0].job_id would give you the value 5.
+            So, job[0].job_id represents the job_id of the specific Job object instance in that tuple, not the first job in the list.
+            :return: List of tuples with job details
+            """
+            return Job.query.join(Company, Job.company_id == Company.company_id).add_columns(
+            Job.job_id, Job.title, Company.name.label('company_name'), Job.city, Job.state, Job.country, Job.specialization, Job.experience_level, Job.tech_stack, Job.salary_range).all()
+
     # Get Available Jobs (Pagination)
     def get_available_jobs_with_pagination(self, page, page_size):
         """
@@ -80,18 +102,23 @@ class JobsService:
         Returns:
             tuple: A tuple containing a list of jobs and the total job count.
         """
-        offset = (page - 1) * page_size  # Calculate the offset for pagination
-        
-        # Join Job and Company tables to get job and company details
-        jobs_query = db.session.query(Job, Company).join(Company, Job.company_id == Company.company_id)
-        
-        # Get the total number of jobs
-        total_jobs = jobs_query.count()
-        
-        # Fetch jobs with pagination
-        jobs = jobs_query.offset(offset).limit(page_size).all()
-        
-        return jobs, total_jobs
+        try:
+            print("Attempting to fetch jobs from database")
+            offset = (page - 1) * page_size  # Calculate the offset for pagination
+            
+            # Join Job and Company tables to get job and company details
+            jobs_query = db.session.query(Job, Company).join(Company, Job.company_id == Company.company_id)
+            
+            # Get the total number of jobs
+            total_jobs = jobs_query.count()
+            
+            # Fetch jobs with pagination
+            jobs = jobs_query.offset(offset).limit(page_size).all()
+            
+            return jobs, total_jobs
+        except Exception as e:
+            print(f"Error fetching jobs: {e}")
+            return [], 0
 
     # Apply to a particular job post
     def apply_to_job(self, userid, jobid):

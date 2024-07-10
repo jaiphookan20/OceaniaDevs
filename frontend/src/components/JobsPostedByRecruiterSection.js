@@ -7,10 +7,7 @@ const JobsPostedByRecruiterSection = ({
   jobs,
   onEdit,
   onView,
-  currentPage,
-  totalJobs,
-  pageSize,
-  onPageChange,
+  onRemove,
 }) => {
   return (
     <div className="mb-10">
@@ -25,6 +22,7 @@ const JobsPostedByRecruiterSection = ({
             job={job}
             onEdit={onEdit}
             onView={onView}
+            onRemove={onRemove}
           />
         ))}
       </div>

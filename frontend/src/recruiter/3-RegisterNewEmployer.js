@@ -31,14 +31,11 @@ const RegisterNewEmployer = () => {
     }
 
     try {
-      const response = await fetch(
-        "http://127.0.0.1:4040/api/register/employer/create_company",
-        {
-          method: "POST",
-          credentials: "include",
-          body: formDataToSend,
-        }
-      );
+      const response = await fetch("/api/register/employer/create_company", {
+        method: "POST",
+        credentials: "include",
+        body: formDataToSend,
+      });
       const result = await response.json();
       console.log(result.message);
       if (

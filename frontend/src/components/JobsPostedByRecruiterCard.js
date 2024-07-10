@@ -1,6 +1,6 @@
 import React from "react";
 
-const JobsPostedByRecruiterCard = ({ job, onEdit, onView }) => {
+const JobsPostedByRecruiterCard = ({ job, onEdit, onView, onRemove }) => {
   return (
     <div className="flex items-center justify-between p-6 border-b border-lime-200 mb-2 rounded-lg shadow-md shadow-slate-200/50 cursor-pointer hover:bg-slate-100 hover:shadow-xl">
       <div className="flex items-center">
@@ -31,6 +31,12 @@ const JobsPostedByRecruiterCard = ({ job, onEdit, onView }) => {
           onClick={() => onEdit(job.job_id)}
         >
           Edit
+        </button>
+        <button
+          className="px-4 py-2 bg-violet-400 hover:bg-lime-600 text-black border border-green-600 rounded-md"
+          onClick={() => onRemove(job.job_id)}
+        >
+          Remove
         </button>
       </div>
     </div>

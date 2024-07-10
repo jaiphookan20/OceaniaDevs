@@ -19,8 +19,9 @@ class RecruiterService:
         Add a Job Post to the Jobs table.
         """
         if session['user']['type'] != "recruiter":
-            return jsonify({"error": "Unauthorized access"}), 401
-        else:        
+            return None, "Unauthorized access"
+    
+        try:
             new_job = Job(
                 recruiter_id=recruiter_id,
                 company_id=company_id,
@@ -34,7 +35,6 @@ class RecruiterService:
                 work_location=work_location,
                 min_experience_years=min_experience_years,
                 experience_level=experience_level,
-                # tech_stack=tech_stack,
                 city=city,
                 state=state,
                 country=country,
@@ -48,6 +48,11 @@ class RecruiterService:
             categorized_tech_stack = categorize_words(new_job.description)
             new_job.tech_stack = categorized_tech_stack
             db.session.commit()
+
+            return new_job, None  # Return the job object and no error
+        except Exception as e:
+            db.session.rollback()
+            return None, str(e)  # Return None for the job and the error message
 
     # Add a new Recruiter to the Recruiters table
     def add_recruiter(self, company_id, first_name, last_name, email, password, city, state, country, is_direct_recruiter):
@@ -132,5 +137,11 @@ class RecruiterService:
         return company;
         
 
-
+    def remove_job(self, job_id, recruiter_id):
+        job = Job.query.filter_by(job_id=job_id, recruiter_id=recruiter_id).first()
+        if job:
+            db.session.delete(job)
+            db.session.commit()
+            return True
+        return False
 

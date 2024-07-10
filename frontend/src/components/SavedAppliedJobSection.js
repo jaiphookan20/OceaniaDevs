@@ -1,6 +1,6 @@
 import React from "react";
-import SavedAndAppliedJobsCard from "../components/SavedAndAppliedJobsCard";
-import SavedAndAppliedJobsHeader from "../components/SavedAppliedJobsHeader";
+import SavedAndAppliedJobsCard from "./SavedAndAppliedJobsCard";
+import SavedAndAppliedJobsHeader from "./SavedAppliedJobsHeader";
 
 const SavedAppliedJobSection = ({
   title,

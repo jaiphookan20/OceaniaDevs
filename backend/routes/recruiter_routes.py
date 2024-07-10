@@ -10,7 +10,7 @@ import os
 
 # Create a Blueprint for recruiter-related routes
 recruiter_blueprint = Blueprint('recruiter', __name__)
-CORS(recruiter_blueprint, supports_credentials=True, resources={r'/*': {'origins': 'http://localhost:3000'}})
+CORS(recruiter_blueprint, supports_credentials=True, resources={r'/*': {'origins': 'http://localhost'}})
 
 # Add Recruiter Route
 @recruiter_blueprint.route('/api/add_recruiter', methods=['GET', 'POST'])
@@ -98,9 +98,10 @@ def add_job():
     recruiter_service = RecruiterService()
     
     if request.method == 'POST':
-        data = request.json  # Expecting JSON data
+        if 'user' not in session or session['user']['type'] != 'recruiter':
+            return jsonify({"error": "Unauthorized access"}), 401
 
-        # Get the recruiter and company details from the session and form data
+        data = request.json  # Expecting JSON data
         recruiter_id = session['user']['recruiter_id']
         recruiter = Recruiter.query.get(recruiter_id)
         company_id = recruiter.company_id
@@ -123,12 +124,17 @@ def add_job():
         work_rights = data['work_rights']
 
         # Call the add_job method of RecruiterService
-        recruiter_service.add_job(recruiter_id, company_id, title, description, specialization,
+        new_job, error = recruiter_service.add_job(recruiter_id, company_id, title, description, specialization,
                                    job_type, industry, salary_range, salary_type, work_location,
                                    min_experience_years, experience_level, city,
                                    state, country, jobpost_url, work_rights)
 
-        return jsonify({"message": "Job added successfully"})
+        if new_job:
+            return jsonify({"message": "Job added successfully", "job_id": new_job.job_id}), 200
+        else:
+            return jsonify({"error": f"Failed to add job: {error}"}), 400
+
+    return jsonify({"error": "Invalid request method"}), 405
 
 @recruiter_blueprint.route('/api/jobs_by_recruiter')
 def get_all_jobs_by_recruiter():
@@ -139,16 +145,17 @@ def get_all_jobs_by_recruiter():
         recruiter_service = RecruiterService()
         jobs_service = JobsService()
         recruiter_jobs = recruiter_service.get_all_jobs_by_recruiter(recruiter_id)
-        
         # Build the response data
         response_data = []
         for job in recruiter_jobs:
             company = jobs_service.get_company_by_id(job.company_id)
             company_logo=company.logo_url
             if company_logo: 
-                company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company_logo)}"
+                    company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company.logo_url)}"
 
             print(f"compay logo: {company.logo_url}")
+
+            
             job_data = {
                 "job_id": job.job_id,
                 "recruiter_id": job.recruiter_id,
@@ -237,13 +244,16 @@ def update_recruiter_info():
 
 # Update Job Route
 @recruiter_blueprint.route('/api/update_job/<int:job_id>', methods=['POST'])
+@recruiter_blueprint.route('/api/update_job/<int:job_id>', methods=['POST'])
 def update_job(job_id):
     """
     Route for updating an existing job post.
     
     POST: Extracts JSON data and calls the 'update_job' method of the RecruiterService.
+    POST: Extracts JSON data and calls the 'update_job' method of the RecruiterService.
     
     Returns:
+        - JSON response with a success message.
         - JSON response with a success message.
         - 401 Unauthorized error if the user is not a recruiter or does not have access to the job post.
         - 404 Not Found error if the job post does not exist.
@@ -258,7 +268,32 @@ def update_job(job_id):
 
     if not job_post or job_post.recruiter_id != recruiter_id:
         return jsonify({"error": "Job not found or unauthorized"}), 404
+        return jsonify({"error": "Job not found or unauthorized"}), 404
 
+    data = request.get_json()
+    updated_data = {
+        'title': data['title'],
+        'description': data['description'],
+        'specialization': data['specialization'],
+        'job_type': data['job_type'],
+        'industry': data['industry'],
+        'salary_range': data['salary_range'],
+        'salary_type': data['salary_type'],
+        'work_location': data['work_location'],
+        'min_experience_years': data['min_experience_years'],
+        'experience_level': data['experience_level'],
+        'tech_stack': data['tech_stack'],
+        'city': data['city'],
+        'state': data['state'],
+        'country': data['country'],
+        'jobpost_url': data['jobpost_url'],
+        'work_rights': data['work_rights']
+    }
+    updated_job = recruiter_service.update_job(job_id, updated_data)
+    if updated_job:
+        return jsonify({"message": "Job updated successfully"})
+    else:
+        return jsonify({"error": "Job not found"}), 404
     data = request.get_json()
     updated_data = {
         'title': data['title'],
@@ -403,5 +438,22 @@ def create_company():
             return jsonify({"message": "Company created and recruiter updated successfully"}), 200
         else:
             return jsonify({"message": "Recruiter not found"}), 404
+    else:
+    
+@recruiter_blueprint.route('/api/remove-job-by-recruiter/<int:job_id>', methods=['POST'])
+def remove_job(job_id):
+    if "user" in session and session["user"]["type"] == "recruiter":
+        recruiter_id = session["user"]["recruiter_id"]
+        job_service = JobsService()
+        recruiter_service = RecruiterService()
+        job_post = job_service.get_job_by_id(job_id)
+
+        if not job_post or job_post.recruiter_id != recruiter_id:
+            return jsonify({"error": "Job not found or unauthorized"}), 404
+        
+        if recruiter_service.remove_job(job_id, recruiter_id):
+            return jsonify({"message": "Job post removed successfully"}), 200
+        else:
+            return jsonify({"error": "Job not found or unauthorized"}), 404
     else:
         return jsonify({"message": "Unauthorized"}), 401

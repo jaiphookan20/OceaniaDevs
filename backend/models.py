@@ -1,8 +1,17 @@
 from extensions import bcrypt, db
-from typing import Union
 from sqlalchemy.dialects.postgresql import ENUM, TSVECTOR
+from sqlalchemy import event, text
+from sqlalchemy.schema import DDL
 from pgvector.sqlalchemy import Vector
 
+# Define all ENUM types
+state_enum = ENUM('VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA', name='state_enum', create_type=False)
+country_enum = ENUM('Australia', 'New Zealand', name='country_enum', create_type=False)
+job_type_enum = ENUM('premium', 'normal', name='job_type', create_type=False)
+industry_enum = ENUM('Government', 'Banking & Financial Services', 'Fashion', 'Mining', 'Healthcare', 'IT - Software Development', 'IT - Data Analytics', 'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 'Marketing & Advertising', 'Media & Communications', 'Non-Profit & NGO', 'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 'Telecommunications', 'Transportation & Logistics', name='industry_type', create_type=False)
+salary_range_enum = ENUM('20000 - 40000', '40000 - 60000', '60000 - 80000', '80000 - 100000', '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000', '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+', name='salary_range_type', create_type=False)
+
+# Define your models
 class Seeker(db.Model):
     __tablename__ = 'seekers'
 
@@ -12,8 +21,8 @@ class Seeker(db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
     city = db.Column(db.String(255))
-    state = db.Column(db.Enum('VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA', name='state_enum'))
-    country = db.Column(db.Enum('Australia', 'New Zealand', name='country_enum'))
+    state = db.Column(state_enum)
+    country = db.Column(country_enum)
     datetimestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
 
     @property
@@ -25,30 +34,7 @@ class Seeker(db.Model):
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
 
     def verify_password(self, password):
-        result = bcrypt.check_password_hash(self.password_hash, password)
-        # print(f"Checking password: {password} against hash: {self.password_hash} - Result: {result}")
-        return result
-    
-class Company(db.Model):
-    __tablename__ = 'companies'
-    company_id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), nullable=False)
-    website_url = db.Column(db.String(255))
-    country = db.Column(db.String(100))  # Add country field
-    size = db.Column(db.String(100))  # Add size field
-    address = db.Column(db.String(255))  # Add address field
-    description = db.Column(db.Text)  # Add description field
-    logo_url = db.Column(db.String(255))  # Add logo_url field
-    created_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
-    recruiters = db.relationship('Recruiter', backref='company', lazy=True)
-
-    __table_args__ = (
-        db.CheckConstraint(
-            "website_url ~ '^(https?://)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([/\\w\\.-]*)*/?$'",
-            name='ck_companies_website_url'
-        ),
-    )
+        return bcrypt.check_password_hash(self.password_hash, password)
 
 class Recruiter(db.Model):
     __tablename__ = 'recruiters'
@@ -60,11 +46,25 @@ class Recruiter(db.Model):
     email = db.Column(db.String(255), nullable=False)
     password = db.Column(db.String(255))
     city = db.Column(db.String(255))
-    state = db.Column(db.String(255))
-    country = db.Column(db.String(255))
+    state = db.Column(state_enum)  # Changed to use ENUM
+    country = db.Column(country_enum)  # Changed to use ENUM
     is_direct_recruiter = db.Column(db.Boolean)
     created_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
+
+class Company(db.Model):
+    __tablename__ = 'companies'
+    company_id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    website_url = db.Column(db.String(255))
+    country = db.Column(country_enum)  # Changed to use ENUM
+    size = db.Column(db.String(100))
+    address = db.Column(db.String(255))
+    description = db.Column(db.Text)
+    logo_url = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
+    recruiters = db.relationship('Recruiter', backref='company', lazy=True)
 
 class Job(db.Model):
     __tablename__ = 'jobs'
@@ -74,9 +74,9 @@ class Job(db.Model):
     title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text)
     specialization = db.Column(db.String(255))
-    job_type = db.Column(ENUM('premium', 'normal', name='job_type'), default='normal')
-    industry = db.Column(ENUM('Government', 'Banking & Financial Services', 'Fashion', 'Mining', 'Healthcare', 'IT - Software Development', 'IT - Data Analytics', 'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 'Marketing & Advertising', 'Media & Communications', 'Non-Profit & NGO', 'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 'Telecommunications', 'Transportation & Logistics', name='industry_type'), nullable=False)
-    salary_range = db.Column(ENUM('20000 - 40000', '40000 - 60000', '60000 - 80000', '80000 - 100000', '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000', '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+', name='salary_range_type'))
+    job_type = db.Column(job_type_enum, default='normal')
+    industry = db.Column(industry_enum, nullable=False)
+    salary_range = db.Column(salary_range_enum)
     salary_type = db.Column(db.String(10))
     work_location = db.Column(db.String(20))
     min_experience_years = db.Column(db.Integer)
@@ -117,5 +117,3 @@ class Bookmark(db.Model):
     userid = db.Column(db.Integer, db.ForeignKey('seekers.uid'))
     jobid = db.Column(db.Integer, db.ForeignKey('jobs.job_id'))
     datetimestamp = db.Column(db.DateTime, server_default=db.func.current_timestamp())
-
-
