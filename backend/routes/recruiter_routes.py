@@ -439,6 +439,7 @@ def create_company():
         else:
             return jsonify({"message": "Recruiter not found"}), 404
     else:
+        return jsonify({"message": "Unauthorized"}), 404
     
 @recruiter_blueprint.route('/api/remove-job-by-recruiter/<int:job_id>', methods=['POST'])
 def remove_job(job_id):

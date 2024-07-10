@@ -12,16 +12,12 @@ import JobPost from "./components/JobPost";
 import { toast, Toaster } from "react-hot-toast";
 import SavedAppliedJobSection from "./components/SavedAppliedJobSection";
 import MarqueeDemo from "./components/magicui/MarqueeDemo";
-import EmployerSignupStep1 from "./recruiter/1-EmployerSignupStep1";
-import RecruiterPersonalDetails from "./recruiter/2-RecruiterPersonalDetails";
-import FindEmployerForm from "./recruiter/4-FindEmployerForm";
-import RegisterNewEmployer from "./recruiter/3-RegisterNewEmployer";
-import EmployerSignupStep2 from "./recruiter/EmployerSignupStep2";
+import FindEmployerForm from "./recruiter/FindEmployerForm";
+import RegisterNewEmployer from "./recruiter/RegisterNewEmployer";
 import PostJob from "./recruiter/PostJob";
-import JobsPostedByRecruiterSection from "./components/JobsPostedByRecruiterSection";
-import JobsPostedByRecruiterCard from "./components/JobsPostedByRecruiterCard";
 import RecruiterDashboard from "./components/RecruiterDashboard";
 import EditJob from "./components/EditJob";
+import RecruiterPersonalDetails from "./recruiter/RecruiterPersonalDetails";
 
 const App = () => {
   const [jobs, setJobs] = useState([]);
@@ -320,7 +316,10 @@ const App = () => {
         <Route path="/recruiter-dashboard" element={<RecruiterDashboard />} />
         <Route path="/edit-job/:jobId" element={<EditJob />} />
         <Route path="/employer/post-job" element={<PostJob />} />
-        <Route path="/employer/add-details" element={<EmployerSignupStep2 />} />
+        <Route
+          path="/employer/add-details"
+          element={<RecruiterPersonalDetails />}
+        />
         <Route
           path="/employer/organization-details"
           element={<RegisterNewEmployer />}
