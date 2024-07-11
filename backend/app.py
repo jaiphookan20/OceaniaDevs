@@ -51,7 +51,7 @@ def create_app():
     app.config.update(
         SESSION_COOKIE_SECURE=True,
         SESSION_COOKIE_HTTPONLY=True,
-        SESSION_COOKIE_SAMESITE='None',
+        SESSION_COOKIE_SAMESITE='Lax',
     )
     app.logger.setLevel(logging.INFO)
 
