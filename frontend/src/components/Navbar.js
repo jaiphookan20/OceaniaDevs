@@ -9,7 +9,8 @@ const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
   // const apiUrl = "http://localhost:4040"; // This should point to your backend service in Docker
-  const apiUrl = "http://localhost/api"; // Updated to work with Nginx reverse proxy
+  // const apiUrl = "http://localhost/api"; // Updated to work with Nginx reverse proxy
+  const apiUrl = "http://54.79.190.69/api"; // Updated to work with Nginx reverse proxy
 
   /* Effect to check the session and update the state accordingly */
   /* Effect to check the session and update the state accordingly */
