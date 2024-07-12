@@ -9,14 +9,11 @@ import config
 import secrets
 from datetime import timedelta
 
-# Create a Blueprint for authentication routes
 auth_blueprint = Blueprint('auth', __name__)
 CORS(auth_blueprint, supports_credentials=True, resources={r"/*": {"origins": "*"}})
 
-# Access WEBAPP settings
 webapp_secret_key = config.AUTH0_SECRET_KEY
 
-# Initialize OAuth
 oauth = OAuth()
 
 def generate_state():
@@ -25,13 +22,14 @@ def generate_state():
 @auth_blueprint.before_request
 def before_request():
     current_app.logger.info(f"Session before request: {session}")
+    current_app.logger.info(f"Request path: {request.path}")
+    current_app.logger.info(f"Request method: {request.method}")
 
 @auth_blueprint.after_request
 def after_request(response):
     current_app.logger.info(f"Session after request: {session}")
     return response
 
-# Callback route for handling the redirect from Auth0 after authentication
 @auth_blueprint.route("/callback", methods=["GET", "POST"])
 def callback():
     try:
@@ -45,6 +43,9 @@ def callback():
         current_app.logger.info(f"Session state: {session.get('oauth_state')}")
         current_app.logger.info(f"Request state: {request.args.get('state')}")
         
+        if session.get('oauth_state') != request.args.get('state'):
+            raise ValueError("State mismatch. Possible CSRF attack.")
+        
         token = oauth.auth0.authorize_access_token()
         
         current_app.logger.info("Token obtained successfully")
@@ -52,31 +53,17 @@ def callback():
 
         session["user"] = token
 
-        # Get the email from the user's session
         email = session.get('user').get('userinfo').get('email')
-
-        # Check if the user came from the seeker or recruiter registration route
         registration_type = request.args.get('type')
 
         if registration_type == 'recruiter':
-            # Check if a Recruiter with the same email already exists
             existing_recruiter = Recruiter.query.filter_by(email=email).first()
             current_app.logger.info("Existing Recruiter Logged In" if existing_recruiter else "New Recruiter Created")
             if not existing_recruiter:
                 new_recruiter = Recruiter(email=email)
                 db.session.add(new_recruiter)
                 db.session.commit()
-        else:
-            # Check if a Seeker with the same email already exists
-            existing_seeker = Seeker.query.filter_by(email=email).first()
-            current_app.logger.info("Existing Seeker Logged In" if existing_seeker else "New Seeker Created")
-            if not existing_seeker:
-                new_seeker = Seeker(email=email)
-                db.session.add(new_seeker)
-                db.session.commit()
-
-        # If the user is registering as a recruiter
-        if registration_type == 'recruiter':
+            
             recruiter = Recruiter.query.filter_by(email=email).first()
             recruiter_id = recruiter.recruiter_id
             current_app.logger.info(f"Recruiter ID: {recruiter_id}")
@@ -84,6 +71,13 @@ def callback():
             session["user"]["type"] = "recruiter"
             session["user"]["recruiter_id"] = recruiter_id
         else:
+            existing_seeker = Seeker.query.filter_by(email=email).first()
+            current_app.logger.info("Existing Seeker Logged In" if existing_seeker else "New Seeker Created")
+            if not existing_seeker:
+                new_seeker = Seeker(email=email)
+                db.session.add(new_seeker)
+                db.session.commit()
+            
             seeker = Seeker.query.filter_by(email=email).first()
             uid = seeker.uid
             current_app.logger.info(f"Seeker ID: {uid}")
@@ -93,7 +87,6 @@ def callback():
 
         current_app.logger.info(f"Session data after login: {session}")
         
-        # Redirect to the React application homepage or recruiter signup page
         if session["user"]["type"] == "recruiter":
             if existing_recruiter:
                 return redirect("http://localhost")        
@@ -110,6 +103,7 @@ def login(type):
     state = generate_state()
     session['oauth_state'] = state
     current_app.logger.info(f"Generated state for login: {state}")
+    current_app.logger.info(f"Session after setting state: {session}")
     return oauth.auth0.authorize_redirect(
         redirect_uri=url_for("auth.callback", _external=True) + f'?type={type}',
         state=state
@@ -120,6 +114,7 @@ def signup(type):
     state = generate_state()
     session['oauth_state'] = state
     current_app.logger.info(f"Generated state for signup: {state}")
+    current_app.logger.info(f"Session after setting state: {session}")
     return oauth.auth0.authorize_redirect(
         redirect_uri=url_for("auth.callback", _external=True) + f'?type={type}',
         state=state
@@ -147,18 +142,9 @@ def init_auth(app):
     app.config['SESSION_PERMANENT'] = True
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
     app.config['SESSION_USE_SIGNER'] = True
-    app.config['SESSION_COOKIE_SECURE'] = True
+    app.config['SESSION_COOKIE_SECURE'] = False  # Set to False since we're not using HTTPS
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-
-    # Test Redis connection
-    with app.app_context():
-        try:
-            redis_client = app.config.get('SESSION_REDIS')
-            redis_client.ping()
-            app.logger.info("Successfully connected to Redis")
-        except Exception as e:
-            app.logger.error(f"Failed to connect to Redis: {str(e)}")
 
     return app
 

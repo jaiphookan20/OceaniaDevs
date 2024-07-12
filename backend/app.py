@@ -36,8 +36,6 @@ def create_app():
     # Define the upload subdirectory
     UPLOAD_FOLDER = os.path.join('uploads', 'upload_company_logo')
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-    # Make sure the entire directory structure exists
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
     # Database configuration
@@ -47,7 +45,7 @@ def create_app():
     DB_PASSWORD = os.environ.get('DB_PASSWORD', 'techboard')
 
     # Redis configuration
-    REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
+    REDIS_HOST = os.environ.get('REDIS_HOST', 'redis')
     REDIS_PORT = int(os.environ.get('REDIS_PORT', 6379))
 
     # Use test database if in testing environment
@@ -59,7 +57,7 @@ def create_app():
 
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config.update(
-        SESSION_COOKIE_SECURE=True,
+        SESSION_COOKIE_SECURE=False,  # Set to False since we're not using HTTPS
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE='Lax',
     )
@@ -72,7 +70,7 @@ def create_app():
     # Register ENUM types
     def create_enums():
         with app.app_context():
-            db.create_all()  # Create the tables after enums are created
+            db.create_all()
             app.logger.info("Database tables created successfully.")
             for enum in [state_enum, country_enum, job_type_enum, industry_enum, salary_range_enum]:
                 enum.create(bind=db.engine, checkfirst=True)
@@ -102,15 +100,22 @@ def create_app():
     app.config['CACHE_REDIS_URL'] = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
     app.config['CACHE_DEFAULT_TIMEOUT'] = 300
 
-    cache.init_app(app)  # Initialize the Cache instance with the app
+    cache.init_app(app)
     Session(app)
 
     # Initialize auth-related configurations
     init_auth(app)
 
+    # Test Redis connection
+    try:
+        redis_client = Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
+        redis_client.ping()
+        app.logger.info(f"Successfully connected to Redis at {REDIS_HOST}:{REDIS_PORT}")
+    except Exception as e:
+        app.logger.error(f"Failed to connect to Redis at {REDIS_HOST}:{REDIS_PORT}: {str(e)}")
+
     @app.route('/')
     def home():
-        # Check if a user is logged in
         user_logged_in = 'user' in session
         if user_logged_in:
             app.logger.info(f"User logged in: {session.get('user').get('userinfo').get('name')}")
@@ -129,18 +134,20 @@ def create_app():
             app.logger.info("No user in session in check-session")
             return jsonify({})
         
-    # Serve the uploaded files
     @app.route('/uploads/<path:filename>')
     def serve_uploaded_file(filename):
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
         
     @app.before_request
     def before_request():
-        headers = {'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type'}
-        if request.method.lower() == 'options':
-            return jsonify(headers), 200
+        app.logger.info(f"Request path: {request.path}")
+        app.logger.info(f"Request method: {request.method}")
+        app.logger.info(f"Session before request: {session}")
+
+    @app.after_request
+    def after_request(response):
+        app.logger.info(f"Session after request: {session}")
+        return response
 
     @app.errorhandler(RedisError)
     def handle_redis_error(error):
