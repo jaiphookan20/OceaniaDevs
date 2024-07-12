@@ -12,7 +12,7 @@ const FindEmployerForm = () => {
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:4040/api/companies", {
+        const response = await fetch("/api/companies", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -41,17 +41,14 @@ const FindEmployerForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(
-        "http://127.0.0.1:4040/api/register/employer/update_company",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({ company: selectedEmployer }),
-        }
-      );
+      const response = await fetch("/api/register/employer/update_company", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ company: selectedEmployer }),
+      });
       const result = await response.json();
       console.log(result.message);
       if (result.message === "Recruiter company updated successfully") {
@@ -134,7 +131,7 @@ const FindEmployerForm = () => {
           <button
             type="button"
             className="text-green-600 hover:underline focus:outline-none"
-            onClick={() => navigate("/register/employer/organization-details")}
+            onClick={() => navigate("/employer/organization-details")}
           >
             Didn't find your employer? Create new employer
           </button>
