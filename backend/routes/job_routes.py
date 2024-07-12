@@ -13,6 +13,7 @@ from sqlalchemy import and_, func, or_
 from extensions import cache
 from utils.technologies import icons
 import os
+import config
 
 
 job_blueprint = Blueprint('job', __name__)
@@ -42,7 +43,7 @@ def get_job_post_page(job_id):
 
     # Ensure the logo path is fully qualified
     if company_logo:
-        company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company_logo)}"
+        company_logo = f"{config.BASE_URL}/uploads/{os.path.basename(company_logo)}"
 
     job_data = {
         'job_id': job.job_id,
@@ -98,7 +99,7 @@ def get_all_jobs():
         # Ensure the logo path is fully qualified
         if job.Company.logo_url: 
             if not company_logo.startswith('http'):
-                company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company_logo)}"
+                company_logo = f"{config.BASE_URL}/uploads/{os.path.basename(company_logo)}"
         
         job_data = {
             'title': job.Job.title,
