@@ -9,8 +9,6 @@ import config
 import secrets
 from datetime import timedelta
 
-# CHANGED TO DEBUG AUTH0 STATE MISMATCH ERROR POST-LOGIN
-
 # Create a Blueprint for authentication routes
 auth_blueprint = Blueprint('auth', __name__)
 CORS(auth_blueprint, supports_credentials=True, resources={r"/*": {"origins": "*"}})
@@ -19,16 +17,7 @@ CORS(auth_blueprint, supports_credentials=True, resources={r"/*": {"origins": "*
 webapp_secret_key = config.AUTH0_SECRET_KEY
 
 # Initialize OAuth
-oauth = OAuth(current_app)
-oauth.register(
-    "auth0",
-    client_id=config.AUTH0_CLIENT_ID,
-    client_secret=config.AUTH0_CLIENT_SECRET,
-    client_kwargs={
-        "scope": "openid profile email",
-    },
-    server_metadata_url=f'https://{config.AUTH0_DOMAIN}/.well-known/openid-configuration'
-)
+oauth = OAuth()
 
 def generate_state():
     return secrets.token_urlsafe(32)
@@ -122,9 +111,8 @@ def login(type):
     session['oauth_state'] = state
     current_app.logger.info(f"Generated state for login: {state}")
     return oauth.auth0.authorize_redirect(
-        redirect_uri=url_for("auth.callback", _external=True, _scheme='https') + f'?type={type}',
-        state=state,
-        screen_hint="login"
+        redirect_uri=url_for("auth.callback", _external=True) + f'?type={type}',
+        state=state
     )
 
 @auth_blueprint.route("/register/<string:type>")
@@ -133,9 +121,8 @@ def signup(type):
     session['oauth_state'] = state
     current_app.logger.info(f"Generated state for signup: {state}")
     return oauth.auth0.authorize_redirect(
-        redirect_uri=url_for("auth.callback", _external=True, _scheme='https') + f'?type={type}',
-        state=state,
-        screen_hint="signup"
+        redirect_uri=url_for("auth.callback", _external=True) + f'?type={type}',
+        state=state
     )
 
 @auth_blueprint.route("/logout", methods=["GET"])
@@ -145,6 +132,17 @@ def logout():
     return redirect("http://localhost/")
 
 def init_auth(app):
+    oauth.init_app(app)
+    oauth.register(
+        "auth0",
+        client_id=config.AUTH0_CLIENT_ID,
+        client_secret=config.AUTH0_CLIENT_SECRET,
+        client_kwargs={
+            "scope": "openid profile email",
+        },
+        server_metadata_url=f'https://{config.AUTH0_DOMAIN}/.well-known/openid-configuration'
+    )
+
     app.config['SESSION_TYPE'] = 'redis'
     app.config['SESSION_PERMANENT'] = True
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
@@ -154,12 +152,13 @@ def init_auth(app):
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
     # Test Redis connection
-    try:
-        redis_client = app.config.get('SESSION_REDIS')
-        redis_client.ping()
-        current_app.logger.info("Successfully connected to Redis")
-    except Exception as e:
-        current_app.logger.error(f"Failed to connect to Redis: {str(e)}")
+    with app.app_context():
+        try:
+            redis_client = app.config.get('SESSION_REDIS')
+            redis_client.ping()
+            app.logger.info("Successfully connected to Redis")
+        except Exception as e:
+            app.logger.error(f"Failed to connect to Redis: {str(e)}")
 
     return app
 
