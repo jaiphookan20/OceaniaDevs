@@ -1,7 +1,8 @@
+# EXTRA LOGGING TO DEBUG AUTH0 MISMATCH STATE ERROR POST LOGIN THROUGH AUTH0
 from flask import Flask, jsonify, request, session, redirect, url_for, send_from_directory, current_app
 from flask_session import Session
 from redis import Redis, RedisError
-from routes.auth_routes import auth_blueprint
+from routes.auth_routes import auth_blueprint, init_auth
 from routes.job_routes import job_blueprint
 from routes.recruiter_routes import recruiter_blueprint
 from routes.seeker_routes import seeker_blueprint
@@ -18,11 +19,19 @@ from matching.custom_types import Vector
 
 load_dotenv()
 
-# EXTRA LOGGING TO DEBUG AUTH0 MISMATCH STATE ERROR POST LOGIN THROUGH AUTH0
 def create_app():
     app = Flask(__name__)
     CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
     app.config['CORS_HEADERS'] = 'Content-Type'
+
+    # Set up logging
+    logging.basicConfig(level=logging.DEBUG)
+    app.logger.setLevel(logging.DEBUG)
+    file_handler = logging.FileHandler('app.log')
+    file_handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    app.logger.addHandler(file_handler)
 
     # Define the upload subdirectory
     UPLOAD_FOLDER = os.path.join('uploads', 'upload_company_logo')
@@ -43,7 +52,7 @@ def create_app():
 
     # Use test database if in testing environment
     if os.getenv("FLASK_ENV") == "testing":
-        print('Running Test DB')
+        app.logger.info('Running Test DB')
         app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}_test'
     else:
         app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
@@ -54,7 +63,6 @@ def create_app():
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE='Lax',
     )
-    app.logger.setLevel(logging.INFO)
 
     # Initialize extensions with the app
     db.init_app(app)
@@ -65,7 +73,7 @@ def create_app():
     def create_enums():
         with app.app_context():
             db.create_all()  # Create the tables after enums are created
-            print("Database tables created successfully.")
+            app.logger.info("Database tables created successfully.")
             for enum in [state_enum, country_enum, job_type_enum, industry_enum, salary_range_enum]:
                 enum.create(bind=db.engine, checkfirst=True)
 
@@ -97,27 +105,28 @@ def create_app():
     cache.init_app(app)  # Initialize the Cache instance with the app
     Session(app)
 
+    # Initialize auth-related configurations
+    init_auth(app)
+
     @app.route('/')
     def home():
         # Check if a user is logged in
         user_logged_in = 'user' in session
         if user_logged_in:
-            print(session.get('user').get("userinfo").get('name'))
-            user_type = session['user']['type'] in session
-            print(f"User Type: {session['user']['type']}")
-            print("User in session")
+            app.logger.info(f"User logged in: {session.get('user').get('userinfo').get('name')}")
+            app.logger.info(f"User Type: {session['user']['type']}")
         else:
-            print("User not in session")
+            app.logger.info("User not in session")
         return jsonify({"status": "API is running", "user_logged_in": user_logged_in})
 
     @app.route("/api/check-session", methods=["GET"])
     def check_session():
         if 'user' in session:
-            print(f"Session data in check-session: {session['user']['userinfo']['name']}")
-            print(f"Session Type in check-session: {session['user']['type']}")
+            app.logger.info(f"Session data in check-session: {session['user']['userinfo']['name']}")
+            app.logger.info(f"Session Type in check-session: {session['user']['type']}")
             return jsonify(session['user'])
         else:
-            print("No user in session in check-session")
+            app.logger.info("No user in session in check-session")
             return jsonify({})
         
     # Serve the uploaded files
