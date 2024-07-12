@@ -5,8 +5,8 @@ services:
       - ./frontend:/app # mounting the local frontend directory to /app in the container for live updates
       - /app/node_modules # added volume for /app/node_modules to prevent overwriting the installed packages
     environment:
+      - REACT_APP_API_URL=http://54.79.190.69/api
       # - REACT_APP_API_URL=http://localhost/api
-      REACT_APP_API_URL=http://54.79.190.69
     command: npm start # command to run the development server
     depends_on:
       - backend # Ensure backend is started before frontend
