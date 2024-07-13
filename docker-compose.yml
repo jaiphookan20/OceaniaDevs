@@ -1,24 +1,32 @@
+version: "3" # Specify docker-compose version
+
 services:
   frontend:
     build: ./frontend # Build the frontend service from the Dockerfile in the ./frontend directory
     volumes:
-      - ./frontend:/app # mounting the local frontend directory to /app in the container for live updates
-      - /app/node_modules # added volume for /app/node_modules to prevent overwriting the installed packages
+      # Bind mount for live updates during development
+      - ./frontend:/app
+      # Anonymous volume to prevent overwriting node_modules with the bind mount
+      - /app/node_modules
     environment:
+      # Set the API URL for the frontend to communicate with the backend
       - REACT_APP_API_URL=http://54.79.190.69/api
       # - REACT_APP_API_URL=http://localhost/api
-    command: npm start # command to run the development server
+    command: npm start # Command to run the development server
     depends_on:
       - backend # Ensure backend is started before frontend
 
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: ./backend # Set the build context to the backend directory
+      dockerfile: Dockerfile # Specify the Dockerfile to use
     volumes:
+      # Bind mount the entire backend directory for development
       - ./backend:/app
+      # Bind mount for uploads, allowing persistence and easy access from host
       - ./backend/uploads:/app/uploads
     environment:
+      # Set environment variables for the backend service
       - FLASK_APP=app.py
       - FLASK_ENV=production
       - DB_HOST=postgres
@@ -27,10 +35,11 @@ services:
       - DB_PASSWORD=techboard
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - SECRET_KEY=${SECRET_KEY:-1234567890}
+      - SECRET_KEY=${SECRET_KEY:-1234567890} # Use env variable or default
     ports:
-      - "4040:4040"
+      - "4040:4040" # Map host port 4040 to container port 4040
     depends_on:
+      # Ensure database services are started before backend
       - postgres
       - redis
 
@@ -39,30 +48,36 @@ services:
       context: ./postgres
       dockerfile: Dockerfile
     environment:
+      # Set environment variables for PostgreSQL
       POSTGRES_DB: job_board
       POSTGRES_USER: jai
       POSTGRES_PASSWORD: techboard
     volumes:
+      # Use a named volume for PostgreSQL data persistence
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5432:5432" # Map host port 5432 to container port 5432
 
   redis:
-    image: redis:6
+    image: redis:6 # Use the official Redis 6 image
     ports:
-      - "6379:6379"
+      - "6379:6379" # Map host port 6379 to container port 6379
 
   nginx:
     build: ./nginx # Build the nginx service using the Dockerfile in ./nginx
     ports:
-      - "80:80"
+      - "80:80" # Map host port 80 to container port 80
     volumes:
-      - ./nginx/job-board.conf:/etc/nginx/conf.d/default.conf # Mount Nginx configuration
+      # Mount the Nginx configuration file
+      - ./nginx/job-board.conf:/etc/nginx/conf.d/default.conf
+      # Bind mount for uploads, allowing Nginx to serve uploaded files
       - ./backend/uploads:/app/uploads
     depends_on:
-      - frontend # Ensure frontend is started before nginx
-      - backend # Ensure backend is started before nginx
+      # Ensure application services are started before Nginx
+      - frontend
+      - backend
 
 volumes:
-  postgres_data: # Define a named volume for PostgreSQL data persistence
-
+  # Define a named volume for PostgreSQL data persistence
+  postgres_data:
+    # This volume is managed by Docker and persists across container restarts
