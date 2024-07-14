@@ -43,7 +43,13 @@ def get_job_post_page(job_id):
 
     # Ensure the logo path is fully qualified
     if company_logo:
-        company_logo = f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company_logo)}"
+        if config.BASE_URL == "http://127.0.0.1:4040":
+            company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company_logo)}"
+        else:
+            company_logo = f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company_logo)}"
+        # company_logo = f"uploads/upload_company_logo/{os.path.basename(company_logo)}"
+        # company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company_logo)}"
+        # src="http://127.0.0.1:4040/uploads/upload_company_logo/canva-logo.png"
 
     job_data = {
         'job_id': job.job_id,
@@ -98,9 +104,12 @@ def get_all_jobs():
         
         # Ensure the logo path is fully qualified
         if job.Company.logo_url: 
-            if not company_logo.startswith('http'):
-                company_logo = f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company_logo)}"
-        
+                if config.BASE_URL == "http://127.0.0.1:4040":
+                    company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company_logo)}"
+                else:
+                    company_logo = f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company_logo)}"
+                
+
         job_data = {
             'title': job.Job.title,
             'company': job.Company.name,  # Accessing company name from the Company table
@@ -276,6 +285,11 @@ def instant_search_jobs():
             jobs = jobs_query.all()
             print(f"Jobs found: {len(jobs)}")  # Debugging log
             
+            if config.BASE_URL == "http://127.0.0.1:4040":
+                company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company_logo)}"
+            else:
+                company_logo = f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company_logo)}"
+
             # Format the results
             results = [{
                 'job_id': job.job_id,
@@ -287,7 +301,8 @@ def instant_search_jobs():
                 'salary_range': job.salary_range,
                 'created_at': job.created_at.strftime('%Y-%m-%d'),
                 'experience_level': job.experience_level,
-                'logo': company_logos.get(job.company_name.lower(), ''),
+                # 'logo': company_logos.get(job.company_name.lower(), ''),
+                'logo': company_logo,
             } for job in jobs]
 
             return jsonify({
@@ -351,6 +366,11 @@ def filtered_search_jobs():
         Job.job_id, Job.title, Job.description, Job.specialization, Job.salary_range, Job.city, Job.state, Job.country, Job.salary_range, 
         Job.created_at, Job.experience_level, Company.name.label('company_name'), Company.logo_url.label('logo')).all()
 
+    if config.BASE_URL == "http://127.0.0.1:4040":
+        company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company_logo)}"
+    else:
+        company_logo = f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company_logo)}"
+
     results = [{
         'job_id': job.job_id,
         'title': job.title,
@@ -362,7 +382,9 @@ def filtered_search_jobs():
         'created_at': job.created_at.strftime('%Y-%m-%d'),
         'experience_level': job.experience_level,
         'specialization': job.specialization,
-        'logo': company_logos.get(job.company_name.lower(), ''),
+        # 'logo': company_logos.get(job.company_name.lower(), ''),
+        'logo': company_logo,
+
     } for job in jobs]
 
     return jsonify({

@@ -6,6 +6,7 @@ from extensions import db
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import os
+import config
 
 
 # Create a Blueprint for recruiter-related routes
@@ -150,12 +151,13 @@ def get_all_jobs_by_recruiter():
         for job in recruiter_jobs:
             company = jobs_service.get_company_by_id(job.company_id)
             company_logo=company.logo_url
-            if company_logo: 
-                    company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company.logo_url)}"
+            # if company_logo: 
+            #         company_logo = f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}"
+            if config.BASE_URL == "http://127.0.0.1:4040":
+                company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company.logo_url)}"
+            else:
+                company_logo = f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}"
 
-            print(f"compay logo: {company.logo_url}")
-
-            
             job_data = {
                 "job_id": job.job_id,
                 "recruiter_id": job.recruiter_id,

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Logo from "./Logo";
 import { Link, useNavigate } from "react-router-dom";
+// import { apiUrl } from "../../config";
 
 const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -10,14 +11,13 @@ const Navbar = () => {
   const navigate = useNavigate();
   // const apiUrl = "http://localhost:4040"; // This should point to your backend service in Docker
   // const apiUrl = "http://localhost/api"; // Updated to work with Nginx reverse proxy
-  const apiUrl = "http://54.79.190.69/api"; // Updated to work with Nginx reverse proxy
+  // const apiUrl = "http://54.79.190.69/api"; // Updated to work with Nginx reverse proxy
 
-  /* Effect to check the session and update the state accordingly */
   /* Effect to check the session and update the state accordingly */
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const response = await fetch(`${apiUrl}/check-session`, {
+        const response = await fetch(`api/check-session`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

@@ -27,7 +27,7 @@ const App = () => {
   const [isInSession, setIsInSession] = useState(false);
   const [title, setTitle] = useState("Technology Jobs");
 
-  const apiUrl = "/api"; // Updated to use the Nginx reverse proxy
+  // const apiUrl = "/api"; // Updated to use the Nginx reverse proxy
 
   const [filters, setFilters] = useState({
     specialization: "",
@@ -47,7 +47,8 @@ const App = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const response = await fetch(`${apiUrl}/check-session`, {
+        // const response = await fetch(`${apiUrl}/check-session`,
+        const response = await fetch(`/api/check-session`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -73,7 +74,8 @@ const App = () => {
 
   const handleSave = async (jobId) => {
     try {
-      const response = await fetch(`${apiUrl}/bookmark_job`, {
+      // const response = await fetch(`${/apiUrl}/bookmark_job`
+      const response = await fetch(`/api/bookmark_job`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -95,7 +97,8 @@ const App = () => {
 
   const handleApply = async (jobId) => {
     try {
-      const response = await fetch(`${apiUrl}/apply_to_job`, {
+      // const response = await fetch(`${apiUrl}/apply_to_job`
+      const response = await fetch(`/api/apply_to_job`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -130,7 +133,8 @@ const App = () => {
     } else {
       console.log("Calling Instant Search Jobs");
       const response = await fetch(
-        `${apiUrl}/instant_search_jobs?query=${event.target.value}`,
+        // `${apiUrl}/instant_search_jobs?query=${event.target.value}`
+        `/api/instant_search_jobs?query=${event.target.value}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -146,7 +150,8 @@ const App = () => {
   const handleFilterSearch = async () => {
     const queryParams = new URLSearchParams(filters);
     const response = await fetch(
-      `${apiUrl}/filtered_search_jobs?${queryParams.toString()}`,
+      // `${apiUrl}/filtered_search_jobs?${queryParams.toString()}`,
+      `/api/filtered_search_jobs?${queryParams.toString()}`,
       {
         method: "GET",
         headers: {
@@ -170,7 +175,8 @@ const App = () => {
   const fetchJobs = async (page = 1, pageSize = 10) => {
     try {
       const response = await fetch(
-        `${apiUrl}/alljobs?page=${page}&page_size=${pageSize}`,
+        // `${apiUrl}/alljobs?page=${page}&page_size=${pageSize}`
+        `/api/alljobs?page=${page}&page_size=${pageSize}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -196,7 +202,8 @@ const App = () => {
 
   const fetchSavedJobs = async () => {
     try {
-      const response = await fetch(`${apiUrl}/bookmarked_jobs`, {
+      // const response = await fetch(`${apiUrl}/bookmarked_jobs`, {
+      const response = await fetch(`/api/bookmarked_jobs`, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -214,7 +221,8 @@ const App = () => {
 
   const fetchAppliedJobs = async () => {
     try {
-      const response = await fetch(`${apiUrl}/applied_jobs`, {
+      // const response = await fetch(`${apiUrl}/applied_jobs`, {
+      const response = await fetch(`/api/applied_jobs`, {
         headers: {
           "Content-Type": "application/json",
         },

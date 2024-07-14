@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
+// import { apiUrl } from "../../config";
 
 const EditJob = () => {
   const { jobId } = useParams();
@@ -27,7 +28,7 @@ const EditJob = () => {
   useEffect(() => {
     const fetchJob = async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:4040/api/job/${jobId}`, {
+        const response = await fetch(`/api/job/${jobId}`, {
           method: "GET",
           credentials: "include",
         });
@@ -58,17 +59,15 @@ const EditJob = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(
-        `http://127.0.0.1:4040/api/update_job/${jobId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(formData),
-        }
-      );
+      // const response = await fetch(`${apiUrl}/update_job/${jobId}`, {
+      const response = await fetch(`api/update_job/${jobId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(formData),
+      });
       if (response.ok) {
         toast.success("Job successfully updated!");
         navigate("/");

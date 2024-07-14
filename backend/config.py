@@ -22,3 +22,4 @@ TEST_DB_USER = os.getenv('TEST_DB_USER', 'jai')
 TEST_DB_PASSWORD = os.getenv('TEST_DB_PASSWORD', 'techboard')
 
 BASE_URL = os.getenv('BASE_URL', 'http://54.79.190.69')
+# BASE_URL = os.getenv('BASE_URL', 'http://127.0.0.1:4040')
