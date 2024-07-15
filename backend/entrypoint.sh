@@ -13,7 +13,7 @@ if [ "$FLASK_ENV" = "development" ]; then
     python -m flask run --host=0.0.0.0 --port=4040 --reload
 else
     echo "Starting Gunicorn production server..."
-    gunicorn --config gunicorn-config.py "app:create_app()"
+    gunicorn --config gunicorn_config.py "app:create_app()"
 fi
 
 # #!/bin/sh
