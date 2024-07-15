@@ -2,17 +2,19 @@ version: "3" # Specify docker-compose version
 
 services:
   frontend:
-    build: ./frontend # Build the frontend service from the Dockerfile in the ./frontend directory
+    build: ./frontend
     volumes:
-      # Bind mount for live updates during development
       - ./frontend:/app
-      # Anonymous volume to prevent overwriting node_modules with the bind mount
       - /app/node_modules
     environment:
-      # Set the API URL for the frontend to communicate with the backend
       - REACT_APP_API_URL=http://54.79.190.69/api
-      # - REACT_APP_API_URL=http://localhost
-    command: npm start # Command to run the development server
+      - CHOKIDAR_USEPOLLING=true
+      # - NODE_ENV=development # Set to 'production' to use the built version
+      - NODE_ENV=${NODE_ENV:-production}
+
+    ports:
+      - "3000:3000"
+    command: npm start # This will be overridden by CMD in Dockerfile if NODE_ENV=production
     depends_on:
       - backend # Ensure backend is started before frontend
 
@@ -28,7 +30,8 @@ services:
     environment:
       # Set environment variables for the backend service
       - FLASK_APP=app.py
-      - FLASK_ENV=production
+      - FLASK_ENV=${FLASK_ENV:-production}
+      # - FLASK_ENV=development
       - DB_HOST=postgres
       #- DB_HOST=localhost
       - DB_NAME=job_board
