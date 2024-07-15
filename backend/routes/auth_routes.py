@@ -13,7 +13,6 @@ auth_blueprint = Blueprint('auth', __name__)
 CORS(auth_blueprint, supports_credentials=True, resources={r"/*": {"origins": "*"}})
 webapp_secret_key = config.AUTH0_SECRET_KEY
 oauth = OAuth()
-redirect_path = 'http://localhost' if config.BASE_URL == "http://127.0.0.1:4040" else 'http://54.79.190.69'
 
 def generate_state():
     return secrets.token_urlsafe(32)
@@ -88,11 +87,11 @@ def callback():
         
         if session["user"]["type"] == "recruiter":
             if existing_recruiter:
-                return redirect(f"{redirect_path}")        
+                return redirect(f"{config.BASE_URL}")        
             else:
-                return redirect(f"{redirect_path}/employer/add-details")
+                return redirect(f"{config.BASE_URL}/employer/add-details")
         else:
-            return redirect(f"{redirect_path}")
+            return redirect(f"{config.BASE_URL}")
     except Exception as e:
         current_app.logger.error(f"Error in callback: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500
@@ -123,7 +122,7 @@ def signup(type):
 def logout():
     session.clear()
     current_app.logger.info("User logged out, session cleared")
-    return redirect(f"{redirect_path}/")
+    return redirect(f"{config.BASE_URL}/")
 
 def init_auth(app):
     oauth.init_app(app)

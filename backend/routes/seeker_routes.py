@@ -10,14 +10,7 @@ import config
 seeker_blueprint = Blueprint('seeker', __name__)
 CORS(seeker_blueprint, supports_credentials=True, resources={r'/*': {'origins': 'http://localhost:3000'}})
 
-company_logos = {
-    'airwallex': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzDHDDJYBvqPYjfZnQXrnhMFJiRBeNurLCEA&s',
-    'oceaniadevs': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzDHDDJYBvqPYjfZnQXrnhMFJiRBeNurLCEA&s',
-    'xero': 'https://upload.wikimedia.org/wikipedia/en/archive/9/9f/20171204173437%21Xero_software_logo.svg',
-    'canva': 'https://builtin.com/sites/www.builtin.com/files/2021-11/CIRCLE%20LOGO%20-%20GRADIENT%20-%20RGB_0.png',
-    'atlassian': 'https://cdn.prod.website-files.com/6350c9fce59bc08494e7e9e5/6542fe0e8e219ee96075cb7a_638439dd30aa4b831f8f5873_Atlassian-Logo.png',
-    'cultureamp': 'https://seeklogo.com/images/C/culture-amp-logo-F3EE0956BD-seeklogo.com.png'
-}
+
 
 # Update Job Seeker Route
 @seeker_blueprint.route('/api/update_seeker', methods=['GET', 'POST'])
@@ -77,17 +70,8 @@ def get_all_bookmarked_jobs_by_seeker():
             bookmarked_job.experience_level = job.experience_level if job else "N/A"
             bookmarked_job.created_at = job.created_at if job else "N/A"
 
-            if config.BASE_URL == "http://127.0.0.1:4040":
-                company.logo_url = f"http://127.0.0.1:4040/uploads/{os.path.basename(company.logo_url)}"
-            else:
-                company.logo_url = f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}"
 
-            bookmarked_job.logo = company.logo_url;
-            
-            # if company.logo_url: 
-            #     if not bookmarked_job.logo.startswith('http'):
-            #         company_logo = f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}"
-            
+            bookmarked_job.logo = company.logo_url;            
 
         return jsonify(bookmarked_jobs=[{
             'job_id': job.jobid,
@@ -97,7 +81,7 @@ def get_all_bookmarked_jobs_by_seeker():
             'state': job.state,
             'country': job.country,
             'experience_level': job.experience_level,
-            'logo': job.logo,
+            'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo)}",
             'created_at': get_relative_time(job.created_at.strftime('%Y-%m-%d')),
             'specialization': job.specialization,
             'salary_range': job.salary_range
@@ -136,6 +120,7 @@ def get_all_applied_jobs_by_seeker():
             applied_job.specialization = job.specialization if job else "N/A"
             applied_job.salary_range = job.salary_range if job else "N/A"
             applied_job.created_at = job.created_at if job else "N/A"
+            applied_job.logo = company.logo_url if job else "N/A"
 
         return jsonify(applied_jobs=[{
             'job_id': job.jobid,
@@ -145,7 +130,7 @@ def get_all_applied_jobs_by_seeker():
             'state': job.state,
             'country': job.country,
             'experience_level': job.experience_level,
-            'logo': company_logos[job.company_name.lower()],
+            'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo)}",
             'created_at': get_relative_time(job.created_at.strftime('%Y-%m-%d')),
             'specialization': job.specialization,
             'salary_range': job.salary_range

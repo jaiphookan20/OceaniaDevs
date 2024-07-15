@@ -38,24 +38,11 @@ def get_job_post_page(job_id):
     if not job or not company:
         return jsonify({"error": "Job or company not found"}), 404
 
-    company_name_lower = company.name.lower() if company.name else ''
-    company_logo = company.logo_url if company.logo_url else company_logos.get(company_name_lower, '')
-
-    # Ensure the logo path is fully qualified
-    if company_logo:
-        if config.BASE_URL == "http://127.0.0.1:4040":
-            company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company_logo)}"
-        else:
-            company_logo = f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company_logo)}"
-        # company_logo = f"uploads/upload_company_logo/{os.path.basename(company_logo)}"
-        # company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company_logo)}"
-        # src="http://127.0.0.1:4040/uploads/upload_company_logo/canva-logo.png"
-
     job_data = {
         'job_id': job.job_id,
         'title': job.title,
         'company': company.name,
-        'company_logo': company_logo,
+        'company_logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
         'industry': job.industry,
         'salary_range': job.salary_range,
         'country': job.country,
@@ -74,7 +61,6 @@ def get_job_post_page(job_id):
     }
 
     return jsonify(job_data)
-
 
 @job_blueprint.route('/api/alljobs', methods=['GET'])
 def get_all_jobs():
@@ -100,16 +86,7 @@ def get_all_jobs():
     # Format the job data for the response
     jobs_data = []
     for job in jobs:
-        company_logo = job.Company.logo_url if job.Company.logo_url else company_logos.get(job.Company.name.lower(), '')
-        
-        # Ensure the logo path is fully qualified
-        if job.Company.logo_url: 
-                if config.BASE_URL == "http://127.0.0.1:4040":
-                    company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company_logo)}"
-                else:
-                    company_logo = f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company_logo)}"
                 
-
         job_data = {
             'title': job.Job.title,
             'company': job.Company.name,  # Accessing company name from the Company table
@@ -118,7 +95,7 @@ def get_all_jobs():
             'experience_level': job.Job.experience_level,
             'job_id': job.Job.job_id,
             'salary_range': job.Job.salary_range,
-            'logo': company_logo,
+            'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.Company.logo_url)}",
             'specialization': job.Job.specialization,
             'created_at': get_relative_time(job.Job.created_at.strftime('%Y-%m-%d')),
             'tech_stack': job.Job.tech_stack
@@ -197,14 +174,6 @@ def bookmark_job():
                 jobs_service.bookmark_job(userid, (job_id))
                 return jsonify({"message": "Job Bookmaked successfully"})
             
-# Get all available jobs Route
-@job_blueprint.route('/api/available_jobs')
-def available_jobs():
-    jobs_service = JobsService()
-    jobs = jobs_service.get_available_jobs()
-    print(f"Available jobs: {jobs}")
-    return render_template('available_jobs.html', jobs=jobs)
-
 # Route to filter jobs based on certain criteria:
 @job_blueprint.route('/filter_jobs', methods=['POST', 'GET'])
 def filter_jobs():
@@ -279,17 +248,12 @@ def instant_search_jobs():
                 Company, Job.company_id == Company.company_id).add_columns(
                 # Select the following columns from the Job and Company tables
                 Job.job_id, Job.title, Job.description, Job.specialization, Job.city, Job.state, Job.country,
-                Job.salary_range, Job.created_at, Job.experience_level, Company.name.label('company_name')
+                Job.salary_range, Job.created_at, Job.experience_level, Company.name.label('company_name'), Company.logo_url.label('logo_url')
             )
             
             jobs = jobs_query.all()
             print(f"Jobs found: {len(jobs)}")  # Debugging log
             
-            if config.BASE_URL == "http://127.0.0.1:4040":
-                company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company_logo)}"
-            else:
-                company_logo = f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company_logo)}"
-
             # Format the results
             results = [{
                 'job_id': job.job_id,
@@ -301,8 +265,8 @@ def instant_search_jobs():
                 'salary_range': job.salary_range,
                 'created_at': job.created_at.strftime('%Y-%m-%d'),
                 'experience_level': job.experience_level,
-                # 'logo': company_logos.get(job.company_name.lower(), ''),
-                'logo': company_logo,
+                'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo_url)}",
+                # 'logo': f"http://127.0.0.1:4040/uploads/upload_company_logo/{os.path.basename(job.logo)}" if config.BASE_URL == "http://127.0.0.1:4040" else f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo)}"
             } for job in jobs]
 
             return jsonify({
@@ -324,7 +288,6 @@ def instant_search_jobs():
             'results': []
         })
 
-# Filtered search jobs route
 @job_blueprint.route('/api/filtered_search_jobs', methods=['GET'])
 @cache.cached(timeout=60, query_string=True)
 def filtered_search_jobs():
@@ -360,32 +323,26 @@ def filtered_search_jobs():
         jobs_query = jobs_query.filter(Job.salary_range == salary_range)
     if tech_stack:
         jobs_query = jobs_query.filter(Job.tech_stack.any(tech_stack))
-
+    
     # Execute the query and format the results
     jobs = jobs_query.join(Company, Job.company_id == Company.company_id).add_columns(
         Job.job_id, Job.title, Job.description, Job.specialization, Job.salary_range, Job.city, Job.state, Job.country, Job.salary_range, 
-        Job.created_at, Job.experience_level, Company.name.label('company_name'), Company.logo_url.label('logo')).all()
-
-    if config.BASE_URL == "http://127.0.0.1:4040":
-        company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company_logo)}"
-    else:
-        company_logo = f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company_logo)}"
-
+        Job.created_at, Job.experience_level, Company.name.label('company_name'), Company.logo_url.label('logo_url')).all()
+    
     results = [{
-        'job_id': job.job_id,
-        'title': job.title,
-        'company': job.company_name,
-        'city': job.city,
-        'location': f"{job.city}, {job.state}",
-        'country': job.country,
-        'salary_range': job.salary_range,
-        'created_at': job.created_at.strftime('%Y-%m-%d'),
-        'experience_level': job.experience_level,
-        'specialization': job.specialization,
-        # 'logo': company_logos.get(job.company_name.lower(), ''),
-        'logo': company_logo,
-
-    } for job in jobs]
+    'job_id': job.job_id,
+    'title': job.title,
+    'company': job.company_name,
+    'city': job.city,
+    'location': f"{job.city}, {job.state}",
+    'country': job.country,
+    'salary_range': job.salary_range,
+    'created_at': job.created_at.strftime('%Y-%m-%d'),
+    'experience_level': job.experience_level,
+    'specialization': job.specialization,
+    'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo_url)}",
+    # 'logo': f"http://127.0.0.1:4040/uploads/upload_company_logo/{os.path.basename(job.logo)}" if config.BASE_URL == "http://127.0.0.1:4040" else f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo)}"
+} for job in jobs]
 
     return jsonify({
         'total': len(results),

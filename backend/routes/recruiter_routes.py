@@ -150,13 +150,6 @@ def get_all_jobs_by_recruiter():
         response_data = []
         for job in recruiter_jobs:
             company = jobs_service.get_company_by_id(job.company_id)
-            company_logo=company.logo_url
-            # if company_logo: 
-            #         company_logo = f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}"
-            if config.BASE_URL == "http://127.0.0.1:4040":
-                company_logo = f"http://127.0.0.1:4040/uploads/{os.path.basename(company.logo_url)}"
-            else:
-                company_logo = f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}"
 
             job_data = {
                 "job_id": job.job_id,
@@ -181,7 +174,7 @@ def get_all_jobs_by_recruiter():
                 "work_rights": job.work_rights,
                 "created_at": job.created_at,
                 "updated_at": job.updated_at,
-                "logo": company_logo,
+                'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
                 "company_name": company.name if company else "N/A",
             }
             response_data.append(job_data)
@@ -223,7 +216,6 @@ def get_job_by_id(job_id):
     else:
         return jsonify({"error": "Job not found"}), 404
 
-
 # Update Recruiter Data
 @recruiter_blueprint.route('/api/register/employer/info', methods=['POST'])
 def update_recruiter_info():
@@ -245,7 +237,6 @@ def update_recruiter_info():
         return jsonify({"message": "Unauthorized"}), 401
 
 # Update Job Route
-@recruiter_blueprint.route('/api/update_job/<int:job_id>', methods=['POST'])
 @recruiter_blueprint.route('/api/update_job/<int:job_id>', methods=['POST'])
 def update_job(job_id):
     """
@@ -270,32 +261,7 @@ def update_job(job_id):
 
     if not job_post or job_post.recruiter_id != recruiter_id:
         return jsonify({"error": "Job not found or unauthorized"}), 404
-        return jsonify({"error": "Job not found or unauthorized"}), 404
 
-    data = request.get_json()
-    updated_data = {
-        'title': data['title'],
-        'description': data['description'],
-        'specialization': data['specialization'],
-        'job_type': data['job_type'],
-        'industry': data['industry'],
-        'salary_range': data['salary_range'],
-        'salary_type': data['salary_type'],
-        'work_location': data['work_location'],
-        'min_experience_years': data['min_experience_years'],
-        'experience_level': data['experience_level'],
-        'tech_stack': data['tech_stack'],
-        'city': data['city'],
-        'state': data['state'],
-        'country': data['country'],
-        'jobpost_url': data['jobpost_url'],
-        'work_rights': data['work_rights']
-    }
-    updated_job = recruiter_service.update_job(job_id, updated_data)
-    if updated_job:
-        return jsonify({"message": "Job updated successfully"})
-    else:
-        return jsonify({"error": "Job not found"}), 404
     data = request.get_json()
     updated_data = {
         'title': data['title'],
@@ -379,7 +345,6 @@ def get_companies():
     companies = Company.query.all()
     company_list = [{"name": company.name} for company in companies]
     return jsonify(company_list), 200
-
 
 @recruiter_blueprint.route('/api/register/employer/update_company', methods=['POST'])
 def update_recruiter_company():
