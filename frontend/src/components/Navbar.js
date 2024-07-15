@@ -9,10 +9,6 @@ const Navbar = () => {
   const [userType, setUserType] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
-  // const apiUrl = "http://localhost:4040"; // This should point to your backend service in Docker
-  // const apiUrl = "http://localhost/api"; // Updated to work with Nginx reverse proxy
-  // const apiUrl = "http://54.79.190.69/api"; // Updated to work with Nginx reverse proxy
-
   /* Effect to check the session and update the state accordingly */
   useEffect(() => {
     const checkSession = async () => {
@@ -45,18 +41,17 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = async () => {
-    window.location.href = `/logout`;
-    // await fetch("http://127.0.0.1:4040/api/logout", {
-    //   method: "GET",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   credentials: "include",
-    // });
-    // setIsLoggedIn(false);
-    // setUserName("");
-    // setUserType("");
-    // window.location.href = "http://localhost:3000/";
+    await fetch("/logout", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    setIsLoggedIn(false);
+    setUserName("");
+    setUserType("");
+    navigate("/");
   };
 
   const navbarStyles = {
@@ -65,7 +60,6 @@ const Navbar = () => {
     zIndex: 10,
   };
 
-  /* Effect to handle clicks outside the dropdown menu */
   /* Effect to handle clicks outside the dropdown menu */
   useEffect(() => {
     const handleOutsideClick = (event) => {
