@@ -74,48 +74,46 @@ const App = () => {
 
   const handleSave = async (jobId) => {
     try {
-      // const response = await fetch(`${/apiUrl}/bookmark_job`
-      const response = await fetch(`/api/bookmark_job`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ jobid: jobId }),
-      });
-      const result = await response.json();
-      toast.success(result.message);
-    } catch (error) {
       if (!isInSession) {
-        toast.error("Sign in first to save a job.");
+        toast.error("Sign in first to save a job");
       } else {
-        console.error("Error saving job:", error);
-        toast.error("Failed to save job.");
+        const response = await fetch(`/api/bookmark_job`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ jobid: jobId }),
+        });
+        const result = await response.json();
+        toast.success(result.message);
       }
+    } catch (error) {
+      console.error("Error saving job:", error);
+      toast.error("Failed to save job.");
     }
   };
 
   const handleApply = async (jobId) => {
     try {
-      // const response = await fetch(`${apiUrl}/apply_to_job`
-      const response = await fetch(`/api/apply_to_job`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ jobid: jobId }),
-      });
-      const result = await response.json();
-      toast.success("Boom!");
-      navigate(`/job_post/${jobId}`);
-    } catch (error) {
       if (!isInSession) {
         toast.error("Sign in first to apply.");
       } else {
-        console.error("Error applying to job:", error);
-        toast.error("Failed to apply to job.");
+        const response = await fetch(`/api/apply_to_job`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ jobid: jobId }),
+        });
+        const result = await response.json();
+        toast.success("Boom!");
+        navigate(`/job_post/${jobId}`);
       }
+    } catch (error) {
+      console.error("Error applying to job:", error);
+      toast.error("Failed to apply to job.");
     }
   };
 
