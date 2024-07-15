@@ -256,8 +256,8 @@ const App = () => {
           element={
             <>
               <Header />
-              <MarqueeDemo />
-              <CategoryGrid />
+              {/* <MarqueeDemo />
+              <CategoryGrid /> */}
               <SearchBar
                 searchQuery={searchQuery}
                 onSearchChange={handleSearch}
