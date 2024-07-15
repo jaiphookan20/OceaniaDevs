@@ -19,16 +19,7 @@ import config
 job_blueprint = Blueprint('job', __name__)
 CORS(job_blueprint, supports_credentials=True, resources={r'/*': {'origins': 'http://localhost:3000'}})
 
-
-company_logos = {
-    'airwallex': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzDHDDJYBvqPYjfZnQXrnhMFJiRBeNurLCEA&s',
-    'oceaniadevs': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzDHDDJYBvqPYjfZnQXrnhMFJiRBeNurLCEA&s',
-    'xero': 'https://upload.wikimedia.org/wikipedia/en/archive/9/9f/20171204173437%21Xero_software_logo.svg',
-    'canva': 'https://builtin.com/sites/www.builtin.com/files/2021-11/CIRCLE%20LOGO%20-%20GRADIENT%20-%20RGB_0.png',
-    'atlassian': 'https://cdn.prod.website-files.com/6350c9fce59bc08494e7e9e5/6542fe0e8e219ee96075cb7a_638439dd30aa4b831f8f5873_Atlassian-Logo.png',
-    'cultureamp': 'https://seeklogo.com/images/C/culture-amp-logo-F3EE0956BD-seeklogo.com.png'
-}
-
+# Get Job Post Page by Job ID:
 @job_blueprint.route('/api/job_post/<int:job_id>', methods=['GET'])
 def get_job_post_page(job_id):
     jobs_service = JobsService()
@@ -42,7 +33,7 @@ def get_job_post_page(job_id):
         'job_id': job.job_id,
         'title': job.title,
         'company': company.name,
-        'company_logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
+        'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
         'industry': job.industry,
         'salary_range': job.salary_range,
         'country': job.country,
@@ -62,6 +53,7 @@ def get_job_post_page(job_id):
 
     return jsonify(job_data)
 
+# Get All Jobs ie Populate Job Feed:
 @job_blueprint.route('/api/alljobs', methods=['GET'])
 def get_all_jobs():
     """
@@ -110,7 +102,7 @@ def get_all_jobs():
         'total_jobs': total_jobs
     })
 
-# Apply to Job Route:
+# Apply to Job Post:
 @job_blueprint.route('/api/apply_to_job', methods=['GET', 'POST'])
 @requires_auth
 def apply_to_job():
@@ -142,7 +134,7 @@ def apply_to_job():
                 jobs_service.apply_to_job(userid, (job_id))
                 return jsonify({"message": "Job application submitted successfully"})
 
-# Bookmark Job Route:
+# Bookmark a Job Post:
 @job_blueprint.route('/api/bookmark_job', methods=['GET', 'POST'])
 @requires_auth
 def bookmark_job():
@@ -173,53 +165,7 @@ def bookmark_job():
                 jobs_service = JobsService()
                 jobs_service.bookmark_job(userid, (job_id))
                 return jsonify({"message": "Job Bookmaked successfully"})
-            
-# Route to filter jobs based on certain criteria:
-@job_blueprint.route('/filter_jobs', methods=['POST', 'GET'])
-def filter_jobs():
-    filter_data = request.json
-    company_id = filter_data.get('company')
-    experience_level = filter_data.get('experience_level')
-    industry = filter_data.get('industry')
-    job_type = filter_data.get('job_type')
-    salary_range = filter_data.get('salary_range')
-    # salary_type = filter_data.get('salary_type')
-    work_location = filter_data.get('work_location')
-    specialization = filter_data.get('specialization')
-    min_experience_years = filter_data.get('min_experience_years')
-    tech_stack = filter_data.get('tech_stack')
-    city = filter_data.get('city')
-    state = filter_data.get('state')
-    country = filter_data.get('country')
-    expiry_date = filter_data.get('expiry_date')
-    work_rights = filter_data.get('work_rights')
-    experience_level = filter_data.get('experience_level')
-
-    jobs_service = JobsService()
-    filtered_jobs = jobs_service.filter_jobs(company_id, experience_level, industry, job_type, salary_range,
-                                             work_location, min_experience_years, tech_stack, city,
-                                             state, country, expiry_date, work_rights, specialization)
-    
-    # Convert the filtered jobs to a list of dictionaries
-    jobs_data = [
-        {
-            'job_id': job.job_id,
-            'title': job.title,
-            'company_name': job.company_name,
-            'city': job.city,
-            'state': job.state,
-            'country': job.country,
-            'work_location': job.work_location,
-            'min_experience_years': job.min_experience_years,
-            'specialization': job.specialization,
-            'experience_level': job.experience_level
-        }
-        for job in filtered_jobs
-    ]
-
-    # Return the jobs data as a JSON response
-    return jsonify(jobs_data)
-    
+                
 # Instant search jobs route
 @job_blueprint.route('/api/instant_search_jobs', methods=['GET'])
 @cache.cached(timeout=60, query_string=True)
@@ -266,7 +212,6 @@ def instant_search_jobs():
                 'created_at': job.created_at.strftime('%Y-%m-%d'),
                 'experience_level': job.experience_level,
                 'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo_url)}",
-                # 'logo': f"http://127.0.0.1:4040/uploads/upload_company_logo/{os.path.basename(job.logo)}" if config.BASE_URL == "http://127.0.0.1:4040" else f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo)}"
             } for job in jobs]
 
             return jsonify({
@@ -288,6 +233,7 @@ def instant_search_jobs():
             'results': []
         })
 
+# Filtered Search Jobs
 @job_blueprint.route('/api/filtered_search_jobs', methods=['GET'])
 @cache.cached(timeout=60, query_string=True)
 def filtered_search_jobs():
@@ -341,7 +287,6 @@ def filtered_search_jobs():
     'experience_level': job.experience_level,
     'specialization': job.specialization,
     'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo_url)}",
-    # 'logo': f"http://127.0.0.1:4040/uploads/upload_company_logo/{os.path.basename(job.logo)}" if config.BASE_URL == "http://127.0.0.1:4040" else f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo)}"
 } for job in jobs]
 
     return jsonify({

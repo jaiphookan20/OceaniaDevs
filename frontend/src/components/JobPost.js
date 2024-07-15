@@ -42,11 +42,7 @@ const JobListing = ({ onSave, onApply }) => {
       <div className="flex-grow container mx-auto bg-white shadow-md rounded-lg border-t">
         <header className="flex justify-between pb-1 mb-4">
           <div className="flex items-center">
-            <img
-              src={job.company_logo}
-              alt={job.company}
-              className="p-6 max-w-32"
-            />
+            <img src={job.logo} alt={job.company} className="p-6 max-w-32" />
           </div>
           <div className="flex mt-4 space-x-4 pr-4">
             {job.tech_stack.map((tech) => (

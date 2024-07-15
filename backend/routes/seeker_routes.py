@@ -10,8 +10,6 @@ import config
 seeker_blueprint = Blueprint('seeker', __name__)
 CORS(seeker_blueprint, supports_credentials=True, resources={r'/*': {'origins': 'http://localhost:3000'}})
 
-
-
 # Update Job Seeker Route
 @seeker_blueprint.route('/api/update_seeker', methods=['GET', 'POST'])
 def update_seeker():
@@ -87,7 +85,6 @@ def get_all_bookmarked_jobs_by_seeker():
             'salary_range': job.salary_range
         } for job in bookmarked_jobs])
     
-
 # Get Applied Jobs Route
 @seeker_blueprint.route('/api/applied_jobs')
 def get_all_applied_jobs_by_seeker():

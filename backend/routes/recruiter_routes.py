@@ -61,31 +61,7 @@ def add_recruiter():
                 recruiter_service.add_recruiter(company_id, first_name, last_name, email,password, city, state, country, is_direct_recruiter)
                 return jsonify({"message": "Recruiter added successfully"})
     
-# Add Company Route
-@recruiter_blueprint.route('/api/add_company', methods=['GET', 'POST'])
-def add_company():
-    """
-    Route for adding a new company.
-    
-    GET: Renders the 'add_company.html' template.
-    POST: Extracts form data and calls the 'add_company' method of the RecruiterService.
-    
-    Returns:
-        - For GET: Rendered 'add_company.html' template.
-        - For POST: Success message.
-    """
-    if request.method == 'GET':
-        return render_template('add_company.html')
-    else:
-        # Extract form data and call the add_company method of CompanyService
-        name = request.form['name']
-        website_url = request.form['website_url']
-
-        recruiter_service = RecruiterService()
-        recruiter_service.add_company(name, website_url)
-
-        return "Company added successfully!"
-
+# Post a Job by a Recruiter
 @recruiter_blueprint.route('/api/add_job', methods=['POST'])
 def add_job():
     """
@@ -137,6 +113,7 @@ def add_job():
 
     return jsonify({"error": "Invalid request method"}), 405
 
+# Get All Jobs Posted by the Recruiter
 @recruiter_blueprint.route('/api/jobs_by_recruiter')
 def get_all_jobs_by_recruiter():
     if session['user']['type'] != "recruiter":
@@ -181,6 +158,7 @@ def get_all_jobs_by_recruiter():
         
         return jsonify(response_data)
 
+# Get Job Details by Job ID
 @recruiter_blueprint.route('/api/job/<int:job_id>', methods=['GET'])
 def get_job_by_id(job_id):
     job_service = JobsService()
@@ -216,7 +194,7 @@ def get_job_by_id(job_id):
     else:
         return jsonify({"error": "Job not found"}), 404
 
-# Update Recruiter Data
+# Update Recruiter Personal Data
 @recruiter_blueprint.route('/api/register/employer/info', methods=['POST'])
 def update_recruiter_info():
     if "user" in session and session["user"]["type"] == "recruiter":
@@ -287,65 +265,14 @@ def update_job(job_id):
     else:
         return jsonify({"error": "Job not found"}), 404
 
-@recruiter_blueprint.route('/api/add_company_and_recruiter', methods=['GET', 'POST'])
-def add_company_and_recruiter():
-    """
-    Route for adding a new company and recruiter.
-    
-    GET: Renders the 'add_company_and_recruiter.html' template.
-    POST: Extracts form data and adds a new company and recruiter to the database.
-    
-    Returns:
-        - For GET: Rendered 'add_company_and_recruiter.html' template.
-        - For POST: Redirect to a success page.
-    """
-    if request.method == 'POST':
-        company_name = request.form['company_name']
-        website_url = request.form['website_url']
-        
-        # Add company details to the database
-        new_company = Company(name=company_name, website_url=website_url)
-        db.session.add(new_company)
-        db.session.commit()
-        
-        # Get the company_id of the newly added company
-        company_id = new_company.company_id
-        
-        # Add recruiter details to the database
-        is_direct_recruiter = request.form['is_direct_recruiter'] == 'True'
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
-        email = request.form['email']
-        password = request.form['password']  # Note: You should hash the password
-        city = request.form['city']
-        state = request.form['state']
-        country = request.form['country']
-        
-        new_recruiter = Recruiter(
-            company_id=company_id,
-            is_direct_recruiter=is_direct_recruiter,
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            password=password,
-            city=city,
-            state=state,
-            country=country
-        )
-        
-        db.session.add(new_recruiter)
-        db.session.commit()
-        
-        return redirect(url_for('some_success_page'))
-    
-    return render_template('add_company_and_recruiter.html')
-
+# Get All Companies Objects
 @recruiter_blueprint.route('/api/companies', methods=['GET'])
 def get_companies():
     companies = Company.query.all()
     company_list = [{"name": company.name} for company in companies]
     return jsonify(company_list), 200
 
+# Update Recruiter's Company ie Create Association with Recruiter's Employer
 @recruiter_blueprint.route('/api/register/employer/update_company', methods=['POST'])
 def update_recruiter_company():
     if "user" in session and session["user"]["type"] == "recruiter":
@@ -369,7 +296,7 @@ def update_recruiter_company():
     else:
         return jsonify({"message": "Unauthorized"}), 401
     
-# recruiter_routes.py
+# Create Recruiter's Company if Company not present in DB
 @recruiter_blueprint.route('/api/register/employer/create_company', methods=['POST'])
 def create_company():
     if "user" in session and session["user"]["type"] == "recruiter":
@@ -407,7 +334,8 @@ def create_company():
             return jsonify({"message": "Recruiter not found"}), 404
     else:
         return jsonify({"message": "Unauthorized"}), 404
-    
+
+# Remove Job Post of a Recruiter
 @recruiter_blueprint.route('/api/remove-job-by-recruiter/<int:job_id>', methods=['POST'])
 def remove_job(job_id):
     if "user" in session and session["user"]["type"] == "recruiter":
