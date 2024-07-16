@@ -1,3 +1,4 @@
+# from main
 FROM node:18
    WORKDIR /app
    COPY package*.json ./
@@ -6,4 +7,4 @@ FROM node:18
    RUN npm run build
    RUN echo "Contents of build directory:" && ls -R build
    EXPOSE 3000
-   CMD ["npm", "start"]
+CMD ["npm", "start"]
