@@ -1,4 +1,4 @@
-# Main fix
+# Main fix (trying to replace the file inside lightsail)
 #!/bin/sh
 
 # Wait for the database to be ready
