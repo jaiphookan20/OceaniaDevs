@@ -11,6 +11,7 @@ services:
     environment:
       # Set the API URL for the frontend to communicate with the backend
       - REACT_APP_API_URL=http://54.79.190.69/api
+      # - REACT_APP_API_URL=http://localhost
     command: npm start # Command to run the development server
     depends_on:
       - backend # Ensure backend is started before frontend
