@@ -2,21 +2,21 @@ version: "3" # Specify docker-compose version
 
 services:
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        - NODE_ENV=${NODE_ENV:-production}
     volumes:
       - ./frontend:/app
       - /app/node_modules
     environment:
       - REACT_APP_API_URL=http://54.79.190.69/api
-      - CHOKIDAR_USEPOLLING=true
-      # - NODE_ENV=development # Set to 'production' to use the built version
+      # - CHOKIDAR_USEPOLLING=true
       - NODE_ENV=${NODE_ENV:-production}
-
     ports:
       - "3000:3000"
-    command: npm start # This will be overridden by CMD in Dockerfile if NODE_ENV=production
     depends_on:
-      - backend # Ensure backend is started before frontend
+      - backend
 
   backend:
     build:
