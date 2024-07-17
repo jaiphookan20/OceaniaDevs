@@ -241,10 +241,7 @@ const App = () => {
   };
 
   return (
-    <div
-      className="bg-slate-40 p-6"
-      style={{ fontFamily: "Roobert-Regular, sans-serif" }}
-    >
+    <div className="bg-slate-40 p-6" style={{ fontFamily: "sans-serif" }}>
       <Toaster />
       <Navbar />
       <Routes>

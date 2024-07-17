@@ -47,16 +47,13 @@ const CategoryGrid = () => {
   return (
     <div>
       <div className="mb-8 rounded-lg max-w-7xl mx-auto">
-        {/* <h2
-          className="text-3xl font-bold"
-          style={{ fontFamily: "Roobert-Regular, sans-serif" }}
-        >
+        <h2 className="text-3xl font-bold" style={{ fontFamily: "sans-serif" }}>
           Search By Job Family
-        </h2> */}
+        </h2>
       </div>
       <div
         className="grid grid-cols-4 gap-2 bg-white rounded-3xl max-w-7xl mx-auto mb-12"
-        style={{ fontFamily: "HeyWow, sans-serif" }}
+        // style={{ fontFamily: "HeyWow, sans-serif" }}
       >
         {categories.map((category) => (
           <a
