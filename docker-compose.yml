@@ -4,19 +4,11 @@ services:
   frontend:
     build:
       context: ./frontend
-      args:
-        - NODE_ENV=${NODE_ENV:-production}
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     environment:
       - REACT_APP_API_URL=http://54.79.190.69/api
-      # - CHOKIDAR_USEPOLLING=true
-      - NODE_ENV=${NODE_ENV:-production}
+      - NODE_ENV=production
     ports:
       - "3000:3000"
-    depends_on:
-      - backend
 
   backend:
     build:
