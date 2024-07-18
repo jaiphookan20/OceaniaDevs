@@ -1,22 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url(https://db.onlinewebfonts.com/c/6228016f2b172c06410f3a2356d33f6c?family=Roobert-Regular);
+/* @import url(https://db.onlinewebfonts.com/c/6228016f2b172c06410f3a2356d33f6c?family=Roobert-Regular);
 @import url("https://fonts.cdnfonts.com/css/heywow");
-@import url(https://db.onlinewebfonts.com/c/0cd208933f23de4865271c010da44d2e?family=HK+Nova);
+@import url(https://db.onlinewebfonts.com/c/0cd208933f23de4865271c010da44d2e?family=HK+Nova); */
 
 body {
   margin: 0;
   /* font-family: "HeyWow", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
     "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif; */
-  font-family: "Roobert-Regular";
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* font-family: "Roobert-Regular"; */
+  /* -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale; */
   /* background-color: rgb(255, 253, 253); */
 }
 
-code {
+/* code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
@@ -49,4 +49,4 @@ code {
       format("truetype"),
     url("https://db.onlinewebfonts.com/t/0cd208933f23de4865271c010da44d2e.svg#HK Nova")
       format("svg");
-}
+} */
