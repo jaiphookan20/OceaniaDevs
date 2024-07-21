@@ -7,7 +7,7 @@ import JobSection from "./components/JobSection";
 import SignupForm from "./components/SignupForm";
 import BottomContainer from "./components/BottomContainer";
 import SearchBar from "./components/SearchBar";
-import CategoryGrid from "./components/CategoryGrid";
+// import CategoryGrid from "./components/CategoryGrid";
 import JobPost from "./components/JobPost";
 import { toast, Toaster } from "react-hot-toast";
 import SavedAppliedJobSection from "./components/SavedAppliedJobSection";
@@ -18,6 +18,7 @@ import PostJob from "./recruiter/PostJob";
 import RecruiterDashboard from "./components/RecruiterDashboard";
 import EditJob from "./components/EditJob";
 import RecruiterPersonalDetails from "./recruiter/RecruiterPersonalDetails";
+import SearchPageBar from "./components/SearchPageBar";
 
 const App = () => {
   const [jobs, setJobs] = useState([]);
@@ -47,7 +48,6 @@ const App = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        // const response = await fetch(`${apiUrl}/check-session`,
         const response = await fetch(`/api/check-session`, {
           method: "GET",
           headers: {
@@ -285,6 +285,7 @@ const App = () => {
             </>
           }
         />
+        <Route path="/search-page" element={SearchPageBar} />
         <Route
           path="/job_post/:jobId"
           element={<JobPost onSave={handleSave} onApply={handleApply} />}
