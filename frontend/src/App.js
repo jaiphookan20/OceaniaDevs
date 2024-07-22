@@ -18,6 +18,7 @@ import PostJob from "./recruiter/PostJob";
 import RecruiterDashboard from "./components/RecruiterDashboard";
 import EditJob from "./components/EditJob";
 import RecruiterPersonalDetails from "./recruiter/RecruiterPersonalDetails";
+import SearchPageBar from "./components/SearchPageBar";
 
 const App = () => {
   const [jobs, setJobs] = useState([]);
@@ -26,8 +27,6 @@ const App = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isInSession, setIsInSession] = useState(false);
   const [title, setTitle] = useState("Technology Jobs");
-
-  // const apiUrl = "/api"; // Updated to use the Nginx reverse proxy
 
   const [filters, setFilters] = useState({
     specialization: "",
@@ -47,7 +46,6 @@ const App = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        // const response = await fetch(`${apiUrl}/check-session`,
         const response = await fetch(`/api/check-session`, {
           method: "GET",
           headers: {
@@ -74,48 +72,51 @@ const App = () => {
 
   const handleSave = async (jobId) => {
     try {
-      // const response = await fetch(`${/apiUrl}/bookmark_job`
-      const response = await fetch(`/api/bookmark_job`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ jobid: jobId }),
-      });
-      const result = await response.json();
-      toast.success(result.message);
-    } catch (error) {
       if (!isInSession) {
         toast.error("Sign in first to save a job.");
-      } else {
-        console.error("Error saving job:", error);
-        toast.error("Failed to save job.");
+      } 
+      else {
+        const response = await fetch(`/api/bookmark_job`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ jobid: jobId }),
+        });
+        const result = await response.json();
+        toast.success(result.message);
       }
+    } catch (error) {
+      console.error("Error saving job:", error);
+      toast.error("Failed to save job.");
     }
   };
 
   const handleApply = async (jobId) => {
     try {
-      // const response = await fetch(`${apiUrl}/apply_to_job`
-      const response = await fetch(`/api/apply_to_job`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ jobid: jobId }),
-      });
-      const result = await response.json();
-      toast.success("Boom!");
-      navigate(`/job_post/${jobId}`);
-    } catch (error) {
+
       if (!isInSession) {
         toast.error("Sign in first to apply.");
-      } else {
-        console.error("Error applying to job:", error);
-        toast.error("Failed to apply to job.");
+      }       
+      else {
+        const response = await fetch(`/api/apply_to_job`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ jobid: jobId }),
+        });
+        
+        const result = await response.json();
+        toast.success("Boom!");
+        navigate(`/job_post/${jobId}`);
       }
+      
+    } catch (error) {
+      console.error("Error applying to job:", error);
+      toast.error("Failed to apply to job.");
     }
   };
 
@@ -133,7 +134,6 @@ const App = () => {
     } else {
       console.log("Calling Instant Search Jobs");
       const response = await fetch(
-        // `${apiUrl}/instant_search_jobs?query=${event.target.value}`
         `/api/instant_search_jobs?query=${event.target.value}`,
         {
           headers: {
@@ -150,7 +150,6 @@ const App = () => {
   const handleFilterSearch = async () => {
     const queryParams = new URLSearchParams(filters);
     const response = await fetch(
-      // `${apiUrl}/filtered_search_jobs?${queryParams.toString()}`,
       `/api/filtered_search_jobs?${queryParams.toString()}`,
       {
         method: "GET",
@@ -175,7 +174,6 @@ const App = () => {
   const fetchJobs = async (page = 1, pageSize = 10) => {
     try {
       const response = await fetch(
-        // `${apiUrl}/alljobs?page=${page}&page_size=${pageSize}`
         `/api/alljobs?page=${page}&page_size=${pageSize}`,
         {
           headers: {
@@ -202,7 +200,6 @@ const App = () => {
 
   const fetchSavedJobs = async () => {
     try {
-      // const response = await fetch(`${apiUrl}/bookmarked_jobs`, {
       const response = await fetch(`/api/bookmarked_jobs`, {
         headers: {
           "Content-Type": "application/json",
@@ -221,7 +218,6 @@ const App = () => {
 
   const fetchAppliedJobs = async () => {
     try {
-      // const response = await fetch(`${apiUrl}/applied_jobs`, {
       const response = await fetch(`/api/applied_jobs`, {
         headers: {
           "Content-Type": "application/json",
@@ -285,6 +281,18 @@ const App = () => {
             </>
           }
         />
+        <Route path="/search-page" element={
+          <SearchPageBar 
+          title={title}
+          jobs={jobs}
+          onSave={handleSave}
+          onApply={handleApply}
+          onView={handleView}
+          currentPage={currentPage}
+          totalJobs={totalJobs}
+          pageSize={pageSize}
+          onPageChange={handlePageChange}
+          />} />
         <Route
           path="/job_post/:jobId"
           element={<JobPost onSave={handleSave} onApply={handleApply} />}
