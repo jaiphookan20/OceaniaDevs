@@ -9,7 +9,7 @@ COPY job-board.conf /etc/nginx/conf.d/default.conf
 # Copy the built React app
 COPY --from=aus-job-board-frontend:latest /usr/share/nginx/html /usr/share/nginx/html
 
-EXPOSE 80
+EXPOSE 80 
 
 CMD ["nginx", "-g", "daemon off;"]
 

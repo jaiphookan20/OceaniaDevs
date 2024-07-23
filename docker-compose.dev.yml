@@ -4,14 +4,17 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.dev
     volumes:
-      - ./frontend:/app # Dev mounts the local directory for live reloading, which isn't needed in production
+      - ./frontend:/app
       - /app/node_modules 
     command: npm start
     depends_on:
       - backend
 
   nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.dev
     volumes:
-      - ./nginx/job-board.dev.conf:/etc/nginx/conf.d/default.conf # Mount the Nginx DEV configuration file
+      - ./nginx/job-board.dev.conf:/etc/nginx/conf.d/default.conf
     ports:
       - "80:80"
