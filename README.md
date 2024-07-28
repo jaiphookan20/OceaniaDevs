@@ -1,3 +1,16 @@
+**Production Setup:**
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build
+```
+
+**Development Setup:**
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+```
+
+
 **ERD Diagram v1:**
 ![image](https://github.com/jaiphookan20/OceaniaDevs/assets/52240311/fa9d3504-6f96-4d30-967a-5f1d95cc06f9)
 
