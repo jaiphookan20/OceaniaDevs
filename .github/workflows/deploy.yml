@@ -57,13 +57,13 @@ jobs:
           target: "./OceaniaDevs/frontend/build"
           debug: true  # Add this line to enable debug output
 
-      - name: SSH and restart Docker containers
-        uses: appleboy/ssh-action@v0.1.1
-        with:
-          host: ${{ secrets.LIGHTSAIL_HOST }}
-          username: ${{ secrets.LIGHTSAIL_USER }}
-          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
-          script: |
-            cd ~/OceaniaDevs
-            docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
-            docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+      # - name: SSH and restart Docker containers
+      #   uses: appleboy/ssh-action@v0.1.1
+      #   with:
+      #     host: ${{ secrets.LIGHTSAIL_HOST }}
+      #     username: ${{ secrets.LIGHTSAIL_USER }}
+      #     key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+      #     script: |
+      #       cd ~/OceaniaDevs
+      #       docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
+      #       docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
