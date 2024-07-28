@@ -54,10 +54,12 @@ jobs:
         name: Deploy over SSH
         with:
           SSH_PRIVATE_KEY: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          SOURCE: "requirements.txt"
           REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
           REMOTE_USER: ${{ secrets.LIGHTSAIL_USER }}
+          TARGET: "./OceaniaDevs/frontend"
           SCRIPT_AFTER: |
-              echo "Connected Succesfully"
+              echo "Connected Succesfully and Transferred requirements file"
               ls
 
       # - name: Test SSH connection
