@@ -19,6 +19,8 @@ import RecruiterDashboard from "./components/RecruiterDashboard";
 import EditJob from "./components/EditJob";
 import RecruiterPersonalDetails from "./recruiter/RecruiterPersonalDetails";
 import SearchPageBar from "./components/SearchPageBar";
+import CompanyPage from "./components/CompanyPage";
+import TrendingCompanies from "./components/TrendingCompanies";
 
 const App = () => {
   const [jobs, setJobs] = useState([]);
@@ -254,6 +256,7 @@ const App = () => {
               <Header />
               {/* <MarqueeDemo />
               <CategoryGrid /> */}
+              <TrendingCompanies />
               <SearchBar
                 searchQuery={searchQuery}
                 onSearchChange={handleSearch}
@@ -281,6 +284,18 @@ const App = () => {
             </>
           }
         />
+         <Route path="/company-page" element={
+          <CompanyPage 
+          title={title}
+          jobs={jobs}
+          onSave={handleSave}
+          onApply={handleApply}
+          onView={handleView}
+          currentPage={currentPage}
+          totalJobs={totalJobs}
+          pageSize={pageSize}
+          onPageChange={handlePageChange}
+          />} />
         <Route path="/search-page" element={
           <SearchPageBar 
           title={title}
@@ -292,7 +307,8 @@ const App = () => {
           totalJobs={totalJobs}
           pageSize={pageSize}
           onPageChange={handlePageChange}
-          />} />
+          />}
+          />
         <Route
           path="/job_post/:jobId"
           element={<JobPost onSave={handleSave} onApply={handleApply} />}

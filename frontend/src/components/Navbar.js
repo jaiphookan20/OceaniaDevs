@@ -121,16 +121,16 @@ const Navbar = () => {
             Featured
           </a>
           <a
-            href="#"
+            href="/company-page"
             className="text-gray-600 hover:text-gray-800 hover:underline"
           >
-            Remote
+            Company Page
           </a>
           <a
-            href="#"
+            href="/search-page"
             className="text-gray-600 hover:text-gray-800 hover:underline"
           >
-            For companies
+            Search Page
           </a>
         </div>
       </div>

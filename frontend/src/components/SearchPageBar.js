@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Search, ChevronDown } from "lucide-react";
 import JobSection from "./JobSection";
+import SearchBar from "./SearchBar";
 
 const SearchPageBar = ({
-  title,
   jobs,
   onSave,
   onApply,
@@ -13,23 +13,81 @@ const SearchPageBar = ({
   pageSize,
   onPageChange,
 }) => {
-  const [header, setHeader] = useState("Remote jobs");
+  const [header, setHeader] = useState("Technology Jobs");
   const [jobSearch, setJobSearch] = useState("");
   const [locationSearch, setLocationSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [title, setTitle] = useState("Technology Jobs");
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (jobSearch.trim()) {
-      setHeader(jobSearch.trim());
+  const [filters, setFilters] = useState({
+    specialization: "",
+    experience_level: "",
+    city: "",
+    industry: "",
+    tech_stack: "",
+    salary_range: "",
+  });
+
+  // const handleSearch = (e) => {
+  //   e.preventDefault();
+  //   if (jobSearch.trim()) {
+  //     setHeader(jobSearch.trim());
+  //   } else {
+  //     setHeader("Remote jobs!");
+  //   }
+  // };
+
+  const handleSearch = async (event) => {
+    setSearchQuery(event.target.value);
+    const title = `${event.target.value} Roles`;
+    setTitle(title);
+    if (event.target.value.trim() === "") {
+      console.log("fetchJobs called");
+      fetchJobs();
     } else {
-      setHeader("Remote jobs!");
+      console.log("Calling Instant Search Jobs");
+      const response = await fetch(
+        `/api/instant_search_jobs?query=${event.target.value}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = await response.json();
+      console.log(data);
+      setJobs(data.results);
     }
+  };
+
+  const handleFilterSearch = async () => {
+    const queryParams = new URLSearchParams(filters);
+    const response = await fetch(
+      `/api/filtered_search_jobs?${queryParams.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      }
+    );
+    const data = await response.json();
+    setJobs(data.results);
+  };
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFilters({
+      ...filters,
+      [name]: value,
+    });
   };
 
   return (
     <>
       <div
-        className="max-w-6xl mx-auto pt-16 pl-12 pr-12 pb-10 bg-lime-50"
+        className="max-w-7xl mx-auto pt-16 pl-12 pr-12 pb-10 bg-fuchsia-50 rounded-3xl mb-5 shadow-sm border border-violet-00"
         style={{ fontFamily: "Roobert-Regular, sans-serif" }}
       >
         <div className="display-flex">
@@ -41,8 +99,14 @@ const SearchPageBar = ({
             </p>
           </div>
         </div>
-
-        <form
+        <SearchBar
+                searchQuery={searchQuery}
+                onSearchChange={handleSearch}
+                filters={filters}
+                onFilterChange={handleChange}
+                onFilterSearch={handleFilterSearch}
+              />
+        {/* <form
           onSubmit={handleSearch}
           className="flex flex-col sm:flex-row gap-4 mb-6"
         >
@@ -57,23 +121,6 @@ const SearchPageBar = ({
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
               value={jobSearch}
               onChange={(e) => setJobSearch(e.target.value)}
-            />
-            <ChevronDown
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              size={20}
-            />
-          </div>
-          <div className="relative flex-1">
-            <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              size={20}
-            />
-            <input
-              type="text"
-              placeholder="Country or timezone"
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
-              value={locationSearch}
-              onChange={(e) => setLocationSearch(e.target.value)}
             />
             <ChevronDown
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -99,12 +146,12 @@ const SearchPageBar = ({
           ].map((filter) => (
             <button
               key={filter}
-              className="px-4 py-2 border border-lime-400 bg-slate-700 rounded-md text-white hover:bg-gray-50 transition duration-300 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              className="px-4 py-2 border border-violet-200 bg-slate-700 rounded-md text-white hover:bg-gray-50 transition duration-300 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
             >
               {filter} <ChevronDown className="inline ml-1" size={16} />
             </button>
           ))}
-        </div>
+        </div> */}
       </div>
       <JobSection
         title={title}
