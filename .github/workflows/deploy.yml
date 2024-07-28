@@ -61,6 +61,8 @@ jobs:
 
       - name: Test SSH connection (with key_path)
         uses: appleboy/ssh-action@v0.1.4
+        continue-on-error: true
+        id: ssh_key_path
         with:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
@@ -70,6 +72,8 @@ jobs:
 
       - name: Test SSH connection (with key)
         uses: appleboy/ssh-action@v0.1.4
+        continue-on-error: true
+        id: ssh_key
         with:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
@@ -79,6 +83,8 @@ jobs:
 
       - name: Test SSH connection (insecure cipher)
         uses: appleboy/ssh-action@v0.1.4
+        continue-on-error: true
+        id: ssh_insecure
         with:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
@@ -94,9 +100,19 @@ jobs:
           known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
       - name: Test SSH Connection (alternative method)
+        continue-on-error: true
+        id: ssh_alternative
         run: ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "echo SSH connection successful (alternative method)"
 
+      - name: Check SSH results
+        run: |
+          echo "SSH key_path result: ${{ steps.ssh_key_path.outcome }}"
+          echo "SSH key result: ${{ steps.ssh_key.outcome }}"
+          echo "SSH insecure result: ${{ steps.ssh_insecure.outcome }}"
+          echo "SSH alternative result: ${{ steps.ssh_alternative.outcome }}"
+
       - name: Copy files via SCP
+        if: steps.ssh_key_path.outcome == 'success' || steps.ssh_key.outcome == 'success' || steps.ssh_insecure.outcome == 'success' || steps.ssh_alternative.outcome == 'success'
         uses: appleboy/scp-action@v0.1.1
         with:
           host: ${{ secrets.LIGHTSAIL_HOST }}
@@ -108,6 +124,7 @@ jobs:
 
       # Uncomment the following step when SSH connection is successful
       # - name: SSH and restart Docker containers
+      #   if: steps.ssh_key_path.outcome == 'success' || steps.ssh_key.outcome == 'success' || steps.ssh_insecure.outcome == 'success' || steps.ssh_alternative.outcome == 'success'
       #   uses: appleboy/ssh-action@v0.1.4
       #   with:
       #     host: ${{ secrets.LIGHTSAIL_HOST }}
