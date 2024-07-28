@@ -1,33 +1,40 @@
 name: CI/CD Pipeline
+
 on:
   push:
     branches:
       - llama-integration
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
           node-version: '14'
+
       - name: Install dependencies
         run: |
           cd frontend
           npm install
+
       - name: Build the React app
         env:
           CI: false
         run: |
           cd frontend
           npm run build
+
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
         with:
           name: build
           path: ./frontend/build
+
   deploy:
     runs-on: ubuntu-latest
     needs: build
@@ -43,15 +50,52 @@ jobs:
           echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" > lightsail_key.pem
           chmod 600 lightsail_key.pem
 
-      - name: Test SSH connection
+      - name: Verify key file
+        run: |
+          if [ -s lightsail_key.pem ]; then
+            echo "Key file is not empty"
+            head -n 1 lightsail_key.pem
+          else
+            echo "Key file is empty"
+          fi
+
+      - name: Test SSH connection (with key_path)
         uses: appleboy/ssh-action@v0.1.4
         with:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
           key_path: lightsail_key.pem
-          script: echo "SSH connection successful"
+          script: echo "SSH connection successful (key_path)"
           debug: true
-      
+
+      - name: Test SSH connection (with key)
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          script: echo "SSH connection successful (key)"
+          debug: true
+
+      - name: Test SSH connection (insecure cipher)
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          script: echo "SSH connection successful (insecure cipher)"
+          debug: true
+          use_insecure_cipher: true
+
+      - name: Install SSH Key (alternative method)
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+
+      - name: Test SSH Connection (alternative method)
+        run: ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "echo SSH connection successful (alternative method)"
+
       - name: Copy files via SCP
         uses: appleboy/scp-action@v0.1.1
         with:
@@ -61,6 +105,8 @@ jobs:
           source: "./frontend/build"
           target: "./OceaniaDevs/frontend/build"
           debug: true
+
+      # Uncomment the following step when SSH connection is successful
       # - name: SSH and restart Docker containers
       #   uses: appleboy/ssh-action@v0.1.4
       #   with:
