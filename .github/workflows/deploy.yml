@@ -41,12 +41,11 @@ jobs:
     needs: build
 
     steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: build
-          path: ./frontend/build
-
+      # - name: Download build artifact
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: build
+      #     path: ./frontend/build
       - name: Debug secrets
         run: 
           echo "${{ secrets.LIGHTSAIL_SSH_KEY }} NEXT ${{ secrets.LIGHTSAIL_USER }} NEXT ${{ secrets.LIGHTSAIL_HOST }}"
