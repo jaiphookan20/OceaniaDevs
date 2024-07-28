@@ -29,12 +29,15 @@ jobs:
           cd frontend
           npm run build
 
+      - name: Debug - List build contents
+        run: |
+          ls -R frontend/build
+
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
         with:
           name: build
-          path: ./frontend/build
-
+          path: frontend/build
 
   deploy:
     runs-on: ubuntu-latest
@@ -44,7 +47,11 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: build
-          path: ./frontend/build
+          path: ./build
+
+      - name: Debug - List downloaded contents
+        run: |
+          ls -R ./build
 
       - name: Install SSH Key
         uses: shimataro/ssh-key-action@v2
@@ -53,30 +60,31 @@ jobs:
           known_hosts: ${{ secrets.KNOWN_HOSTS }}
           if_key_exists: replace
 
-      - name: Debug - Check SSH key
-        run: ssh-keygen -l -f ~/.ssh/id_rsa
-
-      - name: Debug - Check known_hosts
-        run: cat ~/.ssh/known_hosts
-
-      - name: Debug SSH connection
-        run: |
-          ssh -vvv -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "echo SSH connection successful"
-        continue-on-error: true
-
-      - name: Copy files via SCP
-        uses: appleboy/scp-action@v0.1.1
+      - name: Clear existing build directory
+        uses: appleboy/ssh-action@v0.1.4
         with:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
           key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
-          source: "./frontend/build"
-          target: "./OceaniaDevs/frontend/build"
-          debug: true
+          script: |
+            rm -rf ~/OceaniaDevs/frontend/build
+            mkdir -p ~/OceaniaDevs/frontend/build
+
+      - name: Copy files via SCP
+        run: |
+          scp -r -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ./build/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/frontend/build/
+
+      - name: Verify files on server
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          script: |
+            ls -R ~/OceaniaDevs/frontend/build/
 
       # Uncomment the following step when SSH connection is successful
       # - name: SSH and restart Docker containers
-      #   if: steps.ssh_key_path.outcome == 'success' || steps.ssh_key.outcome == 'success' || steps.ssh_insecure.outcome == 'success' || steps.ssh_alternative.outcome == 'success'
       #   uses: appleboy/ssh-action@v0.1.4
       #   with:
       #     host: ${{ secrets.LIGHTSAIL_HOST }}
