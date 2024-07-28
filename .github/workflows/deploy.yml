@@ -7,33 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-
-      - name: Install dependencies
-        run: |
-          cd frontend
-          npm install
-
-      - name: Build the React app
-        env:
-          CI: false
-        run: |
-          cd frontend
-          npm run build
-
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: build
-          path: ./frontend/build
+    # ... (keep the build job as is)
 
   deploy:
     runs-on: ubuntu-latest
@@ -45,74 +19,39 @@ jobs:
           name: build
           path: ./frontend/build
 
+      - name: Debug - Print SSH Key
+        run: |
+          echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" | sed 's/./*/g'
+          echo "First line of SSH key:"
+          echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" | head -n 1
+
       - name: Save private key
         run: |
-          echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" > lightsail_key.pem
-          chmod 600 lightsail_key.pem
+          mkdir -p ~/.ssh
+          echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
 
-      - name: Verify key file
+      - name: Debug - List SSH files
+        run: ls -la ~/.ssh
+
+      - name: Debug - Test SSH connection
         run: |
-          if [ -s lightsail_key.pem ]; then
-            echo "Key file is not empty"
-            head -n 1 lightsail_key.pem
-          else
-            echo "Key file is empty"
-          fi
-
-      - name: Test SSH connection (with key_path)
-        uses: appleboy/ssh-action@v0.1.4
+          ssh -vvv -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "echo Debug SSH connection test"
         continue-on-error: true
-        id: ssh_key_path
-        with:
-          host: ${{ secrets.LIGHTSAIL_HOST }}
-          username: ${{ secrets.LIGHTSAIL_USER }}
-          key_path: lightsail_key.pem
-          script: echo "SSH connection successful (key_path)"
-          debug: true
 
-      - name: Test SSH connection (with key)
-        uses: appleboy/ssh-action@v0.1.4
-        continue-on-error: true
-        id: ssh_key
-        with:
-          host: ${{ secrets.LIGHTSAIL_HOST }}
-          username: ${{ secrets.LIGHTSAIL_USER }}
-          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
-          script: echo "SSH connection successful (key)"
-          debug: true
-
-      - name: Test SSH connection (insecure cipher)
-        uses: appleboy/ssh-action@v0.1.4
-        continue-on-error: true
-        id: ssh_insecure
-        with:
-          host: ${{ secrets.LIGHTSAIL_HOST }}
-          username: ${{ secrets.LIGHTSAIL_USER }}
-          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
-          script: echo "SSH connection successful (insecure cipher)"
-          debug: true
-          use_insecure_cipher: true
-
-      - name: Install SSH Key (alternative method)
+      - name: Install SSH Key
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
           known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
-      - name: Test SSH Connection (alternative method)
-        continue-on-error: true
-        id: ssh_alternative
-        run: ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "echo SSH connection successful (alternative method)"
-
-      - name: Check SSH results
+      - name: Debug - Test SSH after key installation
         run: |
-          echo "SSH key_path result: ${{ steps.ssh_key_path.outcome }}"
-          echo "SSH key result: ${{ steps.ssh_key.outcome }}"
-          echo "SSH insecure result: ${{ steps.ssh_insecure.outcome }}"
-          echo "SSH alternative result: ${{ steps.ssh_alternative.outcome }}"
+          ssh -vvv -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "echo Debug SSH connection test after key installation"
+        continue-on-error: true
 
       - name: Copy files via SCP
-        if: steps.ssh_key_path.outcome == 'success' || steps.ssh_key.outcome == 'success' || steps.ssh_insecure.outcome == 'success' || steps.ssh_alternative.outcome == 'success'
         uses: appleboy/scp-action@v0.1.1
         with:
           host: ${{ secrets.LIGHTSAIL_HOST }}
@@ -121,6 +60,8 @@ jobs:
           source: "./frontend/build"
           target: "./OceaniaDevs/frontend/build"
           debug: true
+
+      # ... (keep the rest of the workflow as is)
 
       # Uncomment the following step when SSH connection is successful
       # - name: SSH and restart Docker containers
