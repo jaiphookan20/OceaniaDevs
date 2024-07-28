@@ -13,28 +13,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
+      # - name: Set up Node.js
+      #   uses: actions/setup-node@v2
+      #   with:
+      #     node-version: '14'
 
-      - name: Install dependencies
-        run: |
-          cd frontend
-          npm install
+      # - name: Install dependencies
+      #   run: |
+      #     cd frontend
+      #     npm install
 
-      - name: Build the React app
-        env:
-          CI: false
-        run: |
-          cd frontend
-          npm run build
+      # - name: Build the React app
+      #   env:
+      #     CI: false
+      #   run: |
+      #     cd frontend
+      #     npm run build
 
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: build
-          path: ./frontend/build
+      # - name: Archive production artifacts
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: build
+      #     path: ./frontend/build
 
   deploy:
     runs-on: ubuntu-latest
@@ -46,13 +46,14 @@ jobs:
       #   with:
       #     name: build
       #     path: ./frontend/build
-      - name: Debug secrets
-        run: ls -la
 
       - uses: easingthemes/ssh-deploy@v5.0.0
         name: Deploy over SSH
         with:
           SSH_PRIVATE_KEY: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          SCRIPT_BEFORE: |
+              cd..
+              ls
           SOURCE: "../frontend/build"
           REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
           REMOTE_USER: ${{ secrets.LIGHTSAIL_USER }}
