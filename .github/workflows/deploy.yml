@@ -47,10 +47,12 @@ jobs:
           name: build
           path: ./frontend/build
 
-      - name: Test SSH connection
-        uses: appleboy/ssh-action@v0.1.4
+      - name: Debug secrets
         run: 
           echo "${{ secrets.LIGHTSAIL_SSH_KEY }} NEXT ${{ secrets.LIGHTSAIL_USER }} NEXT ${{ secrets.LIGHTSAIL_HOST }}"
+
+      - name: Test SSH connection
+        uses: appleboy/ssh-action@v0.1.4
         with:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
