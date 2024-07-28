@@ -47,15 +47,15 @@ jobs:
           name: build
           path: ./frontend/build
 
-    - name: Copy files via SCP
-    uses: appleboy/scp-action@v0.1.1
-    with:
-      host: ${{ secrets.LIGHTSAIL_HOST }}
-      username: ${{ secrets.LIGHTSAIL_USER }}
-      key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
-      source: "./frontend/build"
-      target: "./OceaniaDevs/frontend/build"
-      debug: true  # Add this line to enable debug output
+      - name: Copy files via SCP
+        uses: appleboy/scp-action@v0.1.1
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          source: "./frontend/build"
+          target: "./OceaniaDevs/frontend/build"
+          debug: true  # Add this line to enable debug output
 
       - name: SSH and restart Docker containers
         uses: appleboy/ssh-action@v0.1.1
