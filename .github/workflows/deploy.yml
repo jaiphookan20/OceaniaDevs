@@ -49,6 +49,8 @@ jobs:
 
       - name: Test SSH connection
         uses: appleboy/ssh-action@v0.1.4
+        run: 
+          echo "${{ secrets.LIGHTSAIL_SSH_KEY }} NEXT ${{ secrets.LIGHTSAIL_USER }} NEXT ${{ secrets.LIGHTSAIL_HOST }}"
         with:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
