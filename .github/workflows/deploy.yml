@@ -51,23 +51,33 @@ jobs:
         run: 
           echo "${{ secrets.LIGHTSAIL_SSH_KEY }} NEXT ${{ secrets.LIGHTSAIL_USER }} NEXT ${{ secrets.LIGHTSAIL_HOST }}"
 
-      - name: Test SSH connection
-        uses: appleboy/ssh-action@v0.1.4
+      - uses: easingthemes/ssh-deploy@v5.0.0
+        name: Deploy over SSH
         with:
-          host: ${{ secrets.LIGHTSAIL_HOST }}
-          username: ${{ secrets.LIGHTSAIL_USER }}
-          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
-          script: echo "SSH connection successful"
+          SSH_PRIVATE_KEY: ${{ secrets.PASSWORD }}
+          REMOTE_HOST: ${{ vars.HOST }}
+          REMOTE_USER: ${{ vars.USERNAME }}
+          SCRIPT_AFTER: |
+              ./script
+              echo "Connected Succesfully"
+              
+      # - name: Test SSH connection
+      #   uses: appleboy/ssh-action@v0.1.4
+      #   with:
+      #     host: ${{ secrets.LIGHTSAIL_HOST }}
+      #     username: ${{ secrets.LIGHTSAIL_USER }}
+      #     key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+      #     script: echo "SSH connection successful"
 
-      - name: Copy files via SCP
-        uses: appleboy/scp-action@v0.1.1
-        with:
-          host: ${{ secrets.LIGHTSAIL_HOST }}
-          username: ${{ secrets.LIGHTSAIL_USER }}
-          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
-          source: "./frontend/build"
-          target: "./OceaniaDevs/frontend/build"
-          debug: true
+      # - name: Copy files via SCP
+      #   uses: appleboy/scp-action@v0.1.1
+      #   with:
+      #     host: ${{ secrets.LIGHTSAIL_HOST }}
+      #     username: ${{ secrets.LIGHTSAIL_USER }}
+      #     key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+      #     source: "./frontend/build"
+      #     target: "./OceaniaDevs/frontend/build"
+      #     debug: true
 
       # - name: SSH and restart Docker containers
       #   uses: appleboy/ssh-action@v0.1.4
