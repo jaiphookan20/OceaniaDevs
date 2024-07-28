@@ -47,17 +47,19 @@ jobs:
           name: build
           path: ./frontend/build
 
-      - name: Debug secrets
-        run: 
-          echo "${{ secrets.LIGHTSAIL_SSH_KEY }} NEXT ${{ secrets.LIGHTSAIL_USER }} NEXT ${{ secrets.LIGHTSAIL_HOST }}"
+      - name: Save private key
+        run: |
+          echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" > lightsail_key.pem
+          chmod 600 lightsail_key.pem
 
       - name: Test SSH connection
-        uses: appleboy/ssh-action@v0.1.4
-        with:
-          host: ${{ secrets.LIGHTSAIL_HOST }}
-          username: ${{ secrets.LIGHTSAIL_USER }}
-          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
-          script: echo "SSH connection successful"
+      uses: appleboy/ssh-action@v0.1.4
+      with:
+        host: ${{ secrets.LIGHTSAIL_HOST }}
+        username: ${{ secrets.LIGHTSAIL_USER }}
+        key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+        script: echo "SSH connection successful"
+        debug: true
 
       - name: Copy files via SCP
         uses: appleboy/scp-action@v0.1.1
