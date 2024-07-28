@@ -47,7 +47,7 @@ jobs:
       #     name: build
       #     path: ./frontend/build
       - name: Debug secrets
-        run: 
+        run: |
           ls
           echo "${{ secrets.LIGHTSAIL_SSH_KEY }} NEXT ${{ secrets.LIGHTSAIL_USER }} NEXT ${{ secrets.LIGHTSAIL_HOST }}"
 
