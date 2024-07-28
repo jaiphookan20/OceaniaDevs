@@ -56,7 +56,7 @@ jobs:
           SOURCE: "frontend/build"
           REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
           REMOTE_USER: ${{ secrets.LIGHTSAIL_USER }}
-          TARGET: "./OceaniaDevs/frontend/build"
+          TARGET: "OceaniaDevs/frontend/build"
           SCRIPT_AFTER: |
               echo "Connected Succesfully and Transferred requirements file"
               ls
