@@ -47,20 +47,30 @@ jobs:
       #     name: build
       #     path: ./frontend/build
 
-      - uses: easingthemes/ssh-deploy@v5.0.0
-        name: Deploy over SSH
+      # - uses: easingthemes/ssh-deploy@v5.0.0
+      #   name: Deploy over SSH
+      #   with:
+      #     SSH_PRIVATE_KEY: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+      #     SCRIPT_BEFORE: |
+      #         cd -
+      #         ls
+      #     SOURCE: "../frontend/build"
+      #     REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+      #     REMOTE_USER: ${{ secrets.LIGHTSAIL_USER }}
+      #     TARGET: "OceaniaDevs/frontend/build"
+      #     SCRIPT_AFTER: |
+      #         echo "Connected Succesfully and Transferred requirements file"
+      #         ls
+
+      - name: copy file via ssh key
+        uses: appleboy/scp-action@v0.1.7
         with:
-          SSH_PRIVATE_KEY: ${{ secrets.LIGHTSAIL_SSH_KEY }}
-          SCRIPT_BEFORE: |
-              cd -
-              ls
-          SOURCE: "../frontend/build"
-          REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
-          REMOTE_USER: ${{ secrets.LIGHTSAIL_USER }}
-          TARGET: "OceaniaDevs/frontend/build"
-          SCRIPT_AFTER: |
-              echo "Connected Succesfully and Transferred requirements file"
-              ls
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          port: 22
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          source: "requirements.txt"
+          target: "OceaniaDevs/frontend"
 
       # - name: Test SSH connection
       #   uses: appleboy/ssh-action@v0.1.4
