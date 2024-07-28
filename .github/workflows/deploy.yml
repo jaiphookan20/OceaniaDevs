@@ -56,6 +56,9 @@ jobs:
       - name: Debug - Check SSH key
         run: ssh-keygen -l -f ~/.ssh/id_rsa
 
+      - name: Debug - Check known_hosts
+        run: cat ~/.ssh/known_hosts
+
       - name: Debug SSH connection
         run: |
           ssh -vvv -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "echo SSH connection successful"
