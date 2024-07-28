@@ -53,7 +53,7 @@ jobs:
         name: Deploy over SSH
         with:
           SSH_PRIVATE_KEY: ${{ secrets.LIGHTSAIL_SSH_KEY }}
-          SOURCE: "./frontend/build"
+          SOURCE: "frontend/build"
           REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
           REMOTE_USER: ${{ secrets.LIGHTSAIL_USER }}
           TARGET: "./OceaniaDevs/frontend/build"
