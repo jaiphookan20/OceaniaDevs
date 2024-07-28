@@ -47,9 +47,7 @@ jobs:
       #     name: build
       #     path: ./frontend/build
       - name: Debug secrets
-        run: |
-          ls
-          echo "${{ secrets.LIGHTSAIL_SSH_KEY }} NEXT ${{ secrets.LIGHTSAIL_USER }} NEXT ${{ secrets.LIGHTSAIL_HOST }}"
+        run: ls -la
 
       - uses: easingthemes/ssh-deploy@v5.0.0
         name: Deploy over SSH
