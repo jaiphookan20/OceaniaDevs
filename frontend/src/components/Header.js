@@ -30,7 +30,7 @@ const Header = () => {
           <div className="flex">
           <h1 className="text-6xl font-bold text-slate-600 ">
             {/* <h1 className="text-6xl font-bold text-lime-100 "> */}
-              Find what's next
+              Find what's next.
             </h1>
             <h1 className="text-6xl font-bold text-lime-500">:</h1>
           </div>
