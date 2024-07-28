@@ -52,7 +52,7 @@ jobs:
         with:
           SSH_PRIVATE_KEY: ${{ secrets.LIGHTSAIL_SSH_KEY }}
           SCRIPT_BEFORE: |
-              cd..
+              cd -
               ls
           SOURCE: "../frontend/build"
           REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
