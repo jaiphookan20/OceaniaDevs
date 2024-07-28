@@ -47,18 +47,12 @@ jobs:
           name: build
           path: ./frontend/build
 
-      - name: Setup SSH Key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-
       - name: Test SSH connection
         uses: appleboy/ssh-action@v0.1.4
         with:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
-          key_path: ~/.ssh/id_rsa
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
           script: echo "SSH connection successful"
 
       - name: Copy files via SCP
@@ -66,13 +60,13 @@ jobs:
         with:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
-          key_path: ~/.ssh/id_rsa
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
           source: "./frontend/build"
           target: "./OceaniaDevs/frontend/build"
           debug: true
 
       # - name: SSH and restart Docker containers
-      #   uses: appleboy/ssh-action@v0.1.1
+      #   uses: appleboy/ssh-action@v0.1.4
       #   with:
       #     host: ${{ secrets.LIGHTSAIL_HOST }}
       #     username: ${{ secrets.LIGHTSAIL_USER }}
