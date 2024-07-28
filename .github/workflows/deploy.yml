@@ -57,8 +57,8 @@ jobs:
           REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
           REMOTE_USER: ${{ secrets.LIGHTSAIL_USER }}
           SCRIPT_AFTER: |
-              ./script
               echo "Connected Succesfully"
+              ls
 
       # - name: Test SSH connection
       #   uses: appleboy/ssh-action@v0.1.4
