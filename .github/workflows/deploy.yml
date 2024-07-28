@@ -40,22 +40,26 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
 
-    steps:
+        steps:
       - name: Download build artifact
         uses: actions/download-artifact@v2
         with:
           name: build
           path: ./frontend/build
 
-      - name: Copy files via SCP
-        uses: appleboy/scp-action@v0.1.1
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Test SSH connection
+        uses: appleboy/ssh-action@v0.1.4
         with:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
-          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
-          source: "./frontend/build"
-          target: "./OceaniaDevs/frontend/build"
-          debug: true  # Add this line to enable debug output
+          key_path: ~/.ssh/id_rsa
+          script: echo "SSH connection successful"
 
       # - name: SSH and restart Docker containers
       #   uses: appleboy/ssh-action@v0.1.1
