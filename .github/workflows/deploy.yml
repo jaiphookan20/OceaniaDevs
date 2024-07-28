@@ -54,7 +54,7 @@ jobs:
       username: ${{ secrets.LIGHTSAIL_USER }}
       key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
       source: "./frontend/build"
-      target: "OceaniaDevs/frontend/build"
+      target: "./OceaniaDevs/frontend/build"
       debug: true  # Add this line to enable debug output
 
       - name: SSH and restart Docker containers
