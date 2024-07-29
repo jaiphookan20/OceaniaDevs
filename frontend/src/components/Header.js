@@ -15,7 +15,6 @@ const Header = () => {
     <header className="text-center py-12 mb-2 rounded-lg max-w-8xl mx-auto bg-slate-50/50">
       {/* bg-[#c3f53c] */}
       <div className="flex justify-between items-center">
-      <div className="flex justify-between items-center">
         {/* <div className="flex justify-center items-center space-x-4"> */}
         <div className="grid grid-cols-3 grid-rows-2 gap-4">
           <img src={hero7} className="w-32 h-32" />
