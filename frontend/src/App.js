@@ -7,7 +7,7 @@ import JobSection from "./components/JobSection";
 import SignupForm from "./components/SignupForm";
 import BottomContainer from "./components/BottomContainer";
 import SearchBar from "./components/SearchBar";
-import CategoryGrid from "./components/CategoryGrid";
+// import CategoryGrid from "./components/CategoryGrid";
 import JobPost from "./components/JobPost";
 import { toast, Toaster } from "react-hot-toast";
 import SavedAppliedJobSection from "./components/SavedAppliedJobSection";

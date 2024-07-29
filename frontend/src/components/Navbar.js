@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Logo from "./Logo";
 import { Link, useNavigate } from "react-router-dom";
-// import { apiUrl } from "../../config";
+import oceBlackLogo from "../assets/oce-black-logo.png"
 
 const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -63,7 +63,6 @@ const Navbar = () => {
   };
 
   /* Effect to handle clicks outside the dropdown menu */
-  /* Effect to handle clicks outside the dropdown menu */
   useEffect(() => {
     const handleOutsideClick = (event) => {
       if (
@@ -88,11 +87,12 @@ const Navbar = () => {
       style={navbarStyles}
     >
       <div className="flex items-center ">
-        <Logo
+        <img src={oceBlackLogo}/>
+        {/* <Logo
           className="h-24 w-auto"
           alt="Logo"
           onClick={() => (window.location.href = "/")}
-        />
+        /> */}
         <div className="">
           <a
             href="#"

@@ -15,9 +15,12 @@ const Header = () => {
     <header className="text-center py-12 mb-2 rounded-lg max-w-8xl mx-auto bg-slate-50/50">
       {/* bg-[#c3f53c] */}
       <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center">
         {/* <div className="flex justify-center items-center space-x-4"> */}
         <div className="grid grid-cols-3 grid-rows-2 gap-4">
           <img src={hero7} className="w-32 h-32" />
+          {/* <img src={face2} className="w-32 h-32" /> */}
+          <img src={hero2} className="w-32 h-32" />
           {/* <img src={face2} className="w-32 h-32" /> */}
           <img src={hero2} className="w-32 h-32" />
           <img src={hero3} className="w-32 h-32" />
@@ -32,7 +35,7 @@ const Header = () => {
             {/* <h1 className="text-6xl font-bold text-lime-100 "> */}
               Find what's next.
             </h1>
-            <h1 className="text-6xl font-bold text-lime-500">:</h1>
+            <h1 className="text-6xl font-bold text-lime-400">:</h1>
           </div>
           <p className="text-green-800 mt-5 text-1xl text-slate-400 font-semibold">
           {/* <p className="text-green-800 mt-5 text-1xl text-lime-200 font-semibold"> */}
