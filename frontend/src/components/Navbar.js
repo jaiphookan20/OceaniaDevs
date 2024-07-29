@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Logo from "./Logo";
 import { Link, useNavigate } from "react-router-dom";
-import oceBlackLogo from "../assets/oce-black-logo.png"
 
 const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -88,11 +87,11 @@ const Navbar = () => {
     >
       <div className="flex items-center ">
         <img src={oceBlackLogo}/>
-        {/* <Logo
+        <Logo
           className="h-24 w-auto"
           alt="Logo"
           onClick={() => (window.location.href = "/")}
-        /> */}
+        />
         <div className="">
           <a
             href="#"

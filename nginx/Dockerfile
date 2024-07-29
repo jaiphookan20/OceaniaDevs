@@ -1,3 +1,4 @@
+
 FROM nginx:alpine
 
 # Create cache directory
