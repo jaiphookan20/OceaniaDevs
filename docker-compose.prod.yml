@@ -1,0 +1,22 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: aus-job-board-frontend:latest
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - nginx_cache:/var/cache/nginx
+    depends_on:
+      - frontend
+
+volumes:
+  nginx_cache:

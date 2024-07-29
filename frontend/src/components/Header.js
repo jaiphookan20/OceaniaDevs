@@ -12,7 +12,7 @@ import hero9 from "../assets/hero-yellow-daisy.png";
 
 const Header = () => {
   return (
-    <header className="text-center py-12 mb-8 rounded-lg max-w-8xl mx-auto">
+    <header className="text-center py-12 mb-2 rounded-lg max-w-8xl mx-auto bg-slate-50/50">
       {/* bg-[#c3f53c] */}
       <div className="flex justify-between items-center">
         {/* <div className="flex justify-center items-center space-x-4"> */}
@@ -20,32 +20,36 @@ const Header = () => {
           <img src={hero7} className="w-32 h-32" />
           {/* <img src={face2} className="w-32 h-32" /> */}
           <img src={hero2} className="w-32 h-32" />
+          {/* <img src={face2} className="w-32 h-32" /> */}
+          <img src={hero2} className="w-32 h-32" />
           <img src={hero3} className="w-32 h-32" />
+          <img src={hero6} className="w-32 h-32" />
           {/* <img src={face4} className="w-32 h-32" /> */}
-          <img src={hero5} className="w-32 h-32" />
           <img src={hero9} className="w-32 h-32" />
           <img src={hero5} className="w-32 h-32" />
         </div>
         <div className="text-center rounded-md">
           <div className="flex">
+          <h1 className="text-6xl font-bold text-slate-600 ">
             {/* <h1 className="text-6xl font-bold text-lime-100 "> */}
-            <h1 className="text-6xl font-bold text-slate-700 ">
-              Find what's next
+              Find what's next.
             </h1>
             <h1 className="text-6xl font-bold text-lime-400">:</h1>
           </div>
+          <p className="text-green-800 mt-5 text-1xl text-slate-400 font-semibold">
           {/* <p className="text-green-800 mt-5 text-1xl text-lime-200 font-semibold"> */}
-          <p className="text-green-800 mt-5 text-1xl font-semibold">
             THE BEST TECHNOLOGY JOBS, DOWN UNDER
           </p>
         </div>
         <div className="grid grid-cols-3 grid-rows-2 gap-2">
           <img src={hero6} className="w-32 h-32" />
-          <img src={hero2} className="w-32 h-32" />
+          {/* <img src={face3} className="w-32 h-32" /> */}
+          <img src={hero5} className="w-32 h-32" />
           <img src={hero9} className="w-32 h-32" />
           <img src={hero3} className="w-32 h-32" />
           <img src={hero2} className="w-32 h-32" />
-          <img src={hero7} className="w-32 h-32" />
+          <img src={hero9} className="w-32 h-32" />
+          {/* <img src={face1} className="w-32 h-32" /> */}
         </div>
       </div>
     </header>

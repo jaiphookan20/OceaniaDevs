@@ -13,7 +13,7 @@ const JobSection = ({
   onPageChange,
 }) => {
   return (
-    <div>
+    <div className="mx-auto max-w-6xl">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-3xl font-bold">{title}</h2>
         <a href="#" className="text-indigo-600">
