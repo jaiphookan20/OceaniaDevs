@@ -87,12 +87,12 @@ const Navbar = () => {
       style={navbarStyles}
     >
       <div className="flex items-center ">
-        <img src={oceBlackLogo}/>
-        {/* <Logo
+        {/* <img src={oceBlackLogo}/> */}
+        <Logo
           className="h-24 w-auto"
           alt="Logo"
           onClick={() => (window.location.href = "/")}
-        /> */}
+        />
         <div className="">
           <a
             href="#"
