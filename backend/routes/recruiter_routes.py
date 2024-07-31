@@ -159,8 +159,8 @@ def create_company():
     
 @recruiter_blueprint.route('/api/process_job_description', methods=['POST'])
 def process_job_description():
-    if 'user' not in session or session['user']['type'] != 'recruiter':
-        return jsonify({"error": "Unauthorized access"}), 401
+    # if 'user' not in session or session['user']['type'] != 'recruiter':
+    #     return jsonify({"error": "Unauthorized access"}), 401
 
     data = request.json
     description = data.get('description')
@@ -170,6 +170,25 @@ def process_job_description():
 
     recruiter_service = RecruiterService()
     processed_description = recruiter_service.process_job_description(description)
+
+    if processed_description:
+        return jsonify(processed_description), 200
+    else:
+        return jsonify({"error": "Failed to process job description"}), 500
+    
+@recruiter_blueprint.route('/api/process_job_description_with_openai', methods=['POST'])
+def process_job_description_with_openai():
+    # if 'user' not in session or session['user']['type'] != 'recruiter':
+    #     return jsonify({"error": "Unauthorized access"}), 401
+
+    data = request.json
+    description = data.get('description')
+
+    if not description:
+        return jsonify({"error": "Job description is required"}), 400
+
+    recruiter_service = RecruiterService()
+    processed_description = recruiter_service.process_job_description_openai(description)
 
     if processed_description:
         return jsonify(processed_description), 200

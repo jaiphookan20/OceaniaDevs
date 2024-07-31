@@ -7,10 +7,13 @@ import requests
 import json
 from werkzeug.utils import secure_filename
 import os
+from dotenv import load_dotenv
+from utils.openai import OpenAI
 class RecruiterService:
 
     def __init__(self):
         self.api_url = "https://api.deepinfra.com/v1/openai/chat/completions"
+        self.openai_client = OpenAI(api_key="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")
         self.headers = {
             "Authorization": "Bearer nlcQd4gbjG0eFxxwdXwsIHAKqyIIbcQy",
             "Content-Type": "application/json"
@@ -158,9 +161,12 @@ class RecruiterService:
     def process_job_description(self, description):
         messages = [
             {
-                "role": "user",
-                "content": f"""Analyze the following job description and provide a response in JSON format with the following keys: 'overview', 'specialization', 'technologies', 'experience_level', 'responsibilities', 'requirements'.
+            "role": "user",
+            "content": f"""Analyze the following job description and provide a response in JSON format with the following keys: 'overview', 'responsibilities', 'requirements', 'duration', 'specialization', 'technologies', 'experience_level', .
             
+            'overview': provide a general overview of the role and the company as described in the job description.
+            'duration': Strictly only if clearly mentioned - extract out the total length of the duration for the position. Otherwise keep empty.
+
             For the specialization, classify the job into one of the following: 'frontend', 'backend', 'cloud & infra', 'business intelligence & data', 'machine learning & AI', 'full-stack', 'mobile', 'Cybersecurity', 'Business Application Development', 'DevOps & IT'. 
             Choose only one that most closely matches the job post.
 
@@ -206,6 +212,51 @@ class RecruiterService:
             current_app.logger.error(f"Unexpected error: {str(e)}")
             return None
 
+    def process_job_description_openai(self, description):
+        """
+        You are a very helpful, and incredibly knowledgeable assistant with great depth of knowledge about technology.
+        """
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a helpful assistant designed to output JSON."
+            },
+            {
+               "role": "user",
+            "content": f"""Analyze the following job description and provide a response in JSON format with the following keys: 'overview', 'responsibilities', 'requirements', 'duration', 'specialization', 'technologies', 'experience_level', .
+            
+            'overview': provide a general overview of the role and the company as described in the job description.
+            'duration': Strictly only if clearly mentioned - extract out the total length of the duration for the position. Otherwise keep empty.
+
+            For the specialization, classify the job into one of the following: 'frontend', 'backend', 'cloud & infra', 'business intelligence & data', 'machine learning & AI', 'full-stack', 'mobile', 'Cybersecurity', 'Business Application Development', 'DevOps & IT'. 
+            Choose only one that most closely matches the job post.
+
+            For technologies, extract specific proprietary software technologies mentioned in the job post (e.g., Java, TypeScript, React, AWS). Do not include general terms like 'LLM services', 'Containers', or 'CI/CD'.
+
+            For experience_level, classify as one of: Junior, Associate, Mid-Level, Senior, or Leadership.
+            Strictly follow this: Do not provide anything other than the JSON response output. Provide it as a JSON object only.
+            Job Description:{description}
+            """
+            }
+        ]
+        try:
+            response = self.openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=messages,
+                response_format={"type": "json_object"}
+            )
+
+            # Extract the content from the response
+            content = response.choices[0].message.content
+
+            # Parse the JSON content
+            processed_data = json.loads(content)
+
+            return processed_data
+
+        except Exception as e:
+            current_app.logger.error(f"OpenAI API request failed: {str(e)}")
+            return None
     # Add Job
     def add_job(self, recruiter_id, company_id, title, description, job_type, industry, salary_range, salary_type, work_location, min_experience_years, city, state, country, jobpost_url, work_rights):
         if session['user']['type'] != "recruiter":
