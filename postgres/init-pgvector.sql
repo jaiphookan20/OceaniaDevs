@@ -104,12 +104,12 @@ UPDATE jobs SET search_vector = NULL;
 UPDATE jobs SET
   search_vector = 
     setweight(to_tsvector('english', coalesce(title,'')), 'A') ||
-    setweight(to_tsvector('english', coalesce(description,'')), 'B') ||
-    setweight(to_tsvector('english', coalesce(specialization,'')), 'C') ||
-    setweight(to_tsvector('english', coalesce(city,'')), 'D') ||
-    setweight(to_tsvector('english', coalesce(state::text,'')), 'D') ||
-    setweight(to_tsvector('english', coalesce(country::text,'')), 'D') ||
-    setweight(to_tsvector('english', coalesce(array_to_string(tech_stack, ' '),'')), 'C');
+    setweight(to_tsvector('english', coalesce(description,'')), 'C') ||
+    -- setweight(to_tsvector('english', coalesce(specialization,'')), 'C') ||
+    -- setweight(to_tsvector('english', coalesce(city,'')), 'D') ||
+    -- setweight(to_tsvector('english', coalesce(state::text,'')), 'D') ||
+    -- setweight(to_tsvector('english', coalesce(country::text,'')), 'D') ||
+    setweight(to_tsvector('english', coalesce(array_to_string(tech_stack, ' '),'')), 'B');
 
 -- Log completion of updates
 \echo 'Existing rows updated with search_vector'
