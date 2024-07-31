@@ -167,6 +167,67 @@ def bookmark_job():
                 return jsonify({"message": "Job Bookmaked successfully"})
                 
 # Filtered Search Jobs
+# @job_blueprint.route('/api/filtered_search_jobs', methods=['GET'])
+# @cache.cached(timeout=60, query_string=True)
+# def filtered_search_jobs():
+#     """
+#     Performs a filtered search for jobs based on various criteria.
+#     The results are cached for 60 seconds.
+#     """
+#     # Get the filter criteria from the request arguments
+#     specialization = request.args.get('specialization')
+#     experience_level = request.args.get('experience_level')
+#     min_experience_years = request.args.get('min_experience_years')
+#     work_location = request.args.get('work_location')
+#     industry = request.args.get('industry')
+#     salary_range = request.args.get('salary_range')
+#     city = request.args.get('city')
+#     # tech_stack = request.args.get('tech_stack')
+#     tech_stack = request.args.getlist('tech_stack')
+
+#     # Initialize the jobs query
+#     jobs_query = Job.query
+
+#     # Apply filters based on the provided criteria
+#     if specialization:
+#         jobs_query = jobs_query.filter(Job.specialization == specialization)
+#     if experience_level:
+#         jobs_query = jobs_query.filter(Job.experience_level == experience_level)
+#     if min_experience_years:
+#         jobs_query = jobs_query.filter(Job.min_experience_years >= min_experience_years)
+#     if work_location:
+#         jobs_query = jobs_query.filter(or_(Job.city == work_location, Job.state == work_location, Job.country == work_location))
+#     if industry:
+#         jobs_query = jobs_query.filter(Job.industry == industry)
+#     if salary_range:
+#         jobs_query = jobs_query.filter(Job.salary_range == salary_range)
+#     if tech_stack:
+#         jobs_query = jobs_query.filter(Job.tech_stack.any(tech_stack))
+    
+#     # Execute the query and format the results
+#     jobs = jobs_query.join(Company, Job.company_id == Company.company_id).add_columns(
+#         Job.job_id, Job.title, Job.description, Job.specialization, Job.salary_range, Job.city, Job.state, Job.country, Job.salary_range, 
+#         Job.created_at, Job.experience_level, Company.name.label('company_name'), Company.logo_url.label('logo_url')).all()
+    
+#     results = [{
+#     'job_id': job.job_id,
+#     'title': job.title,
+#     'company': job.company_name,
+#     'city': job.city,
+#     'location': f"{job.city}, {job.state}",
+#     'country': job.country,
+#     'salary_range': job.salary_range,
+#     'created_at': job.created_at.strftime('%Y-%m-%d'),
+#     'experience_level': job.experience_level,
+#     'specialization': job.specialization,
+#     'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo_url)}",
+# } for job in jobs]
+
+#     return jsonify({
+#         'total': len(results),
+#         'results': results
+#     })
+
 @job_blueprint.route('/api/filtered_search_jobs', methods=['GET'])
 @cache.cached(timeout=60, query_string=True)
 def filtered_search_jobs():
@@ -182,10 +243,10 @@ def filtered_search_jobs():
     industry = request.args.get('industry')
     salary_range = request.args.get('salary_range')
     city = request.args.get('city')
-    tech_stack = request.args.get('tech_stack')
+    tech_stack = request.args.get('tech_stack')  # Changed to get a single value
 
     # Initialize the jobs query
-    jobs_query = Job.query
+    jobs_query = Job.query.join(Company, Job.company_id == Company.company_id)
 
     # Apply filters based on the provided criteria
     if specialization:
@@ -193,108 +254,46 @@ def filtered_search_jobs():
     if experience_level:
         jobs_query = jobs_query.filter(Job.experience_level == experience_level)
     if min_experience_years:
-        jobs_query = jobs_query.filter(Job.min_experience_years >= min_experience_years)
+        jobs_query = jobs_query.filter(Job.min_experience_years >= int(min_experience_years))
     if work_location:
-        jobs_query = jobs_query.filter(or_(Job.city == work_location, Job.state == work_location, Job.country == work_location))
+        jobs_query = jobs_query.filter(or_(Job.city.ilike(f"%{work_location}%"),
+                                           Job.state.ilike(f"%{work_location}%"),
+                                           Job.country.ilike(f"%{work_location}%")))
     if industry:
         jobs_query = jobs_query.filter(Job.industry == industry)
     if salary_range:
         jobs_query = jobs_query.filter(Job.salary_range == salary_range)
+    if city:
+        jobs_query = jobs_query.filter(Job.city.ilike(f"%{city}%"))
     if tech_stack:
-        jobs_query = jobs_query.filter(Job.tech_stack.any(tech_stack))
-    
+        jobs_query = jobs_query.filter(Job.tech_stack.cast(db.String).ilike(f"%{tech_stack}%"))
+
     # Execute the query and format the results
-    jobs = jobs_query.join(Company, Job.company_id == Company.company_id).add_columns(
-        Job.job_id, Job.title, Job.description, Job.specialization, Job.salary_range, Job.city, Job.state, Job.country, Job.salary_range, 
-        Job.created_at, Job.experience_level, Company.name.label('company_name'), Company.logo_url.label('logo_url')).all()
-    
+    jobs = jobs_query.add_columns(
+        Job.job_id, Job.title, Job.description, Job.specialization, Job.salary_range,
+        Job.city, Job.state, Job.country, Job.created_at, Job.experience_level,
+        Job.tech_stack, Company.name.label('company_name'), Company.logo_url.label('logo_url')
+    ).all()
+
     results = [{
-    'job_id': job.job_id,
-    'title': job.title,
-    'company': job.company_name,
-    'city': job.city,
-    'location': f"{job.city}, {job.state}",
-    'country': job.country,
-    'salary_range': job.salary_range,
-    'created_at': job.created_at.strftime('%Y-%m-%d'),
-    'experience_level': job.experience_level,
-    'specialization': job.specialization,
-    'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo_url)}",
-} for job in jobs]
+        'job_id': job.job_id,
+        'title': job.title,
+        'company': job.company_name,
+        'city': job.city,
+        'location': f"{job.city}, {job.state}",
+        'country': job.country,
+        'salary_range': job.salary_range,
+        'created_at': job.created_at.strftime('%Y-%m-%d'),
+        'experience_level': job.experience_level,
+        'specialization': job.specialization,
+        'tech_stack': job.tech_stack,
+        'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo_url)}",
+    } for job in jobs]
 
     return jsonify({
         'total': len(results),
         'results': results
     })
-
-# Instant search jobs route
-# @job_blueprint.route('/api/instant_search_jobs', methods=['GET'])
-# @cache.cached(timeout=60, query_string=True)
-# def instant_search_jobs():
-    """
-    Performs an instant search for jobs based on the provided query.
-    The results are cached for 60 seconds.
-    """
-    query = request.args.get('query', '')
-    print(f"Received query: {query}")  # Debugging log
-
-    if query:
-        # Construct the search query
-        search_query = func.plainto_tsquery('english', query)
-
-        try:
-            # Execute the query and fetch all results
-            jobs_query = Job.query.filter(
-                or_(
-                    # Search for jobs where the search vector matches the search query
-                    Job.search_vector.op('@@')(search_query),
-                    # Search for jobs where the company name contains the search query (case-insensitive)
-                    Company.name.ilike(f'%{query}%')
-                )).join(
-                # Join the Job and Company tables based on the company_id foreign key
-                Company, Job.company_id == Company.company_id).add_columns(
-                # Select the following columns from the Job and Company tables
-                Job.job_id, Job.title, Job.description, Job.specialization, Job.city, Job.state, Job.country,
-                Job.salary_range, Job.created_at, Job.experience_level, Company.name.label('company_name'), Company.logo_url.label('logo_url')
-            )
-            
-            jobs = jobs_query.all()
-            print(f"Jobs found: {len(jobs)}")  # Debugging log
-            current_app.logger.info(f"Jobs found:  {len(jobs)}")
-            
-            # Format the results
-            results = [{
-                'job_id': job.job_id,
-                'title': job.title,
-                'company': job.company_name,
-                'city': job.city,
-                'specialization': job.specialization,
-                'country': job.country,
-                'salary_range': job.salary_range,
-                'created_at': job.created_at.strftime('%Y-%m-%d'),
-                'experience_level': job.experience_level,
-                'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo_url)}",
-            } for job in jobs]
-
-            return jsonify({
-                'total': len(results),
-                'results': results
-            })
-
-        except Exception as e:
-            print(f"Error during job search: {e}")  # Debugging log
-            return jsonify({
-                'total': 0,
-                'results': [],
-                'error': str(e)
-            })
-
-    else:
-        return jsonify({
-            'total': 0,
-            'results': []
-        })
-
 
 # @job_blueprint.route('/api/instant_search_jobs', methods=['GET'])
 # @cache.cached(timeout=60, query_string=True)

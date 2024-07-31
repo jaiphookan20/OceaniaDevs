@@ -37,7 +37,7 @@ const App = () => {
     experience_level: "",
     city: "",
     industry: "",
-    tech_stack: "",
+    tech_stack: [],
     salary_range: "",
   });
 
@@ -153,7 +153,15 @@ const App = () => {
   };
 
   const handleFilterSearch = async () => {
-    const queryParams = new URLSearchParams(filters);
+    const queryParams = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach(item => queryParams.append(key, item));
+      } else if (value) {
+        queryParams.append(key, value);
+      }
+    });
+  
     const response = await fetch(
       `/api/filtered_search_jobs?${queryParams.toString()}`,
       {
@@ -166,6 +174,7 @@ const App = () => {
     );
     const data = await response.json();
     setJobs(data.results);
+    setTotalJobs(data.total);
   };
 
   const handleChange = (event) => {

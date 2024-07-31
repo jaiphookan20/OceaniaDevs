@@ -146,9 +146,9 @@ const SearchBar = ({
             <option value="Machine Learning & AI">Machine Learning & AI</option>
           </select>
           <TechnologyDropdown
-            selectedTechnology={filters.tech_stack}
-            setSelectedTechnology={(tech) =>
-              onFilterChange({ target: { name: "tech_stack", value: tech } })
+            selectedTechnologies={filters.tech_stack || []}
+            setSelectedTechnologies={(techs) =>
+              onFilterChange({ target: { name: "tech_stack", value: techs } })
             }
           />
         </div>
