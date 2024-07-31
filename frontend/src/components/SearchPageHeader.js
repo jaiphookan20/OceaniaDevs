@@ -4,7 +4,7 @@ import SearchPageBar from "./SearchPage";
 
 const SearchPageHeader = () => {
   return (
-    <header className="text-center py-12 mb-8 rounded-lg max-w-8xl mx-auto bg-slate-50/50">
+    <header className="text-center py-4 rounded-lg max-w-8xl mx-auto bg-slate-50/50">
       <div className="flex justify-between items-center p-20 bg-violet-50 max-w-7xl mx-auto rounded-3xl">
         {/* <div className="flex justify-center items-center space-x-4"> */}
         {/* <div className="grid grid-cols-3 grid-rows-2 gap-4">

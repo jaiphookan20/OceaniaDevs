@@ -18,9 +18,11 @@ import PostJob from "./recruiter/PostJob";
 import RecruiterDashboard from "./components/RecruiterDashboard";
 import EditJob from "./components/EditJob";
 import RecruiterPersonalDetails from "./recruiter/RecruiterPersonalDetails";
-import SearchPageBar from "./components/SearchPageBar";
+// import SearchPageBar from "./components/SearchPageBar";
 import CompanyPage from "./components/CompanyPage";
 import TrendingCompanies from "./components/TrendingCompanies";
+import SearchPageBar from "./components/SearchPage";
+import SearchPage from "./components/SearchPage";
 
 const App = () => {
   const [jobs, setJobs] = useState([]);
@@ -126,6 +128,7 @@ const App = () => {
     navigate(`/job_post/${jobId}`);
   };
 
+
   const handleSearch = async (event) => {
     setSearchQuery(event.target.value);
     const title = `${event.target.value} Roles`;
@@ -188,7 +191,9 @@ const App = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
+      console.log(data)
       setJobs(data.jobs);
+      console.log(data.jobs)
       setTotalJobs(data.total_jobs);
       setCurrentPage(page);
     } catch (error) {
@@ -241,7 +246,7 @@ const App = () => {
   };
 
   return (
-    <div
+<div
       className="bg-slate-40 p-6"
       style={{ fontFamily: "Roobert-Regular, sans-serif" }}
     >
@@ -254,8 +259,6 @@ const App = () => {
           element={
             <>
               <Header />
-              {/* <MarqueeDemo />
-              <CategoryGrid /> */}
               <TrendingCompanies />
               <SearchBar
                 searchQuery={searchQuery}
@@ -296,19 +299,27 @@ const App = () => {
           pageSize={pageSize}
           onPageChange={handlePageChange}
           />} />
-        <Route path="/search-page" element={
-          <SearchPageBar 
-          title={title}
-          jobs={jobs}
-          onSave={handleSave}
-          onApply={handleApply}
-          onView={handleView}
-          currentPage={currentPage}
-          totalJobs={totalJobs}
-          pageSize={pageSize}
-          onPageChange={handlePageChange}
-          />}
-          />
+        <Route
+          path="/search-page"
+          element={
+            <SearchPage
+              title={title}
+              jobs={jobs}
+              onSave={handleSave}
+              onApply={handleApply}
+              onView={handleView}
+              currentPage={currentPage}
+              totalJobs={totalJobs}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
+              searchQuery={searchQuery}
+              filters={filters}
+              onSearchChange={handleSearch}
+              onFilterChange={handleChange}
+              onFilterSearch={handleFilterSearch}
+            />
+          }
+        />
         <Route
           path="/job_post/:jobId"
           element={<JobPost onSave={handleSave} onApply={handleApply} />}

@@ -1,63 +1,51 @@
-// import React, { useState } from "react";
-// import { Search, ChevronDown } from "lucide-react";
-// import JobSection from "./JobSection";
-// import Header from "./Header";
-// import SearchPageHeader from "./SearchPageHeader";
-// import SearchBar from "./SearchBar";
-// import SearchBarTest from "./SearchBarTest";
+import React from "react";
+import JobSection from "./JobSection";
+import SearchBar from "./SearchBar";
+import SearchPageHeader from "./SearchPageHeader";
 
-// const SearchPageBar = ({
-//   title,
-//   jobs,
-//   onSave,
-//   onApply,
-//   onView,
-//   currentPage,
-//   totalJobs,
-//   pageSize,
-//   onPageChange,
-//   searchQuery={searchQuery},
-//   onSearchChange={handleSearch},
-//   filters={filters},
-//   onFilterChange={handleChange},
-//   onFilterSearch={handleFilterSearch}
-// }) => {
-//   const [header, setHeader] = useState("Remote jobs");
-//   const [jobSearch, setJobSearch] = useState("");
-//   const [locationSearch, setLocationSearch] = useState("");
+const SearchPage = ({
+  title,
+  jobs,
+  onSave,
+  onApply,
+  onView,
+  currentPage,
+  totalJobs,
+  pageSize,
+  onPageChange,
+  searchQuery,
+  filters,
+  onSearchChange,
+  onFilterChange,
+  onFilterSearch
+}) => {
+  return (
+    <>
+      <SearchPageHeader />
+      <SearchBar
+        searchQuery={searchQuery}
+        onSearchChange={onSearchChange}
+        filters={filters}
+        onFilterChange={onFilterChange}
+        onFilterSearch={onFilterSearch}
+      />
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
+        <div className="col-span-2">
+          <JobSection
+            title={title}
+            jobs={jobs}
+            onSave={onSave}
+            onApply={onApply}
+            onView={onView}
+            currentPage={currentPage}
+            totalJobs={totalJobs}
+            pageSize={pageSize}
+            onPageChange={onPageChange}
+          />
+        </div>
+      </div>
+    </>
+  );
+};
 
-//   const handleSearch = (e) => {
-//     e.preventDefault();
-//     if (jobSearch.trim()) {
-//       setHeader(jobSearch.trim());
-//     } else {
-//       setHeader("Software jobs!");
-//     }
-//   };
-
-//   return (
-//     <>
-//       <div
-//         className="max-w-8xl mx-auto p-4"
-//         style={{ fontFamily: "Roobert-Regular, sans-serif" }}
-//       >
-//         {/* <SearchPageHeader /> */}
-//         <SearchBarTest />
-//       </div>
-//       <JobSection
-//         title={title}
-//         jobs={jobs}
-//         onSave={onSave}
-//         onApply={onApply}
-//         onView={onView}
-//         currentPage={currentPage}
-//         totalJobs={totalJobs}
-//         pageSize={pageSize}
-//         onPageChange={onPageChange}
-//       />
-//     </>
-//   );
-// };
-
-// export default SearchPageBar;
-
+export default SearchPage;
