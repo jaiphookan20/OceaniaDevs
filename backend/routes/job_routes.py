@@ -166,73 +166,6 @@ def bookmark_job():
                 jobs_service.bookmark_job(userid, (job_id))
                 return jsonify({"message": "Job Bookmaked successfully"})
                 
-# Instant search jobs route
-@job_blueprint.route('/api/instant_search_jobs', methods=['GET'])
-@cache.cached(timeout=60, query_string=True)
-def instant_search_jobs():
-    """
-    Performs an instant search for jobs based on the provided query.
-    The results are cached for 60 seconds.
-    """
-    query = request.args.get('query', '')
-    print(f"Received query: {query}")  # Debugging log
-
-    if query:
-        # Construct the search query
-        search_query = func.plainto_tsquery('english', query)
-
-        try:
-            # Execute the query and fetch all results
-            jobs_query = Job.query.filter(
-                or_(
-                    # Search for jobs where the search vector matches the search query
-                    Job.search_vector.op('@@')(search_query),
-                    # Search for jobs where the company name contains the search query (case-insensitive)
-                    Company.name.ilike(f'%{query}%')
-                )).join(
-                # Join the Job and Company tables based on the company_id foreign key
-                Company, Job.company_id == Company.company_id).add_columns(
-                # Select the following columns from the Job and Company tables
-                Job.job_id, Job.title, Job.description, Job.specialization, Job.city, Job.state, Job.country,
-                Job.salary_range, Job.created_at, Job.experience_level, Company.name.label('company_name'), Company.logo_url.label('logo_url')
-            )
-            
-            jobs = jobs_query.all()
-            print(f"Jobs found: {len(jobs)}")  # Debugging log
-            
-            # Format the results
-            results = [{
-                'job_id': job.job_id,
-                'title': job.title,
-                'company': job.company_name,
-                'city': job.city,
-                'specialization': job.specialization,
-                'country': job.country,
-                'salary_range': job.salary_range,
-                'created_at': job.created_at.strftime('%Y-%m-%d'),
-                'experience_level': job.experience_level,
-                'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo_url)}",
-            } for job in jobs]
-
-            return jsonify({
-                'total': len(results),
-                'results': results
-            })
-
-        except Exception as e:
-            print(f"Error during job search: {e}")  # Debugging log
-            return jsonify({
-                'total': 0,
-                'results': [],
-                'error': str(e)
-            })
-
-    else:
-        return jsonify({
-            'total': 0,
-            'results': []
-        })
-
 # Filtered Search Jobs
 @job_blueprint.route('/api/filtered_search_jobs', methods=['GET'])
 @cache.cached(timeout=60, query_string=True)
@@ -293,3 +226,239 @@ def filtered_search_jobs():
         'total': len(results),
         'results': results
     })
+
+# Instant search jobs route
+# @job_blueprint.route('/api/instant_search_jobs', methods=['GET'])
+# @cache.cached(timeout=60, query_string=True)
+# def instant_search_jobs():
+    """
+    Performs an instant search for jobs based on the provided query.
+    The results are cached for 60 seconds.
+    """
+    query = request.args.get('query', '')
+    print(f"Received query: {query}")  # Debugging log
+
+    if query:
+        # Construct the search query
+        search_query = func.plainto_tsquery('english', query)
+
+        try:
+            # Execute the query and fetch all results
+            jobs_query = Job.query.filter(
+                or_(
+                    # Search for jobs where the search vector matches the search query
+                    Job.search_vector.op('@@')(search_query),
+                    # Search for jobs where the company name contains the search query (case-insensitive)
+                    Company.name.ilike(f'%{query}%')
+                )).join(
+                # Join the Job and Company tables based on the company_id foreign key
+                Company, Job.company_id == Company.company_id).add_columns(
+                # Select the following columns from the Job and Company tables
+                Job.job_id, Job.title, Job.description, Job.specialization, Job.city, Job.state, Job.country,
+                Job.salary_range, Job.created_at, Job.experience_level, Company.name.label('company_name'), Company.logo_url.label('logo_url')
+            )
+            
+            jobs = jobs_query.all()
+            print(f"Jobs found: {len(jobs)}")  # Debugging log
+            current_app.logger.info(f"Jobs found:  {len(jobs)}")
+            
+            # Format the results
+            results = [{
+                'job_id': job.job_id,
+                'title': job.title,
+                'company': job.company_name,
+                'city': job.city,
+                'specialization': job.specialization,
+                'country': job.country,
+                'salary_range': job.salary_range,
+                'created_at': job.created_at.strftime('%Y-%m-%d'),
+                'experience_level': job.experience_level,
+                'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo_url)}",
+            } for job in jobs]
+
+            return jsonify({
+                'total': len(results),
+                'results': results
+            })
+
+        except Exception as e:
+            print(f"Error during job search: {e}")  # Debugging log
+            return jsonify({
+                'total': 0,
+                'results': [],
+                'error': str(e)
+            })
+
+    else:
+        return jsonify({
+            'total': 0,
+            'results': []
+        })
+
+
+# @job_blueprint.route('/api/instant_search_jobs', methods=['GET'])
+# @cache.cached(timeout=60, query_string=True)
+# def instant_search_jobs():
+#     query = request.args.get('query', '')
+#     current_app.logger.info(f"Received query: {query}")
+
+#     if query:
+#         search_query = func.plainto_tsquery('english', query)
+#         jobs_query = Job.query.filter(
+#             or_(
+#                 Job.search_vector.op('@@')(search_query),
+#                 Company.name.ilike(f'%{query}%')
+#             )
+#         ).join(Company, Job.company_id == Company.company_id).add_columns(
+#             Job.job_id, Job.title, Job.description, Job.specialization, Job.city, Job.state, Job.country, Job.salary_range, Job.created_at, Job.experience_level, Company.name.label('company_name'), Company.logo_url.label('logo_url')
+#         )
+        
+#         jobs = jobs_query.all()
+#         results = [{
+#             'job_id': job.job_id,
+#             'title': job.title,
+#             'company': job.company_name,
+#             'city': job.city,
+#             'specialization': job.specialization,
+#             'country': job.country,
+#             'salary_range': job.salary_range,
+#             'created_at': job.created_at.strftime('%Y-%m-%d'),
+#             'experience_level': job.experience_level,
+#             'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo_url)}",
+#         } for job in jobs]
+        
+#         current_app.logger.info(f"Total Results: {len(results)}")
+#         current_app.logger.info(f"Results: {results}")
+        
+#         return jsonify({
+#             'total': len(results),
+#             'results': results
+#         })
+#     else:
+#         return jsonify({
+#             'total': 0,
+#             'results': []
+#         })
+
+
+# @job_blueprint.route('/api/instant_search_jobs', methods=['GET'])
+# @cache.cached(timeout=60, query_string=True)
+# def instant_search_jobs():
+#     query = request.args.get('query', '')
+#     current_app.logger.info(f"Received query: {query}")
+
+#     if query:
+#         search_terms = query.split()
+#         search_query = ' & '.join(search_terms)
+#         tsquery = func.to_tsquery('english', search_query)
+        
+#         jobs_query = Job.query.join(Company).filter(
+#             or_(
+#                 Job.search_vector.op('@@')(tsquery),
+#                 Company.name.ilike(f'%{query}%'),
+#                 Job.title.ilike(f'%{query}%'),
+#                 Job.description.ilike(f'%{query}%'),
+#                 Job.specialization.ilike(f'%{query}%'),
+#                 Job.city.ilike(f'%{query}%'),
+#                 Job.state.ilike(f'%{query}%'),
+#                 Job.country.ilike(f'%{query}%'),
+#                 Job.tech_stack.any(lambda x: x.ilike(f'%{query}%'))
+#             )
+#         ).add_columns(
+#             Job.job_id, Job.title, Job.description, Job.specialization, Job.city, Job.state, Job.country,
+#             Job.salary_range, Job.created_at, Job.experience_level, Job.tech_stack,
+#             Company.name.label('company_name'), Company.logo_url.label('logo_url')
+#         ).order_by(func.ts_rank(Job.search_vector, tsquery).desc())
+
+#         # Debug: Print the SQL query
+#         current_app.logger.info(f"SQL Query: {jobs_query}")
+
+#         jobs = jobs_query.all()
+        
+#         # Debug: Print raw job data
+#         current_app.logger.info(f"Raw job data: {jobs}")
+
+#         results = [{
+#             'job_id': job.job_id,
+#             'title': job.title,
+#             'company': job.company_name,
+#             'city': job.city,
+#             'specialization': job.specialization,
+#             'country': job.country,
+#             'salary_range': job.salary_range,
+#             'created_at': job.created_at.strftime('%Y-%m-%d'),
+#             'experience_level': job.experience_level,
+#             'tech_stack': job.tech_stack,
+#             'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo_url)}",
+#         } for job in jobs]
+        
+#         current_app.logger.info(f"Total Results: {len(results)}")
+#         current_app.logger.info(f"Results: {results}")
+        
+#         return jsonify({
+#             'total': len(results),
+#             'results': results
+#         })
+#     else:
+#         return jsonify({
+#             'total': 0,
+#             'results': []
+#         })
+
+
+@job_blueprint.route('/api/instant_search_jobs', methods=['GET'])
+@cache.cached(timeout=60, query_string=True)
+def instant_search_jobs():
+    query = request.args.get('query', '')
+    current_app.logger.info(f"Received query: {query}")
+
+    if query:
+        search_terms = query.split()
+        search_query = ' | '.join(search_terms)  # Use OR for more flexible matching
+        tsquery = func.to_tsquery('english', search_query)
+        
+        jobs_query = Job.query.join(Company).filter(
+            or_(
+                Job.search_vector.op('@@')(tsquery),
+                Company.name.ilike(f'%{query}%')  # Keep this for company name search
+            )
+        ).add_columns(
+            Job.job_id, Job.title, Job.description, Job.specialization, Job.city, Job.state, Job.country,
+            Job.salary_range, Job.created_at, Job.experience_level, Job.tech_stack,
+            Company.name.label('company_name'), Company.logo_url.label('logo_url')
+        ).order_by(func.ts_rank(Job.search_vector, tsquery).desc())
+
+        # Debug: Print the SQL query
+        current_app.logger.info(f"SQL Query: {jobs_query}")
+
+        jobs = jobs_query.all()
+        
+        # Debug: Print raw job data
+        current_app.logger.info(f"Raw job data: {jobs}")
+
+        results = [{
+            'job_id': job.job_id,
+            'title': job.title,
+            'company': job.company_name,
+            'city': job.city,
+            'specialization': job.specialization,
+            'country': job.country,
+            'salary_range': job.salary_range,
+            'created_at': job.created_at.strftime('%Y-%m-%d'),
+            'experience_level': job.experience_level,
+            'tech_stack': job.tech_stack,
+            'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo_url)}",
+        } for job in jobs]
+        
+        current_app.logger.info(f"Total Results: {len(results)}")
+        current_app.logger.info(f"Results: {results}")
+        
+        return jsonify({
+            'total': len(results),
+            'results': results
+        })
+    else:
+        return jsonify({
+            'total': 0,
+            'results': []
+        })
