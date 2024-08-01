@@ -1,0 +1,73 @@
+name: Backend CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - llama-integration
+    paths:
+      - 'backend/**'
+
+jobs:
+  # build:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+
+  #     # - name: Setup Python
+  #     #   uses: actions/setup-python@v5
+  #     #   with:
+  #     #     python-version: '3.9' 
+
+  #     # - name: Install dependencies
+  #     #   run: |
+  #     #     cd backend
+  #     #     pip install --no-cache-dir -r requirements.txt
+
+  #     # - name: Build the React app
+  #     #   env:
+  #     #     CI: false
+  #     #   run: |
+  #     #     cd frontend
+  #     #     npm run build
+
+  #     # - name: Debug - List build contents
+  #     #   run: |
+  #     #     ls -R frontend/build
+
+  #     # - name: Archive production artifacts
+  #     #   uses: actions/upload-artifact@v2
+  #     #   with:
+  #     #     name: build
+  #     #     path: frontend/build
+
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+          if_key_exists: replace
+
+      - name: Test SSH connection
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} echo "SSH connection successful" || exit 1
+
+      - name: Deploy to server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "rm -rf ~/OceaniaDevs/backend && mkdir -p ~/OceaniaDevs/backend"
+          scp -r -o StrictHostKeyChecking=no ./backend/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/backend/
+
+      - name: Verify deployment
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "ls -R ~/OceaniaDevs/backend/"
+
+      # Uncomment the following step when SSH connection is successful #
+      - name: Restart Docker containers
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && docker-compose -f docker-compose.yml down && docker-compose -f docker-compose.yml up -d --build"

@@ -38,18 +38,18 @@ services:
     ports:
       - "6379:6379"
 
-  nginx:
-    build: ./nginx
-    ports:
-      - "80:80"
-    volumes:
-    # Mount the Nginx configuration file
-      # - frontend_build:/usr/share/nginx/html
-      - ./nginx/job-board.conf:/etc/nginx/conf.d/default.conf
-      - ./backend/uploads:/app/uploads
-      # - ./frontend/build:/app/frontend/build # Mount the build directory
-    depends_on:
-      - backend
+  # nginx:
+  #   build: ./nginx
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #   # Mount the Nginx configuration file
+  #     # - frontend_build:/usr/share/nginx/html
+  #     - ./nginx/job-board.conf:/etc/nginx/conf.d/default.conf
+  #     - ./backend/uploads:/app/uploads
+  #     # - ./frontend/build:/app/frontend/build # Mount the build directory
+  #   depends_on:
+  #     - backend
 
 volumes:
   # frontend_build:
