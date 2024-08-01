@@ -86,7 +86,6 @@ const Navbar = () => {
       style={navbarStyles}
     >
       <div className="flex items-center ">
-        <img src={oceBlackLogo}/>
         <Logo
           className="h-24 w-auto"
           alt="Logo"
