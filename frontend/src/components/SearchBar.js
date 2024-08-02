@@ -1,6 +1,7 @@
 // src/components/SearchBar.js
 import React from "react";
 import TechnologyDropdown from "./TechnologyDropdown";
+import SearchPageHeader from "./SearchPageHeader";
 
 const SearchBar = ({
   searchQuery,
@@ -12,24 +13,15 @@ const SearchBar = ({
   setSelectedTechnology,
 }) => {
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        fontFamily: "HeyWow",
-      }}
-    >
-      <div
-        className="bg-white p-4 rounded-lg shadow-md mb-10"
-        style={{ width: "1280px" }}
-      >
+    <div>
+    <div className="justify-items-center	justify-center mx-auto">
+      <div className=" p-4 rounded-lg border border-green-300  mb-10" >
         <div className="flex items-center space-x-4 mb-4">
           <div className="flex-1 relative">
             <input
               type="text"
-              placeholder="Enter Keywords"
-              className="w-full border rounded-lg py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="Search by Title, Company, Technology ...."
+              className="w-full border border-green-400 rounded-lg py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-lime-400"
               value={searchQuery}
               onChange={onSearchChange}
             />
@@ -48,10 +40,10 @@ const SearchBar = ({
             Search
           </button>
         </div>
-        <div className="flex space-x-6">
+        <div className="flex space-x-3">
           <select
             name="experience_level"
-            className="border rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200"
+            className="border border-green-300 bg-green-50 text-green-700 font-medium rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200"
             value={filters.experience_level}
             onChange={onFilterChange}
           >
@@ -64,7 +56,7 @@ const SearchBar = ({
           </select>
           <select
             name="salary_range"
-            className="border rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200"
+            className="border border-green-300 bg-green-50 text-green-700 font-medium rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200"
             value={filters.salary_range}
             onChange={onFilterChange}
           >
@@ -85,7 +77,7 @@ const SearchBar = ({
           </select>
           <select
             name="industry"
-            className="border rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200"
+            className="border border-green-300 bg-green-50 text-green-700 font-medium rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200"
             value={filters.industry}
             onChange={onFilterChange}
           >
@@ -133,7 +125,7 @@ const SearchBar = ({
           </select>
           <select
             name="specialization"
-            className="border rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200"
+            className="border border-green-300 bg-green-50 text-green-700 font-medium  rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200"
             value={filters.specialization}
             onChange={onFilterChange}
           >
@@ -153,6 +145,7 @@ const SearchBar = ({
           />
         </div>
       </div>
+    </div>
     </div>
   );
 };

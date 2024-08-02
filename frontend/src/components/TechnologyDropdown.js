@@ -222,7 +222,7 @@ const TechnologyDropdown = ({ selectedTechnologies, setSelectedTechnologies }) =
     <div className="relative">
       <button
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className="border rounded-lg px-16 py-2 text-gray-600"
+        className="rounded-lg px-16 py-2 border border-green-300 bg-green-50 text-green-700 hover:bg-lime-200"
       >
         Technologies ({selectedTechnologies.length})
       </button>
