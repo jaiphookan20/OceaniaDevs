@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 import os
 from dotenv import load_dotenv
 from utils.openai import OpenAI
+import config
 class RecruiterService:
 
     def __init__(self):
@@ -26,9 +27,9 @@ class RecruiterService:
         """
         return Recruiter.query.get(recruiter_id)
     
-    def get_all_companies(self):
-        companies = Company.query.all()
-        return [{"name": company.name} for company in companies]
+    # def get_all_companies(self):
+    #     companies = Company.query.all()
+    #     return [{"name": company.name} for company in companies]
     
     # Retrieve all job posts by a Recruiter
     def get_all_jobs_by_recruiter(self, recruiter_id):
@@ -323,3 +324,62 @@ class RecruiterService:
             db.session.commit()
             return True
         return False
+    
+    def get_all_companies(self):
+        companies = Company.query.all()
+        return [{
+            "company_id": company.company_id,
+            "name": company.name,
+            "description": company.description,
+            "logo_url": f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
+            "size": company.size,
+            "job_count": self.get_job_count_for_company(company.company_id)
+        } for company in companies]
+
+    def get_companies_with_pagination(self, page, page_size, search):
+        query = Company.query
+
+        if search:
+            query = query.filter(Company.name.ilike(f'%{search}%'))
+
+        total_companies = query.count()
+        companies = query.order_by(Company.name).paginate(page=page, per_page=page_size, error_out=False).items
+
+        return [{
+            "company_id": company.company_id,
+            "name": company.name,
+            "description": company.description,
+            "logo_url": f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
+            "size": company.size,
+            "city": company.city,
+            "state": company.state,
+            "job_count": self.get_job_count_for_company(company.company_id)
+        } for company in companies], total_companies
+
+    def get_job_count_for_company(self, company_id):
+        return Job.query.filter_by(company_id=company_id).count()
+    
+    def get_company_details(self, company_id):
+        company = Company.query.get(company_id)
+        if not company:
+            return None
+        
+        jobs = Job.query.filter_by(company_id=company_id).all()
+        
+        return {
+            "company_id": company.company_id,
+            "name": company.name,
+            "description": company.description,
+            "logo_url": f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
+            "size": company.size,
+            "jobs": [{
+                "job_id": job.job_id,
+                "title": job.title,
+                "description": job.description,
+                "specialization": job.specialization,
+                "job_type": job.job_type,
+                "salary_range": job.salary_range,
+                "work_location": job.work_location,
+                "experience_level": job.experience_level,
+            } for job in jobs]
+        }

@@ -308,3 +308,27 @@ def remove_job(job_id):
             return jsonify({"error": "Job not found or unauthorized"}), 404
     else:
         return jsonify({"message": "Unauthorized"}), 401
+
+
+@recruiter_blueprint.route('/api/companies', methods=['GET'])
+def get_companies():
+    page = int(request.args.get('page', 1))
+    page_size = int(request.args.get('page_size', 10))
+    search = request.args.get('search', '')
+
+    recruiter_service = RecruiterService()
+    companies, total_companies = recruiter_service.get_companies_with_pagination(page, page_size, search)
+
+    return jsonify({
+        'companies': companies,
+        'total_companies': total_companies
+    })
+
+@recruiter_blueprint.route('/api/company/<int:company_id>', methods=['GET'])
+def get_company_details(company_id):
+    recruiter_service = RecruiterService()
+    company_details = recruiter_service.get_company_details(company_id)
+    if company_details:
+        return jsonify(company_details), 200
+    else:
+        return jsonify({"error": "Company not found"}), 404
