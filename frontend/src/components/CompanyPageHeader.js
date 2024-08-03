@@ -1,5 +1,4 @@
 import React from 'react';
-import sampleLogo from "../assets/atlassian-Logo.png"
 
 const CompanyPageHeader = ({ heading, subheading, logoSrc }) => {
   return (
@@ -11,11 +10,10 @@ const CompanyPageHeader = ({ heading, subheading, logoSrc }) => {
         </div>
       </header>
       <div className='bg-teal-50 p-10 rounded-2xl border border-teal-200 shadow-sm ml-2'>
-        <img src={sampleLogo} alt="Perplexity Logo" className="h-24 rounded-lg" />
+        <img src={logoSrc} alt={`${heading} Logo`} className="h-24 rounded-lg" />
       </div>
     </div>
   );
 };
 
 export default CompanyPageHeader;
-
