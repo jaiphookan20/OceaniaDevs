@@ -8,8 +8,9 @@ const SearchPageHeader = ( {title}) => {
       <div className="flex justify-between items-center p-10 bg-violet-50 max-w-7xl mx-auto rounded-3xl">
         <div className="text-start rounded-md">
           <div className="flex">
-            <h1 className="text-6xl font-bold text-slate-600 border-slate-500">
+            <h1 className="text-6xl font-semibold text-violet-600 border-slate-500">
               {title}
+              <span className="text-slate-500"> Jobs</span>
             </h1>
             <h1 className="text-6xl font-bold text-lime-500">:</h1>
           </div>

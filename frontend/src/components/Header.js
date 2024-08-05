@@ -26,7 +26,7 @@ const Header = () => {
           <img src={hero6} className="w-32 h-32" />
           {/* <img src={face4} className="w-32 h-32" /> */}
           <img src={hero9} className="w-32 h-32" />
-          <img src={hero5} className="w-32 h-32" />
+          {/* <img src={hero5} className="w-32 h-32" /> */}
         </div>
         <div className="text-center rounded-md">
           <div className="flex">

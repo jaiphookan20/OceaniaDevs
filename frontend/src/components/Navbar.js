@@ -14,7 +14,7 @@ const Navbar = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const response = await fetch(`api/check-session`, {
+        const response = await fetch(`/api/check-session`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -42,18 +42,17 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = async () => {
-    window.location.href = `/logout`;
-    // await fetch("http://127.0.0.1:4040/api/logout", {
-    //   method: "GET",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   credentials: "include",
-    // });
-    // setIsLoggedIn(false);
-    // setUserName("");
-    // setUserType("");
-    // window.location.href = "http://localhost:3000/";
+    await fetch("/logout", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    setIsLoggedIn(false);
+    setUserName("");
+    setUserType("");
+    navigate("/")
   };
 
   const navbarStyles = {
@@ -121,6 +120,12 @@ const Navbar = () => {
             Featured
           </a>
           <a
+            href="/companies"
+            className="text-gray-600 hover:text-gray-800 hover:underline"
+          >
+            Explore Companies
+          </a>
+          <a
             href="/company-page"
             className="text-gray-600 hover:text-gray-800 hover:underline"
           >
@@ -138,10 +143,16 @@ const Navbar = () => {
         {isLoggedIn && userType === "recruiter" ? (
           <>
             <button
-              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
+              className="px-4 py-2 text-white bg-violet-500 border border-gray-400 shadow-sm rounded-md hover:bg-violet-800 hover:text-white"
               onClick={() => (window.location.href = "/employer/post-job")}
             >
               Post Job
+            </button>
+            <button
+              className="px-4 py-2 text-white bg-violet-500 border border-gray-400 shadow-sm rounded-md hover:bg-violet-800 hover:text-white"
+              onClick={() => (window.location.href = "/employer/post-job-ai")}
+            >
+              Post Job with AI
             </button>
           </>
         ) : (

@@ -60,7 +60,7 @@ const EditJob = () => {
     e.preventDefault();
     try {
       // const response = await fetch(`${apiUrl}/update_job/${jobId}`, {
-      const response = await fetch(`api/update_job/${jobId}`, {
+      const response = await fetch(`/api/update_job/${jobId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
