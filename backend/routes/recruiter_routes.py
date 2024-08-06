@@ -15,103 +15,49 @@ CORS(recruiter_blueprint, supports_credentials=True, resources={r'/*': {'origins
 
 # Add Recruiter Route
 @recruiter_blueprint.route('/api/add_recruiter', methods=['GET', 'POST'])
-def add_recruiter():
-    """
-    Route for adding a new recruiter.
     
-    GET: Renders the 'add_recruiter.html' template with a list of companies.
-    POST: Extracts form data and calls the 'add_recruiter' method of the RecruiterService.
-    
-    Returns:
-        - For GET: Rendered 'add_recruiter.html' template.
-        - For POST: JSON response with a success message.
-        - 401 Unauthorized error if the user is not a recruiter or not logged in.
-    """
-    if 'user' not in session:
-        print('user not in session!')
-        return jsonify({"error": "Unauthorized access"}), 401
+# Get Job Details by Job ID
+@recruiter_blueprint.route('/api/job/<int:job_id>', methods=['GET'])
+def get_job_by_id(job_id):
+    job_service = JobsService()
+    job_post = job_service.get_job_by_id(job_id)
+    if job_post:
+        company = job_service.get_company_by_id(job_post.company_id)
+        job_data = {
+            "job_id": job_post.job_id,
+            "recruiter_id": job_post.recruiter_id,
+            "company_id": job_post.company_id,
+            "title": job_post.title,
+            "description": job_post.description,
+            "specialization": job_post.specialization,
+            "job_type": job_post.job_type,
+            "industry": job_post.industry,
+            "salary_range": job_post.salary_range,
+            "salary_type": job_post.salary_type,
+            "work_location": job_post.work_location,
+            "min_experience_years": job_post.min_experience_years,
+            "experience_level": job_post.experience_level,
+            "tech_stack": job_post.tech_stack,
+            "city": job_post.city,
+            "state": job_post.state,
+            "country": job_post.country,
+            "expiry_date": job_post.expiry_date,
+            "jobpost_url": job_post.jobpost_url,
+            "work_rights": job_post.work_rights,
+            "created_at": job_post.created_at,
+            "updated_at": job_post.updated_at,
+            "company_name": company.name if company else "N/A",
+        }
+        return jsonify(job_data)
     else:
-        print('user in session')
-    
-        if session.get('user').get('type') != 'recruiter':
-            print('user not in session!')
-            return jsonify({"error": "Unauthorized access. Only Recruiters can access this resource"}), 401
+        return jsonify({"error": "Job not found"}), 404
 
-        else:
-            recruiter_service = RecruiterService()
-            jobs_service = JobsService()
-            if request.method == 'GET':
-                # Fetch companies and render the add_recruiter.html template
-                companies = jobs_service.get_companies()
-                company = recruiter_service.get_company_by_recruiter_id()
-                print(f"company: {company}")
-                return render_template('add_recruiter.html', companies=companies)
-            else:
-                # Extract form data and call the add_recruiter method of RecruiterService
-                company_id = request.form['company_id']
-                first_name = request.form['first_name']
-                last_name = request.form['last_name']
-                email = request.form['email']
-                password = request.form['password']
-                city = request.form['city']
-                state = request.form['state']
-                country = request.form['country']
-                is_direct_recruiter = request.form['is_direct_recruiter'].lower() == 'true'
-
-                recruiter_service.add_recruiter(company_id, first_name, last_name, email,password, city, state, country, is_direct_recruiter)
-                return jsonify({"message": "Recruiter added successfully"})
-    
-# Post a Job by a Recruiter
-@recruiter_blueprint.route('/api/add_job', methods=['POST'])
-def add_job():
-    """
-    Route for adding a new job post.
-    
-    POST: Extracts JSON data and calls the 'add_job' method of the RecruiterService.
-    
-    Returns:
-        - JSON response with a success message.
-    """
+# Get All Companies Objects
+@recruiter_blueprint.route('/api/companies', methods=['GET'])
+def get_all_companies():
     recruiter_service = RecruiterService()
-    
-    if request.method == 'POST':
-        if 'user' not in session or session['user']['type'] != 'recruiter':
-            return jsonify({"error": "Unauthorized access"}), 401
-
-        data = request.json  # Expecting JSON data
-        recruiter_id = session['user']['recruiter_id']
-        recruiter = Recruiter.query.get(recruiter_id)
-        company_id = recruiter.company_id
-        
-        # Extract form data from JSON
-        title = data['title']
-        description = data['description']
-        specialization = data['specialization']
-        job_type = data['job_type']
-        industry = data['industry']
-        salary_range = data['salary_range']
-        salary_type = data['salary_type']
-        work_location = data['work_location']
-        min_experience_years = data['min_experience_years']
-        experience_level = data['experience_level']
-        city = data['city']
-        state = data['state']
-        country = data['country']
-        jobpost_url = data['jobpost_url']
-        work_rights = data['work_rights']
-
-        # Call the add_job method of RecruiterService
-        new_job, error = recruiter_service.add_job(recruiter_id, company_id, title, description, specialization,
-                                   job_type, industry, salary_range, salary_type, work_location,
-                                   min_experience_years, experience_level, city,
-                                   state, country, jobpost_url, work_rights)
-
-        if new_job:
-            return jsonify({"message": "Job added successfully", "job_id": new_job.job_id}), 200
-        else:
-            return jsonify({"error": f"Failed to add job: {error}"}), 400
-
-    return jsonify({"error": "Invalid request method"}), 405
+    companies = recruiter_service.get_all_companies()
+    return jsonify(companies), 200
 
 # Get All Jobs Posted by the Recruiter
 @recruiter_blueprint.route('/api/jobs_by_recruiter')
@@ -158,62 +104,149 @@ def get_all_jobs_by_recruiter():
         
         return jsonify(response_data)
 
-# Get Job Details by Job ID
-@recruiter_blueprint.route('/api/job/<int:job_id>', methods=['GET'])
-def get_job_by_id(job_id):
-    job_service = JobsService()
-    job_post = job_service.get_job_by_id(job_id)
-    if job_post:
-        company = job_service.get_company_by_id(job_post.company_id)
-        job_data = {
-            "job_id": job_post.job_id,
-            "recruiter_id": job_post.recruiter_id,
-            "company_id": job_post.company_id,
-            "title": job_post.title,
-            "description": job_post.description,
-            "specialization": job_post.specialization,
-            "job_type": job_post.job_type,
-            "industry": job_post.industry,
-            "salary_range": job_post.salary_range,
-            "salary_type": job_post.salary_type,
-            "work_location": job_post.work_location,
-            "min_experience_years": job_post.min_experience_years,
-            "experience_level": job_post.experience_level,
-            "tech_stack": job_post.tech_stack,
-            "city": job_post.city,
-            "state": job_post.state,
-            "country": job_post.country,
-            "expiry_date": job_post.expiry_date,
-            "jobpost_url": job_post.jobpost_url,
-            "work_rights": job_post.work_rights,
-            "created_at": job_post.created_at,
-            "updated_at": job_post.updated_at,
-            "company_name": company.name if company else "N/A",
-        }
-        return jsonify(job_data)
-    else:
-        return jsonify({"error": "Job not found"}), 404
+# -------------------------END OF GET REQUESTS-------------------------------
 
 # Update Recruiter Personal Data
 @recruiter_blueprint.route('/api/register/employer/info', methods=['POST'])
 def update_recruiter_info():
-    if "user" in session and session["user"]["type"] == "recruiter":
-        recruiter_id = session["user"]["recruiter_id"]
-        recruiter = Recruiter.query.get(recruiter_id)
-
-        if recruiter:
-            data = request.get_json()
-            recruiter.first_name = data.get('firstName')
-            recruiter.last_name = data.get('lastName')
-            recruiter.position = data.get('position')
-            db.session.commit()
-
-            return jsonify({"message": "Recruiter info updated successfully"}), 200
-        else:
-            return jsonify({"message": "Recruiter not found"}), 404
-    else:
+    if "user" not in session or session["user"]["type"] != "recruiter":
         return jsonify({"message": "Unauthorized"}), 401
 
+    recruiter_service = RecruiterService()
+    recruiter_id = session["user"]["recruiter_id"]
+    data = request.get_json()
+    
+    result = recruiter_service.update_recruiter_info(recruiter_id, data)
+    
+    if result:
+        return jsonify({"message": "Recruiter info updated successfully"}), 200
+    else:
+        return jsonify({"message": "Recruiter not found"}), 404
+
+@recruiter_blueprint.route('/api/register/employer/update_company', methods=['POST'])
+def update_recruiter_company():
+    if "user" not in session or session["user"]["type"] != "recruiter":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    recruiter_service = RecruiterService()
+    recruiter_id = session["user"]["recruiter_id"]
+    data = request.get_json()
+    
+    result = recruiter_service.update_recruiter_company(recruiter_id, data)
+    
+    if result:
+        return jsonify({"message": "Recruiter company updated successfully"}), 200
+    else:
+        return jsonify({"message": "Company not found or Recruiter not found"}), 404
+    
+# Create Recruiter's Company if Company not present in DB
+@recruiter_blueprint.route('/api/register/employer/create_company', methods=['POST'])
+def create_company():
+    if "user" not in session or session["user"]["type"] != "recruiter":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    recruiter_service = RecruiterService()
+    recruiter_id = session["user"]["recruiter_id"]
+    data = request.form
+    logo_file = request.files.get('logo')
+    
+    result = recruiter_service.create_company(recruiter_id, data, logo_file)
+    
+    if result:
+        return jsonify({"message": "Company created and recruiter updated successfully"}), 200
+    else:
+        return jsonify({"message": "Failed to create company or update recruiter"}), 400
+    
+@recruiter_blueprint.route('/api/process_job_description', methods=['POST'])
+def process_job_description():
+    # if 'user' not in session or session['user']['type'] != 'recruiter':
+    #     return jsonify({"error": "Unauthorized access"}), 401
+
+    data = request.json
+    description = data.get('description')
+
+    if not description:
+        return jsonify({"error": "Job description is required"}), 400
+
+    recruiter_service = RecruiterService()
+    processed_description = recruiter_service.process_job_description(description)
+
+    if processed_description:
+        return jsonify(processed_description), 200
+    else:
+        return jsonify({"error": "Failed to process job description"}), 500
+    
+@recruiter_blueprint.route('/api/process_job_description_with_openai', methods=['POST'])
+def process_job_description_with_openai():
+    if 'user' not in session or session['user']['type'] != 'recruiter':
+        return jsonify({"error": "Unauthorized access"}), 401
+
+    data = request.json;
+    description = data.get('description')
+    title = data.get('title')
+
+    if not description:
+        return jsonify({"error": "Job description is required"}), 400
+
+    recruiter_service = RecruiterService()
+    processed_description = recruiter_service.process_job_description_openai(title, description);
+
+    if processed_description:
+        return jsonify(processed_description), 200
+    else:
+        return jsonify({"error": "Failed to process job description"}), 500
+
+# Add Job Route
+@recruiter_blueprint.route('/api/add_job', methods=['POST'])
+def add_job():
+    if 'user' not in session or session['user']['type'] != 'recruiter':
+        return jsonify({"error": "Unauthorized access"}), 401
+
+    recruiter_service = RecruiterService()
+    job_data = request.json
+    job_data['recruiter_id'] = session['user']['recruiter_id']
+
+    # Extract individual fields from job_data
+    recruiter_id = job_data.get('recruiter_id')
+    company_id = job_data.get('company_id')
+    title = job_data.get('title')
+    description = job_data.get('description')
+    job_type = job_data.get('job_type')
+    industry = job_data.get('industry')
+    salary_range = job_data.get('salary_range')
+    salary_type = job_data.get('salary_type')
+    work_location = job_data.get('work_location')
+    min_experience_years = job_data.get('min_experience_years')
+    city = job_data.get('city')
+    state = job_data.get('state')
+    country = job_data.get('country')
+    jobpost_url = job_data.get('jobpost_url')
+    work_rights = job_data.get('work_rights')
+
+    # Call the service method with individual arguments
+    new_job, error = recruiter_service.add_job(
+        recruiter_id, 
+        company_id, 
+        title, 
+        description, 
+        job_type, 
+        industry, 
+        salary_range, 
+        salary_type, 
+        work_location, 
+        min_experience_years, 
+        city, 
+        state, 
+        country, 
+        jobpost_url, 
+        work_rights
+    )
+
+    if new_job:
+        return jsonify({"message": "Job added successfully", "job_id": new_job.job_id}), 200
+    else:
+        return jsonify({"error": f"Failed to add job: {error}"}), 400
+    
 # Update Job Route
 @recruiter_blueprint.route('/api/update_job/<int:job_id>', methods=['POST'])
 def update_job(job_id):
@@ -221,13 +254,6 @@ def update_job(job_id):
     Route for updating an existing job post.
     
     POST: Extracts JSON data and calls the 'update_job' method of the RecruiterService.
-    POST: Extracts JSON data and calls the 'update_job' method of the RecruiterService.
-    
-    Returns:
-        - JSON response with a success message.
-        - JSON response with a success message.
-        - 401 Unauthorized error if the user is not a recruiter or does not have access to the job post.
-        - 404 Not Found error if the job post does not exist.
     """
     if 'user' not in session or session['user']['type'] != 'recruiter':
         return jsonify({"error": "Unauthorized access"}), 401
@@ -264,77 +290,7 @@ def update_job(job_id):
         return jsonify({"message": "Job updated successfully"})
     else:
         return jsonify({"error": "Job not found"}), 404
-
-# Get All Companies Objects
-@recruiter_blueprint.route('/api/companies', methods=['GET'])
-def get_companies():
-    companies = Company.query.all()
-    company_list = [{"name": company.name} for company in companies]
-    return jsonify(company_list), 200
-
-# Update Recruiter's Company ie Create Association with Recruiter's Employer
-@recruiter_blueprint.route('/api/register/employer/update_company', methods=['POST'])
-def update_recruiter_company():
-    if "user" in session and session["user"]["type"] == "recruiter":
-        recruiter_id = session["user"]["recruiter_id"]
-        recruiter = Recruiter.query.get(recruiter_id)
-
-        if recruiter:
-            data = request.get_json()
-            company_name = data.get('company')
-            company = Company.query.filter_by(name=company_name).first()
-
-            if company:
-                recruiter.company_id = company.id
-                db.session.commit()
-
-                return jsonify({"message": "Recruiter company updated successfully"}), 200
-            else:
-                return jsonify({"message": "Company not found"}), 404
-        else:
-            return jsonify({"message": "Recruiter not found"}), 404
-    else:
-        return jsonify({"message": "Unauthorized"}), 401
     
-# Create Recruiter's Company if Company not present in DB
-@recruiter_blueprint.route('/api/register/employer/create_company', methods=['POST'])
-def create_company():
-    if "user" in session and session["user"]["type"] == "recruiter":
-        recruiter_id = session["user"]["recruiter_id"]
-        recruiter = Recruiter.query.get(recruiter_id)
-
-        if recruiter:
-            data = request.form
-
-            # Handle file upload for the logo
-            logo_file = request.files.get('logo')
-            logo_path = None
-            if logo_file:
-                logo_filename = secure_filename(logo_file.filename)
-                logo_path = os.path.join(current_app.config['UPLOAD_FOLDER'], logo_filename)
-                logo_file.save(logo_path)
-
-            new_company = Company(
-                name=data.get('employerName'),
-                website_url=data.get('employerWebsite'),
-                country=data.get('country'),
-                size=data.get('employerSize'),
-                address=data.get('employerAddress'),
-                description=data.get('employerDescription'),
-                logo_url=logo_path  # Assuming you have a field for logo URL
-            )
-            db.session.add(new_company)
-            db.session.commit()
-
-            recruiter.company_id = new_company.company_id
-            db.session.commit()
-
-            return jsonify({"message": "Company created and recruiter updated successfully"}), 200
-        else:
-            return jsonify({"message": "Recruiter not found"}), 404
-    else:
-        return jsonify({"message": "Unauthorized"}), 404
-
 # Remove Job Post of a Recruiter
 @recruiter_blueprint.route('/api/remove-job-by-recruiter/<int:job_id>', methods=['POST'])
 def remove_job(job_id):
@@ -353,3 +309,53 @@ def remove_job(job_id):
             return jsonify({"error": "Job not found or unauthorized"}), 404
     else:
         return jsonify({"message": "Unauthorized"}), 401
+
+
+@recruiter_blueprint.route('/api/companies', methods=['GET'])
+def get_companies():
+    page = int(request.args.get('page', 1))
+    page_size = int(request.args.get('page_size', 10))
+    search = request.args.get('search', '')
+
+    recruiter_service = RecruiterService()
+    companies, total_companies = recruiter_service.get_companies_with_pagination(page, page_size, search)
+
+    return jsonify({
+        'companies': companies,
+        'total_companies': total_companies
+    })
+
+@recruiter_blueprint.route('/api/company/<int:company_id>', methods=['GET'])
+def get_company_details(company_id):
+    recruiter_service = RecruiterService()
+    company_details = recruiter_service.get_company_details(company_id)
+    if company_details:
+        return jsonify(company_details), 200
+    else:
+        return jsonify({"error": "Company not found"}), 404
+    
+
+# Add Job Route
+@recruiter_blueprint.route('/api/add_job_ai', methods=['POST'])
+def add_job_programmatically():
+    if 'user' not in session or session['user']['type'] != 'recruiter':
+        return jsonify({"error": "Unauthorized access"}), 401
+
+    recruiter_service = RecruiterService()
+    job_data = request.json
+    recruiter_id = session['user']['recruiter_id']
+    
+    # Fetch the recruiter to get the company_id
+    recruiter = Recruiter.query.get(recruiter_id)
+    if not recruiter or not recruiter.company_id:
+        return jsonify({"error": "Recruiter has not associated with their Company yet"}), 400
+
+    job_data['recruiter_id'] = recruiter_id
+    job_data['company_id'] = recruiter.company_id
+
+    new_job, error = recruiter_service.add_job_programmatically(job_data)
+
+    if new_job:
+        return jsonify({"message": "Job added successfully", "job_data": new_job.job_id}), 200
+    else:
+        return jsonify({"error": f"Failed to add job: {error}"}), 400

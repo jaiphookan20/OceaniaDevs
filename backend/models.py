@@ -92,6 +92,13 @@ class Job(db.Model):
     updated_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
     search_vector = db.Column(TSVECTOR)
     embedding = db.Column(Vector(1536))
+    overview = db.Column(db.Text)  # New field
+    responsibilities = db.Column(db.Text)  # New field
+    requirements = db.Column(db.Text)  # New field
+    job_arrangement = db.Column(db.String(255))  # New field
+    contract_duration =  db.Column(db.String(255))  # New field
+    hourly_range=db.Column(db.String(255))  # New field
+    daily_range=db.Column(db.String(255))  # New field
 
 class Candidate(db.Model):
     __tablename__ = 'candidates'

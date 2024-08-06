@@ -202,7 +202,7 @@ const technologies = [
   "trello",
 ];
 
-const TechnologyDropdown = ({ selectedTechnology, setSelectedTechnology }) => {
+const TechnologyDropdown = ({ selectedTechnologies, setSelectedTechnologies }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -211,26 +211,29 @@ const TechnologyDropdown = ({ selectedTechnology, setSelectedTechnology }) => {
   );
 
   const handleSelect = (tech) => {
-    setSelectedTechnology(tech);
-    setDropdownOpen(false);
+    if (selectedTechnologies.includes(tech)) {
+      setSelectedTechnologies(selectedTechnologies.filter(t => t !== tech));
+    } else {
+      setSelectedTechnologies([...selectedTechnologies, tech]);
+    }
   };
 
   return (
     <div className="relative">
       <button
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className="border rounded-lg px-16 py-2 text-gray-600"
+        className="rounded-lg px-16 py-2 border border-green-300 bg-green-50 text-green-700 hover:bg-lime-200"
       >
-        Technologies
+        Technologies ({selectedTechnologies.length})
       </button>
       {dropdownOpen && (
         <div className="absolute mt-1 w-full bg-white border rounded-lg shadow-lg">
           <div className="mt-1 pr-3 text-center">
             <button
-              onClick={() => setDropdownOpen(false)}
+              onClick={() => setSelectedTechnologies([])}
               className="text-purple-500 hover:underline"
             >
-              Clear
+              Clear All
             </button>
           </div>
           <div className="pl-1 pr-1 pb-2">
@@ -246,7 +249,9 @@ const TechnologyDropdown = ({ selectedTechnology, setSelectedTechnology }) => {
             {filteredTechnologies.map((tech, index) => (
               <div
                 key={index}
-                className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
+                className={`flex items-center p-2 hover:bg-gray-100 cursor-pointer ${
+                  selectedTechnologies.includes(tech) ? "bg-purple-100" : ""
+                }`}
                 onClick={() => handleSelect(tech)}
               >
                 <img

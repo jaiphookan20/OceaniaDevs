@@ -7,6 +7,9 @@ while ! nc -z $DB_HOST 5432; do
 done
 echo "PostgreSQL started"
 
+# Wait an additional 5 seconds for the init script to complete
+sleep 5
+
 # Run migrations
 flask db upgrade
 

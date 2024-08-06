@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { icons } from "../data/tech-icons";
+import JobPostSideBar from "./JobPostSideBar";
 
 const JobListing = ({ onSave, onApply }) => {
   const { jobId } = useParams();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const technologiesRef = useRef(null);
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -37,15 +39,23 @@ const JobListing = ({ onSave, onApply }) => {
     return <div>{error}</div>;
   }
 
+  const techStackIcons = job.tech_stack.filter(tech => icons[tech.toLowerCase()]);
+  const scrollToTechnologies = () => {
+    technologiesRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Helper function to ensure we're working with an array
+  const ensureArray = (data) => Array.isArray(data) ? data : [data];
+
   return (
     <div className="flex flex-col max-w-6xl mx-auto min-h-screen justify-center">
       <div className="flex-grow container mx-auto bg-white shadow-md rounded-lg border-t">
-        <header className="flex justify-between pb-1 mb-4">
+      <header className="flex justify-between pb-1 mb-4">
           <div className="flex items-center">
             <img src={job.logo} alt={job.company} className="p-6 max-w-32" />
           </div>
-          <div className="flex mt-4 space-x-4 pr-4">
-            {job.tech_stack.map((tech) => (
+          <div className="flex mt-4 space-x-4 pr-4 items-center">
+            {techStackIcons.slice(0, 5).map((tech) => (
               <div
                 key={tech}
                 className="p-2 rounded-md flex items-center space-x-2"
@@ -57,6 +67,14 @@ const JobListing = ({ onSave, onApply }) => {
                 />
               </div>
             ))}
+            {techStackIcons.length > 5 && (
+              <div 
+                className="cursor-pointer bg-slate-600 text-white text-4xl rounded-full w-16 h-16 flex items-center justify-center text-3xl font-bold text-gray-600 hover:bg-gray-300"
+                onClick={scrollToTechnologies}
+              >
+                +
+              </div>
+            )}
           </div>
         </header>
         <div className="ml-4">
@@ -65,97 +83,99 @@ const JobListing = ({ onSave, onApply }) => {
             {job.company}
           </h3>
           <p className="text-gray-500 mt-2 text-xl">
-            Mezmo, formerly LogDNA, is a comprehensive platform that makes
-            observability data consumable and actionable.
+          Established in April 2001, Genesis IT is a specialist permanent, fixed-term, and contract IT recruitment business.
           </p>
-          <div className="flex justify-between mt-2 pt-2 p-2">
-            <div className="flex items-center space-x-2">
-              <img
-                width="36"
-                height="36"
-                src="https://img.icons8.com/?size=100&id=Z3STIRU4hxMn&format=png&color=000000"
-                alt="company"
-              />
-              <p className="text-gray-500 text-1xl">{job.industry}</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <img
-                width="36"
-                height="36"
-                src="https://img.icons8.com/?size=100&id=3BUZy0U5CdQL&format=png&color=000000"
-                alt="experience"
-              />
-              <p className="text-gray-500">{job.experience_level}</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <img
-                width="36"
-                height="36"
-                src="https://img.icons8.com/?size=100&id=tUxN1SSkN8zG&format=png&color=000000"
-                alt="salary"
-              />
-              <p className="text-gray-500">{job.salary_range} USD</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <img
-                width="36"
-                height="36"
-                src="https://img.icons8.com/?size=100&id=HvkLiNNdKM33&format=png&color=000000"
-                alt="location"
-              />
-              <p className="text-gray-500">{job.location}</p>
-            </div>
-          </div>
         </div>
-        <div className="flex justify-between items-between pb-20">
-          <div className="w-2/3 pl-8 pr-2">
+        <div className="grid grid-cols-4 gap-6 mt-6 p-4 bg-violet-50 rounded-md shadow-sm">
+  {[
+    { icon: "https://img.icons8.com/?size=100&id=Z3STIRU4hxMn&format=png&color=000000", label: "Industry", value: job.industry },
+    { icon: "https://img.icons8.com/?size=100&id=3BUZy0U5CdQL&format=png&color=000000", label: "Experience", value: job.experience_level },
+    { icon: "https://img.icons8.com/?size=100&id=tUxN1SSkN8zG&format=png&color=000000", label: "Salary", value: `${job.salary_range} AUD` },
+    { icon: "https://img.icons8.com/?size=100&id=HvkLiNNdKM33&format=png&color=000000", label: "Location", value: job.location },
+    { icon: "https://img.icons8.com/?size=100&id=bnRjsA4q33Cw&format=png&color=000000", label: "Min. Experience", value: `${job.min_experience_years} Years` },
+    { icon: "https://img.icons8.com/?size=100&id=KDmZN631Ig1j&format=png&color=000000", label: "Specialization", value: job.specialization },
+    { icon: "https://img.icons8.com/?size=100&id=aUSV1wxr8mk2&format=png&color=000000", label: "Work Location", value: job.work_location },
+    { icon: "https://img.icons8.com/?size=100&id=8Y1SrtCBXvmA&format=png&color=000000", label: "Job Arrangement", value: job.job_arrangement }
+  ].map((item, index) => (
+    <div key={index} className="flex flex-col items-center p-2 bg-white rounded-md shadow-sm transition-all duration-300 hover:shadow-md">
+      <img
+        width="40"
+        height="40"
+        src={item.icon}
+        alt={item.label}
+        className="mb-2"
+      />
+      <p className="text-sm text-gray-600 mb-1">{item.label}</p>
+      <p className="text-md font-semibold text-gray-700 text-center" style={{ fontFamily: "Space Mono, sans-serif" }}>{item.value}</p>
+    </div>
+  ))}
+</div>
+        <div className="flex justify-between items-between pb-20" 
+        >
+          <div className="w-3/4 pl-8 pr-2">
             <section className="mt-6">
-              <h2 className="text-2xl font-semibold mt-4 mb-1">
+              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800">
                 About the role
               </h2>
-              <p className="mt-2 text-gray-700 text-md leading-loose">
-                {job.description}
+              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Space Mono, sans-serif" }}>
+                {job.overview}
               </p>
+            </section>
+            <section className="mt-6">
+              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800" >
+                Responsibilities
+              </h2>
+              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Space Mono, sans-serif" }}>
+                {job.responsibilities}
+                {/* {"Build and maintain products using Node.js, React, and JavaScript / TypeScript.","Develop, test, and document APIs in Python and JavaScript / TypeScript.","Collaborate closely with all teams to understand requirements for new product features.","Partner with design and product colleagues for accessible and secure user experiences.","Review and provide feedback on code from team members.","Stay current with industry best practices and emerging technologies."} */}
+                {/* <li> Build and maintain products using Node.js, React, and JavaScript / TypeScript </li>
+                <li> Develop, test, and document APIs in Python and JavaScript / TypeScript. </li>
+                <li> Collaborate closely with all teams to understand requirements for new product features. </li>
+                <li> Partner with design and product colleagues for accessible and secure user experiences.</li>                
+                <li> Review and provide feedback on code from team members </li> */}
+              </p>
+            </section>
+            <section className="mt-6">
+              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800" >
+                Requirements
+              </h2>
+              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Space Mono, sans-serif" }}>
+                {job.requirements}
+                {/* <li> Bachelor’s degree in computer science or equivalent practical experience. </li>
+                <li>Minimum 5 years of software development experience with a solid understanding of design patterns and the ability to architect maintainable, high-performance platforms</li>
+                <li> Minimum 3 years of experience with Python or Node.js. </li>
+                <li> Experience with Python web frameworks such as Django, Flask, or FastAPI </li>
+                <li> Experience with unit and integration testing using Jest and the React Testing Library.</li>                
+                <li> Experience with web API development (GraphQL, RESTful). </li>
+                <li> Experience building and working with UI Component Libraries. </li> */}
+              </p>
+            </section>
+            <section ref={technologiesRef} className="mt-6">
+              <h2 className="text-3xl font-bold mt-4 mb-1 text-violet-600 bg-violet-50">
+                Tech Stack
+              </h2>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 mt-4">
+                {techStackIcons.map((tech) => (
+                  <div
+                    key={tech}
+                    className="flex flex-col items-center justify-center p-2 rounded-md"
+                  >
+                    <img
+                      src={icons[tech.toLowerCase()]}
+                      alt={tech}
+                      className="w-16 h-16"
+                    />
+                    <span className="mt-2 text-md text-slate-700 font-semibold text-center">{tech}</span>
+                  </div>
+                ))}
+              </div>
             </section>
           </div>
           <div className="w-1/4 p-4">
-            <div className="border rounded-md p-4 mb-6">
-              <div className="flex justify-between items-center"></div>
-              <button
-                className="w-full mt-4 bg-[#c3f53c] text-lime-700 shadow-md border border-green-500 px-4 py-2 rounded-md"
-                onClick={() => onApply(job.job_id)}
-              >
-                Apply now
-              </button>
-              <button
-                className="w-full mt-4 bg-black shadow-md text-white px-4 py-2 rounded-md"
-                onClick={() => onSave(job.job_id)}
-              >
-                Bookmark Job
-              </button>
-            </div>
-            <div className="border p-4">
-              <h3 className="text-lg font-semibold">About the job</h3>
-              <p className="mt-2 text-gray-700">
-                <strong>Apply before:</strong> Aug 10, 2024
-              </p>
-              <p className="text-gray-700">
-                <strong>Posted on:</strong> Jun 11, 2024
-              </p>
-              <p className="text-gray-700">
-                <strong>Job type:</strong> Full Time
-              </p>
-              <p className="text-gray-700">
-                <strong>Experience level:</strong> Senior
-              </p>
-              <p className="text-gray-700">
-                <strong>Salary:</strong> 160k-200k USD
-              </p>
-            </div>
+            <JobPostSideBar job={job}/>
           </div>
         </div>
       </div>
-      {/* <Footer /> */}
     </div>
   );
 };

@@ -4,6 +4,12 @@
 -- Create the vector extension
 CREATE EXTENSION IF NOT EXISTS vector;
 
+-- Create the text search configuration
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- Log the start of the script execution
+\echo 'Starting init-pgvector.sql execution'
+
 -- Create enum types
 DO $$
 BEGIN
@@ -44,3 +50,69 @@ BEGIN
         );
     END IF;
 END$$;
+
+-- Create or replace the function to update the search_vector
+CREATE OR REPLACE FUNCTION jobs_search_vector_update() RETURNS trigger AS $$
+BEGIN
+  NEW.search_vector :=
+    setweight(to_tsvector('english', coalesce(NEW.title,'')), 'A') ||
+    setweight(to_tsvector('english', coalesce(NEW.description,'')), 'C') ||
+    -- setweight(to_tsvector('english', coalesce(NEW.specialization,'')), 'C') ||
+    -- setweight(to_tsvector('english', coalesce(NEW.city,'')), 'D') ||
+    -- setweight(to_tsvector('english', coalesce(NEW.state::text,'')), 'D') ||
+    -- setweight(to_tsvector('english', coalesce(NEW.country::text,'')), 'D') ||
+    setweight(to_tsvector('english', coalesce(array_to_string(NEW.tech_stack, ' '),'')), 'C');
+  RETURN NEW;
+END
+$$ LANGUAGE plpgsql;
+
+-- Log function creation
+\echo 'Function jobs_search_vector_update created'
+
+-- Drop the trigger if it exists and recreate it
+DROP TRIGGER IF EXISTS jobs_search_vector_update ON jobs;
+CREATE TRIGGER jobs_search_vector_update
+BEFORE INSERT OR UPDATE ON jobs
+FOR EACH ROW EXECUTE FUNCTION jobs_search_vector_update();
+
+-- Log trigger creation
+\echo 'Trigger jobs_search_vector_update created'
+
+-- Add search_vector column if it doesn't exist
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_name = 'jobs' AND column_name = 'search_vector'
+  ) THEN
+    ALTER TABLE jobs ADD COLUMN search_vector tsvector;
+    RAISE NOTICE 'search_vector column added to jobs table';
+  ELSE
+    RAISE NOTICE 'search_vector column already exists in jobs table';
+  END IF;
+END$$;
+
+-- Create a GIN index on the search_vector for faster searching
+CREATE INDEX IF NOT EXISTS jobs_search_vector_idx ON jobs USING GIN (search_vector);
+
+-- Log index creation
+\echo 'GIN index jobs_search_vector_idx created or already exists'
+
+-- Update existing rows
+UPDATE jobs SET search_vector = NULL;
+UPDATE jobs SET
+  search_vector = 
+    setweight(to_tsvector('english', coalesce(title,'')), 'A') ||
+    setweight(to_tsvector('english', coalesce(description,'')), 'C') ||
+    -- setweight(to_tsvector('english', coalesce(specialization,'')), 'C') ||
+    -- setweight(to_tsvector('english', coalesce(city,'')), 'D') ||
+    -- setweight(to_tsvector('english', coalesce(state::text,'')), 'D') ||
+    -- setweight(to_tsvector('english', coalesce(country::text,'')), 'D') ||
+    setweight(to_tsvector('english', coalesce(array_to_string(tech_stack, ' '),'')), 'B');
+
+-- Log completion of updates
+\echo 'Existing rows updated with search_vector'
+
+-- Log the end of the script execution
+\echo 'Finished init-pgvector.sql execution'
