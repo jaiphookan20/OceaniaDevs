@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main
+      - llama-new
 
 jobs:
   build:
@@ -72,4 +72,4 @@ jobs:
       # Uncomment the following step when SSH connection is successful #
       - name: Restart Docker containers
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && docker-compose -f docker-compose.yml -f docker-compose.prod.yml down && docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && docker-compose -f docker-compose.prod.yml down && docker-compose -f docker-compose.prod.yml up -d --build"

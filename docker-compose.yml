@@ -1,144 +1,146 @@
-services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    volumes:
-      - ./backend:/app
-      - ./backend/uploads:/app/uploads
-    environment:
-      - FLASK_APP=app.py
-      - DB_HOST=postgres
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - SECRET_KEY=${SECRET_KEY}
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_started
-
-  postgres:
-    build:
-      context: ./postgres
-      dockerfile: Dockerfile
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:6
-    ports:
-      - "6379:6379"
-
-  nginx:
-    build: ./nginx
-    ports:
-      - "80:80"
-    volumes:
-    # Mount the Nginx configuration file
-      # - frontend_build:/usr/share/nginx/html
-      - ./nginx/job-board.conf:/etc/nginx/conf.d/default.conf
-      - ./backend/uploads:/app/uploads
-      # - ./frontend/build:/app/frontend/build # Mount the build directory
-    depends_on:
-      - backend
-
-volumes:
-  # frontend_build:
-  postgres_data: # named volume is managed by Docker and persists across container restarts
-
 # services:
-#   frontend:
-#     build: ./frontend # Build the frontend service from the Dockerfile in the ./frontend directory
-#     volumes:
-#       # Bind mount for live updates during development
-#       - ./frontend:/app
-#       # Anonymous volume to prevent overwriting node_modules with the bind mount
-#       - /app/node_modules
-#     environment:
-#       # Set the API URL for the frontend to communicate with the backend
-#       - REACT_APP_API_URL=http://54.79.190.69/api
-#     # command: npm start # Command to run the development server
-#     depends_on:
-#       - backend # Ensure backend is started before frontend
-
 #   backend:
 #     build:
-#       context: ./backend # Set the build context to the backend directory
-#       dockerfile: Dockerfile # Specify the Dockerfile to use
+#       context: ./backend
+#       dockerfile: Dockerfile
 #     volumes:
-#       # Bind mount the entire backend directory for development
 #       - ./backend:/app
-#       # Bind mount for uploads, allowing persistence and easy access from host
 #       - ./backend/uploads:/app/uploads
 #     environment:
-#       # Set environment variables for the backend service
 #       - FLASK_APP=app.py
-#       - FLASK_ENV=production
 #       - DB_HOST=postgres
-#       #- DB_HOST=localhost
-#       - DB_NAME=job_board
-#       - DB_USER=jai
-#       - DB_PASSWORD=techboard
+#       - DB_NAME=${DB_NAME}
+#       - DB_USER=${DB_USER}
+#       - DB_PASSWORD=${DB_PASSWORD}
 #       - REDIS_HOST=redis
 #       - REDIS_PORT=6379
-#       - SECRET_KEY=${SECRET_KEY:-1234567890} # Use env variable or default
-#     ports:
-#       - "4040:4040" # Map host port 4040 to container port 4040
+#       - SECRET_KEY=${SECRET_KEY}
 #     depends_on:
-#       # Ensure database services are started before backend
-#       - postgres
-#       - redis
+#       postgres:
+#         condition: service_healthy
+#       redis:
+#         condition: service_started
 
 #   postgres:
 #     build:
 #       context: ./postgres
 #       dockerfile: Dockerfile
 #     environment:
-#       # Set environment variables for PostgreSQL
-#       POSTGRES_DB: job_board
-#       POSTGRES_USER: jai
-#       POSTGRES_PASSWORD: techboard
+#       POSTGRES_DB: ${DB_NAME}
+#       POSTGRES_USER: ${DB_USER}
+#       POSTGRES_PASSWORD: ${DB_PASSWORD}
 #     volumes:
-#       # Use a named volume for PostgreSQL data persistence
 #       - postgres_data:/var/lib/postgresql/data
 #     ports:
-#       - "5432:5432" # Map host port 5432 to container port 5432
+#       - "5432:5432"
+#     healthcheck:
+#       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+#       interval: 5s
+#       timeout: 5s
+#       retries: 5
 
 #   redis:
-#     image: redis:6 # Use the official Redis 6 image
+#     image: redis:6
 #     ports:
-#       - "6379:6379" # Map host port 6379 to container port 6379
+#       - "6379:6379"
 
 #   nginx:
-#     build: ./nginx # Build the nginx service using the Dockerfile in ./nginx
+#     build: ./nginx
 #     ports:
-#       - "80:80" # Map host port 80 to container port 80
+#       - "80:80"
 #     volumes:
-#       # Mount the Nginx configuration file
+#     # Mount the Nginx configuration file
+#       # - frontend_build:/usr/share/nginx/html
 #       - ./nginx/job-board.conf:/etc/nginx/conf.d/default.conf
-#       # Bind mount for uploads, allowing Nginx to serve uploaded files
 #       - ./backend/uploads:/app/uploads
+#       # - ./frontend/build:/app/frontend/build # Mount the build directory
 #     depends_on:
-#       # Ensure application services are started before Nginx
-#       - frontend
 #       - backend
 
 # volumes:
-#   # Define a named volume for PostgreSQL data persistence
-#   postgres_data:
-#     # This volume is managed by Docker and persists across container restarts
+#   # frontend_build:
+#   postgres_data: # named volume is managed by Docker and persists across container restarts
+
+
+
+# # services:
+# #   frontend:
+# #     build: ./frontend # Build the frontend service from the Dockerfile in the ./frontend directory
+# #     volumes:
+# #       # Bind mount for live updates during development
+# #       - ./frontend:/app
+# #       # Anonymous volume to prevent overwriting node_modules with the bind mount
+# #       - /app/node_modules
+# #     environment:
+# #       # Set the API URL for the frontend to communicate with the backend
+# #       - REACT_APP_API_URL=http://54.79.190.69/api
+# #     # command: npm start # Command to run the development server
+# #     depends_on:
+# #       - backend # Ensure backend is started before frontend
+
+# #   backend:
+# #     build:
+# #       context: ./backend # Set the build context to the backend directory
+# #       dockerfile: Dockerfile # Specify the Dockerfile to use
+# #     volumes:
+# #       # Bind mount the entire backend directory for development
+# #       - ./backend:/app
+# #       # Bind mount for uploads, allowing persistence and easy access from host
+# #       - ./backend/uploads:/app/uploads
+# #     environment:
+# #       # Set environment variables for the backend service
+# #       - FLASK_APP=app.py
+# #       - FLASK_ENV=production
+# #       - DB_HOST=postgres
+# #       #- DB_HOST=localhost
+# #       - DB_NAME=job_board
+# #       - DB_USER=jai
+# #       - DB_PASSWORD=techboard
+# #       - REDIS_HOST=redis
+# #       - REDIS_PORT=6379
+# #       - SECRET_KEY=${SECRET_KEY:-1234567890} # Use env variable or default
+# #     ports:
+# #       - "4040:4040" # Map host port 4040 to container port 4040
+# #     depends_on:
+# #       # Ensure database services are started before backend
+# #       - postgres
+# #       - redis
+
+# #   postgres:
+# #     build:
+# #       context: ./postgres
+# #       dockerfile: Dockerfile
+# #     environment:
+# #       # Set environment variables for PostgreSQL
+# #       POSTGRES_DB: job_board
+# #       POSTGRES_USER: jai
+# #       POSTGRES_PASSWORD: techboard
+# #     volumes:
+# #       # Use a named volume for PostgreSQL data persistence
+# #       - postgres_data:/var/lib/postgresql/data
+# #     ports:
+# #       - "5432:5432" # Map host port 5432 to container port 5432
+
+# #   redis:
+# #     image: redis:6 # Use the official Redis 6 image
+# #     ports:
+# #       - "6379:6379" # Map host port 6379 to container port 6379
+
+# #   nginx:
+# #     build: ./nginx # Build the nginx service using the Dockerfile in ./nginx
+# #     ports:
+# #       - "80:80" # Map host port 80 to container port 80
+# #     volumes:
+# #       # Mount the Nginx configuration file
+# #       - ./nginx/job-board.conf:/etc/nginx/conf.d/default.conf
+# #       # Bind mount for uploads, allowing Nginx to serve uploaded files
+# #       - ./backend/uploads:/app/uploads
+# #     depends_on:
+# #       # Ensure application services are started before Nginx
+# #       - frontend
+# #       - backend
+
+# # volumes:
+# #   # Define a named volume for PostgreSQL data persistence
+# #   postgres_data:
+# #     # This volume is managed by Docker and persists across container restarts
