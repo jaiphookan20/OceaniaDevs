@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import JobSection from "./JobSection";
 import SearchBar from "./SearchBar";
 import SearchPageHeader from "./SearchPageHeader";
 import SearchPageJobSection from "./SearchPageJobSection";
@@ -27,7 +26,7 @@ const SearchPage = ({
 
   return (
     <div className="max-w-6xl mx-auto">
-       <SearchPageHeader title={title} />
+      <SearchPageHeader title={title} />
       <SearchBar
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}

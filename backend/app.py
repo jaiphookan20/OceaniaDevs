@@ -142,11 +142,11 @@ def create_app():
     def before_request():
         app.logger.info(f"Request path: {request.path}")
         app.logger.info(f"Request method: {request.method}")
-        app.logger.info(f"Session before request: {session}")
+        # app.logger.info(f"Session before request: {session}")
 
     @app.after_request
     def after_request(response):
-        app.logger.info(f"Session after request: {session}")
+        # app.logger.info(f"Session after request: {session}")
         return response
 
     @app.errorhandler(RedisError)
