@@ -178,17 +178,18 @@ def process_job_description():
     
 @recruiter_blueprint.route('/api/process_job_description_with_openai', methods=['POST'])
 def process_job_description_with_openai():
-    # if 'user' not in session or session['user']['type'] != 'recruiter':
-    #     return jsonify({"error": "Unauthorized access"}), 401
+    if 'user' not in session or session['user']['type'] != 'recruiter':
+        return jsonify({"error": "Unauthorized access"}), 401
 
-    data = request.json
+    data = request.json;
     description = data.get('description')
+    title = data.get('title')
 
     if not description:
         return jsonify({"error": "Job description is required"}), 400
 
     recruiter_service = RecruiterService()
-    processed_description = recruiter_service.process_job_description_openai(description)
+    processed_description = recruiter_service.process_job_description_openai(title, description);
 
     if processed_description:
         return jsonify(processed_description), 200
@@ -332,3 +333,29 @@ def get_company_details(company_id):
         return jsonify(company_details), 200
     else:
         return jsonify({"error": "Company not found"}), 404
+    
+
+# Add Job Route
+@recruiter_blueprint.route('/api/add_job_ai', methods=['POST'])
+def add_job_programmatically():
+    if 'user' not in session or session['user']['type'] != 'recruiter':
+        return jsonify({"error": "Unauthorized access"}), 401
+
+    recruiter_service = RecruiterService()
+    job_data = request.json
+    recruiter_id = session['user']['recruiter_id']
+    
+    # Fetch the recruiter to get the company_id
+    recruiter = Recruiter.query.get(recruiter_id)
+    if not recruiter or not recruiter.company_id:
+        return jsonify({"error": "Recruiter has not associated with their Company yet"}), 400
+
+    job_data['recruiter_id'] = recruiter_id
+    job_data['company_id'] = recruiter.company_id
+
+    new_job, error = recruiter_service.add_job_programmatically(job_data)
+
+    if new_job:
+        return jsonify({"message": "Job added successfully", "job_data": new_job.job_id}), 200
+    else:
+        return jsonify({"error": f"Failed to add job: {error}"}), 400

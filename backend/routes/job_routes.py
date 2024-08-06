@@ -12,6 +12,7 @@ from flask_caching import Cache
 from sqlalchemy import and_, func, or_
 from extensions import cache
 from utils.technologies import icons
+import json
 import os
 import config
 
@@ -28,11 +29,25 @@ def get_job_post_page(job_id):
     
     if not job or not company:
         return jsonify({"error": "Job or company not found"}), 404
+    
+    # Helper function to parse text to list
+    def parse_text_to_list(text):
+        if not text:
+            return []
+        try:
+            # Try to parse as JSON first
+            return json.loads(text)
+        except json.JSONDecodeError:
+            # If not JSON, split by newlines and remove empty strings
+            return [item.strip() for item in text.split('\n') if item.strip()]
 
     job_data = {
         'job_id': job.job_id,
         'title': job.title,
         'company': company.name,
+        'overview': job.overview,
+        'responsibilities': parse_text_to_list(job.responsibilities),
+        'requirements': parse_text_to_list(job.requirements),
         'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
         'industry': job.industry,
         'salary_range': job.salary_range,
@@ -49,6 +64,11 @@ def get_job_post_page(job_id):
         'work_rights': job.work_rights,
         'description': job.description,
         'tech_stack': job.tech_stack,
+        'daily_range': job.daily_range,
+        'hourly_range': job.hourly_range,
+        'contract_duration':job.contract_duration,
+        'job_arrangement': job.job_arrangement,
+
     }
 
     return jsonify(job_data)
@@ -92,6 +112,7 @@ def get_all_jobs():
             'created_at': get_relative_time(job.Job.created_at.strftime('%Y-%m-%d')),
             'tech_stack': job.Job.tech_stack
         }
+        current_app.logger.info(f"Job Data: {job_data}")
         jobs_data.append(job_data)
     
     # Return the job data, page info, and total job count

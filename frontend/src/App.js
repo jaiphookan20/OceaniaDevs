@@ -24,6 +24,7 @@ import TrendingCompanies from "./components/TrendingCompanies";
 import SearchPageBar from "./components/SearchPage";
 import SearchPage from "./components/SearchPage";
 import CompaniesPage from "./components/CompaniesPage";
+import PostJobWithAI from "./recruiter/PostJobWithAI";
 
 const App = () => {
   const [jobs, setJobs] = useState([]);
@@ -190,7 +191,7 @@ const App = () => {
     });
   };
 
-  const fetchJobs = async (page = 1, pageSize = 10) => {
+  const fetchJobs = async (page = 1, pageSize = 12) => {
     try {
       const response = await fetch(
         `/api/alljobs?page=${page}&page_size=${pageSize}`,
@@ -468,6 +469,7 @@ const App = () => {
         <Route path="/recruiter-dashboard" element={<RecruiterDashboard />} />
         <Route path="/edit-job/:jobId" element={<EditJob />} />
         <Route path="/employer/post-job" element={<PostJob />} />
+        <Route path="/employer/post-job-ai" element={<PostJobWithAI />} />
         <Route
           path="/employer/add-details"
           element={<RecruiterPersonalDetails />}
