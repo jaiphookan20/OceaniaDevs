@@ -163,12 +163,12 @@ const Navbar = () => {
             >
               Recruiter Login
             </button>
-            <button
+            {/* <button
               className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
               onClick={() => (window.location.href = "/login/recruiter")}
             >
               Recruiter Sign-Up
-            </button>
+            </button> */}
           </>
         )}
 
@@ -284,17 +284,17 @@ const Navbar = () => {
         ) : (
           <>
             <button
-              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100"
+              className="px-4 py-2 text-gray-600 border border-gray-300 bg-black text-white rounded-md hover:bg-gray-100"
               onClick={() => (window.location.href = "/login/seeker")}
             >
               Log In
             </button>
-            <button
+            {/* <button
               className="px-4 py-2 text-white bg-black rounded-md hover:bg-violet-400"
               onClick={() => (window.location.href = "/login/seeker")}
             >
               Sign Up
-            </button>
+            </button> */}
           </>
         )}
       </div>
