@@ -34,7 +34,7 @@ const CompanyJobCard = ({ job, onSave, onApply, onView, company }) => {
             Save
           </button>
           <button
-            className="px-4 py-2 bg-violet-400 hover:bg-violet-700 text-white rounded-md"
+            className="px-4 py-2 bg-black hover:bg-violet-700 text-white rounded-md"
             onClick={() => onApply(job.job_id)}
           >
             Apply
