@@ -1,43 +1,35 @@
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { FaMapMarkerAlt, FaBriefcase } from 'react-icons/fa';
-
 const CompanyCard = ({ company }) => {
   const navigate = useNavigate();
-  
-  const handleClick = () => {
-    navigate(`/company/${company.company_id}`);
-  };
-  
   return (
-    <div 
-      className="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
-      onClick={handleClick}
-    >
-      <div className="flex items-center mb-6">
-        <div className="w-20 h-20 mr-4 overflow-hidden rounded-lg bg-gray-100 flex items-center justify-center">
-          <img src={company.logo_url} alt={company.name} className="w-16 h-16 object-contain" />
+    <div className="bg-slat-50 rounded-lg shadow-sm p-6 flex items-start border border-emerald-200" style={{fontFamily: "Avenir, san-serif"}} onClick={() => navigate(`/company/${company.company_id}`)}>
+      <img src={company.logo_url} alt={company.name} className="w-16 h-16 mr-6 rounded-full hover:cursor-pointer" />
+      <div className="flex-grow">
+        <div className="flex justify-between items-start">
+        <h3 className="text-xl text-slate-700 font-semibold hover:cursor-pointer">{company.name}</h3>
+        <p className="text-sm text-slate-500">{company.address}</p>
         </div>
-        <h3 className="text-2xl font-semibold text-slate-600 hover:text-indigo-600 transition-colors duration-300" 
-        >{company.name}</h3>
-      </div>
-      <p className="text-gray-600 mb-6 line-clamp-3 text-sm leading-relaxed">{company.description}</p>
-      <div className="flex justify-between items-center text-sm">
-        <div className="flex items-center text-gray-500">
-          <FaMapMarkerAlt className="mr-2 text-indigo-500" />
-          <span>{company.location} HQ</span>
+        <p className="text-sm mt-2 text-slate-600" >{company.description}</p>
+        <div className="mt-3 space-x-2 flex">
+            <div className="flex items-center">
+              <span className="bg-fuchsia-100 text-fuchsia-600 font-semibold px-2 py-1 text-sm rounded">IT-Software Development</span>
+            </div>
+            <div className="flex items-center">
+              <span className="bg-teal-100 text-teal-700 font-semibold px-2 py-1 rounded text-sm">{company.address}</span>
+            </div>
+            <div className="flex items-center">
+              <span className="bg-lime-100 text-green-700 px-2 py-1 rounded font-semibold text-sm">{company.job_count} Jobs</span>
+            </div>
+            <div className="flex items-center">
+              <span className="bg-cyan-100 text-cyan-700 px-2 py-1 rounded font-semibold text-sm">Agency</span>
+            </div>
         </div>
-        <div className="flex items-center font-medium text-indigo-600">
-          <FaBriefcase className="mr-2" />
-          <span>{company.job_count} jobs</span>
-        </div>
-      </div>
-      <div className="mt-6 pt-4 border-t border-gray-200">
-        <button className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors duration-300 font-medium">
-          View Company
-        </button>
       </div>
     </div>
   );
 };
 
 export default CompanyCard;
+
+
