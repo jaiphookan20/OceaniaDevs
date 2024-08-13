@@ -217,6 +217,9 @@ def add_job():
     salary_type = job_data.get('salary_type')
     work_location = job_data.get('work_location')
     min_experience_years = job_data.get('min_experience_years')
+    specialization=job_data.get('specialization')
+    experience_level=job_data.get('experience_level')
+
     city = job_data.get('city')
     state = job_data.get('state')
     country = job_data.get('country')
@@ -234,7 +237,9 @@ def add_job():
         salary_range, 
         salary_type, 
         work_location, 
-        min_experience_years, 
+        min_experience_years,
+        specialization,
+        experience_level,
         city, 
         state, 
         country, 
@@ -310,20 +315,26 @@ def remove_job(job_id):
     else:
         return jsonify({"message": "Unauthorized"}), 401
 
-
-@recruiter_blueprint.route('/api/companies', methods=['GET'])
+@recruiter_blueprint.route('/api/filter-companies', methods=['GET'])
 def get_companies():
-    page = int(request.args.get('page', 1))
-    page_size = int(request.args.get('page_size', 10))
-    search = request.args.get('search', '')
+    try:
+        page = int(request.args.get('page', 1))
+        page_size = int(request.args.get('page_size', 10))
+        search = request.args.get('search', '')
 
-    recruiter_service = RecruiterService()
-    companies, total_companies = recruiter_service.get_companies_with_pagination(page, page_size, search)
+        current_app.logger.info(f"get_companies search request: {search}")
 
-    return jsonify({
-        'companies': companies,
-        'total_companies': total_companies
-    })
+        recruiter_service = RecruiterService()
+        companies, total_companies = recruiter_service.get_companies_with_pagination(page, page_size, search)
+        current_app.logger.info(f"get_companies 'companies': {companies}")
+        print(companies);
+        return jsonify({
+            'companies': companies,
+            'total_companies': total_companies
+        })
+    except Exception as e:
+        current_app.logger.error(f"Error in get_companies: {str(e)}")
+        return jsonify({'error': 'An error occurred while fetching companies'}), 500
 
 @recruiter_blueprint.route('/api/company/<int:company_id>', methods=['GET'])
 def get_company_details(company_id):
@@ -359,3 +370,10 @@ def add_job_programmatically():
         return jsonify({"message": "Job added successfully", "job_data": new_job.job_id}), 200
     else:
         return jsonify({"error": f"Failed to add job: {error}"}), 400
+    
+
+@recruiter_blueprint.route('/api/recommended_jobs/<int:job_id>', methods=['GET'])
+def get_recommended_jobs(job_id):
+    recruiter_service = RecruiterService()
+    recommended_jobs = recruiter_service.get_recommended_jobs(job_id)
+    return jsonify(recommended_jobs)

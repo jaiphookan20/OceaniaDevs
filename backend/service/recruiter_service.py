@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 import os
 from dotenv import load_dotenv
 from utils.openai import OpenAI
+from utils.time import get_relative_time
 import config
 class RecruiterService:
 
@@ -19,6 +20,10 @@ class RecruiterService:
             "Authorization": "Bearer nlcQd4gbjG0eFxxwdXwsIHAKqyIIbcQy",
             "Content-Type": "application/json"
         }
+        # Add logging or print statements
+        print("RecruiterService initialized.")
+        current_app.logger.info(f"OpenAI client set: {self.openai_client is not None}")
+        print(f"OpenAI client set: {self.openai_client is not None}")
 
     def get_recruiter_by_id(self, recruiter_id):
         """
@@ -123,55 +128,42 @@ class RecruiterService:
     def process_job_description(self, description):
         messages = [
             {
-            "role": "user",
-            "content": f"""Analyze the following job description and provide a response in JSON format with the following keys: 'overview', 'responsibilities', 'requirements', 'duration', 'specialization', 'technologies', 'experience_level', .
-            
-            'overview': provide a general overview of the role and the company as described in the job description.
-            'duration': Strictly only if clearly mentioned - extract out the total length of the duration for the position. Otherwise keep empty.
+                "role": "system",
+                "content": "You are a highly knowledgeable AI assistant specializing in technology job market analysis. Your task is to analyze job descriptions and output structured data in JSON format."
+            },
+            {
+                "role": "user",
+                "content": f"""Analyze the following job description and title and provide a response in JSON format with these keys: 'overview', 'responsibilities', 'requirements', 'specialization', 'technologies', 'min_experience_years', 'experience_level', 'industry', 'salary_type', 'salary_range', hourly_range', 'daily_range', 'work_location', 'city', 'state', 'country', 'work_rights', 'job_arrangement, 'contract_duration'.
 
-            For the specialization, classify the job into one of the following: 'frontend', 'backend', 'cloud & infra', 'business intelligence & data', 'machine learning & AI', 'full-stack', 'mobile', 'Cybersecurity', 'Business Application Development', 'DevOps & IT'. 
-            Choose only one that most closely matches the job post.
+                Instructions for each key:
+                1. 'specialization': Classify the job into ONE of these categories: 'Frontend', 'Backend', 'Cloud & Infrastructure', 'Business Intelligence & Data', 'Machine Learning & AI', 'Full-Stack', 'Mobile', 'Cybersecurity', 'Business Application Development', 'DevOps & IT', 'Project Management', 'QA & Testing'. Note: 'Cloud & Infrastructure' includes Solution Architect roles.
+                2. 'technologies': List specific software technologies mentioned (e.g., Java, TypeScript, React, AWS). Exclude general terms like 'LLM services', 'Containers', 'CI/CD' or 'REST APIs'.
+                3. 'experience_level': If 'min_experience_years' value is available, classify on basis of the 'min_experience_years' value: if value is between '0-2': 'Junior'; '3-5': 'Mid-Level', '6-10': 'Senior', '10+':'Executive'. If min_experience_years value not available, Classify as you deem fit into one of: 'Junior', 'Mid-Level', 'Senior', or 'Executive'.                
 
-            For technologies, extract specific proprietary software technologies mentioned in the job post (e.g., Java, TypeScript, React, AWS). Do not include general terms like 'LLM services', 'Containers', or 'CI/CD'.
+                Important:
+                - Provide only the JSON object as output, with no additional text.
+                - Ensure all key names are in lowercase.
+                - If information for a key is not available, use an empty string or array as appropriate.
+                - For 'technologies', use an array of strings, each representing a single technology.
 
-            For experience_level, classify as one of: Junior, Associate, Mid-Level, Senior, or Leadership.
-            Strictly follow this: Do not provide anything other than the JSON response output. Provide it as a JSON object only.
-            Job Description:{description}
-            """
+                Job Description: {description}
+                """
             }
         ]
 
-        payload = {
-            "model": "meta-llama/Meta-Llama-3-70B-Instruct",
-            "messages": messages,
-            "temperature": 0.7,
-            "max_tokens": 2000,
-            "response_format": {"type": "json_object"}
-        }
-
         try:
-            response = requests.post(self.api_url, headers=self.headers, json=payload)
-            response.raise_for_status()
-            result = response.json()
-            
-            current_app.logger.info(f"API Response: {result}")
-            
-            content = result['choices'][0]['message']['content']
-            current_app.logger.info(f"Extracted content: {content}")
-            
-            content = content.strip().strip('"').replace('\\n', '\n')
+            response = self.openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=messages,
+                response_format={"type": "json_object"}
+            )
+
+            content = response.choices[0].message.content
             processed_data = json.loads(content)
             return processed_data
-            
-        except requests.exceptions.RequestException as e:
-            current_app.logger.error(f"API request failed: {str(e)}")
-            return None
-        except json.JSONDecodeError as e:
-            current_app.logger.error(f"JSON parsing error: {str(e)}")
-            current_app.logger.error(f"Raw content: {content}")
-            return None
+
         except Exception as e:
-            current_app.logger.error(f"Unexpected error: {str(e)}")
+            current_app.logger.error(f"OpenAI API request failed: {str(e)}")
             return None
         
     def process_job_description_openai(self, title, description):
@@ -234,46 +226,40 @@ class RecruiterService:
             return None
     
     # Add Job
-    def add_job(self, recruiter_id, company_id, title, description, job_type, industry, salary_range, salary_type, work_location, min_experience_years, city, state, country, jobpost_url, work_rights):
+    def add_job(self, recruiter_id, company_id, title, description, job_type, industry, salary_range, salary_type, work_location, min_experience_years, city, state, country, jobpost_url, work_rights, specialization, experience_level, tech_stack):
         if session['user']['type'] != "recruiter":
             return None, "Unauthorized access"
 
         try:
-            processed_data = self.process_job_description(description)
+            # processed_data = self.process_job_description(description)
 
-            if processed_data:
-                new_job = Job(
+            new_job = Job(
                     recruiter_id=recruiter_id,
                     company_id=company_id,
                     title=title,
                     description=description,
-                    specialization=processed_data.get('specialization', []),
+                    specialization=specialization,
                     job_type=job_type,
                     industry=industry,
                     salary_range=salary_range,
                     salary_type=salary_type,
                     work_location=work_location,
                     min_experience_years=min_experience_years,
-                    experience_level=processed_data.get('experience_level', []),
+                    experience_level=experience_level,
                     city=city,
                     state=state,
                     country=country,
                     jobpost_url=jobpost_url,
                     work_rights=work_rights,
-                    tech_stack=processed_data.get('technologies', [])
-                )
-
-                db.session.add(new_job)
-                db.session.commit()
-
-                return new_job, None
-            else:
-                return None, "Failed to process job description"
-
+                    tech_stack=tech_stack);
+            db.session.add(new_job)
+            db.session.commit()
+            return new_job, None
+        
         except Exception as e:
             db.session.rollback()
             current_app.logger.error(f"Error adding job: {str(e)}")
-            return None, f"An error occurred while adding the job: {str(e)}"
+            return None, f"An error occurred while adding the job: {str(e)}"    
     
     # Add Job with AI
     def add_job_programmatically(self, job_data):
@@ -292,10 +278,10 @@ class RecruiterService:
                     jobpost_url=job_data.get('jobpost_url'),
                     specialization=job_data.get('specialization') or processed_data.get('specialization'),
                     industry=job_data.get('industry') or processed_data.get('industry'),
-                    salary_range=job_data.get('salary_range') or processed_data.get('salary_range'),
+                    salary_range=job_data.get('salary_range') or processed_data.get('salary_range') or '80000 - 100000',
                     salary_type=job_data.get('salary_type') or processed_data.get('salary_type'),
                     work_location=job_data.get('work_location') or processed_data.get('work_location'),
-                    min_experience_years=job_data.get('min_experience_years') or processed_data.get('min_experience_years'),
+                    min_experience_years=job_data.get('min_experience_years') or processed_data.get('min_experience_years') or 0,
                     experience_level=job_data.get('experience_level') or processed_data.get('experience_level'),
                     city=job_data.get('city') or processed_data.get('city'),
                     state=job_data.get('state') or processed_data.get('state'),
@@ -359,16 +345,22 @@ class RecruiterService:
             "description": company.description,
             "logo_url": f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
             "size": company.size,
+            "address": company.address,
             "job_count": self.get_job_count_for_company(company.company_id)
         } for company in companies]
 
     def get_companies_with_pagination(self, page, page_size, search):
         query = Company.query
 
+        current_app.logger.info(f"Search query: {search}")
+
         if search:
             query = query.filter(Company.name.ilike(f'%{search}%'))
+            current_app.logger.info(f"Filtered query: {query}")
 
         total_companies = query.count()
+        current_app.logger.info(f"Total companies after filter: {total_companies}")
+
         companies = query.order_by(Company.name).paginate(page=page, per_page=page_size, error_out=False).items
 
         return [{
@@ -376,11 +368,10 @@ class RecruiterService:
             "name": company.name,
             "description": company.description,
             "logo_url": f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
-            "size": company.size,
-            "city": company.city,
-            "state": company.state,
+            "address": company.address,
             "job_count": self.get_job_count_for_company(company.company_id)
         } for company in companies], total_companies
+
 
     def get_job_count_for_company(self, company_id):
         return Job.query.filter_by(company_id=company_id).count()
@@ -391,6 +382,16 @@ class RecruiterService:
             return None
         
         jobs = Job.query.filter_by(company_id=company_id).all()
+        job_count = len(jobs)
+
+        # Collect and de-duplicate tech stack
+        tech_stack = []
+        for job in jobs:
+            if job.tech_stack:  # Check if tech_stack is not None
+                tech_stack.extend(job.tech_stack)
+
+        # Remove duplicates and sort
+        unique_tech_stack = sorted(set(tech_stack))
         
         return {
             "company_id": company.company_id,
@@ -398,6 +399,10 @@ class RecruiterService:
             "description": company.description,
             "logo_url": f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
             "size": company.size,
+            "website_url": company.website_url,
+            "total_jobs": job_count,
+            "address": company.address,
+            "total_tech_stack": unique_tech_stack,
             "jobs": [{
                 "job_id": job.job_id,
                 "title": job.title,
@@ -407,5 +412,33 @@ class RecruiterService:
                 "salary_range": job.salary_range,
                 "work_location": job.work_location,
                 "experience_level": job.experience_level,
-            } for job in jobs]
+            } for job in jobs],
         }
+    
+    def get_recommended_jobs(self, job_id):
+        current_job = Job.query.get(job_id)
+        if not current_job:
+            return []
+            
+        recommended_jobs = Job.query.filter(
+            Job.specialization == current_job.specialization,
+            Job.job_id != job_id
+        ).order_by(Job.created_at.desc()).limit(6).all()
+        
+        result = []
+        for job in recommended_jobs:
+            company = Company.query.get(job.company_id)
+            result.append({
+                "job_id": job.job_id,
+                "title": job.title,
+                "company_name": company.name,
+                "logo_url": f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
+                "location": f"{job.city}, {job.state}, {job.country}",
+                "salary_range": job.salary_range,
+                "experience_level": job.experience_level,
+                'specialization': job.specialization,
+                'min_experience_years': job.min_experience_years,
+                "created_at": get_relative_time(job.created_at.strftime("%Y-%m-%d"))
+            })
+        
+        return result

@@ -12,6 +12,7 @@ from flask_caching import Cache
 from sqlalchemy import and_, func, or_
 from extensions import cache
 from utils.technologies import icons
+from models import Bookmark;
 import json
 import os
 import config
@@ -109,10 +110,11 @@ def get_all_jobs():
             'salary_range': job.Job.salary_range,
             'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.Company.logo_url)}",
             'specialization': job.Job.specialization,
+            'min_experience_years': job.Job.min_experience_years,
             'created_at': get_relative_time(job.Job.created_at.strftime('%Y-%m-%d')),
             'tech_stack': job.Job.tech_stack
         }
-        current_app.logger.info(f"Job Data: {job_data}")
+        # current_app.logger.info(f"Job Data: {job_data}")
         jobs_data.append(job_data)
     
     # Return the job data, page info, and total job count
@@ -293,7 +295,7 @@ def filtered_search_jobs():
     jobs = jobs_query.add_columns(
         Job.job_id, Job.title, Job.description, Job.specialization, Job.salary_range,
         Job.city, Job.state, Job.country, Job.created_at, Job.experience_level,
-        Job.tech_stack, Company.name.label('company_name'), Company.logo_url.label('logo_url')
+        Job.tech_stack, Company.name.label('company_name'), Company.logo_url.label('logo_url'), Job.min_experience_years
     ).all()
 
     results = [{
@@ -304,9 +306,10 @@ def filtered_search_jobs():
         'location': f"{job.city}, {job.state}",
         'country': job.country,
         'salary_range': job.salary_range,
-        'created_at': job.created_at.strftime('%Y-%m-%d'),
+        'created_at': get_relative_time(job.created_at.strftime('%Y-%m-%d')),
         'experience_level': job.experience_level,
         'specialization': job.specialization,
+        'min_experience_years': job.min_experience_years,
         'tech_stack': job.tech_stack,
         'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo_url)}",
     } for job in jobs]
@@ -445,7 +448,7 @@ def instant_search_jobs():
         ).add_columns(
             Job.job_id, Job.title, Job.description, Job.specialization, Job.city, Job.state, Job.country,
             Job.salary_range, Job.created_at, Job.experience_level, Job.tech_stack,
-            Company.name.label('company_name'), Company.logo_url.label('logo_url')
+            Company.name.label('company_name'), Company.logo_url.label('logo_url'), Job.min_experience_years,
         ).order_by(func.ts_rank(Job.search_vector, tsquery).desc())
 
         # Debug: Print the SQL query
@@ -464,8 +467,9 @@ def instant_search_jobs():
             'specialization': job.specialization,
             'country': job.country,
             'salary_range': job.salary_range,
-            'created_at': job.created_at.strftime('%Y-%m-%d'),
+            'created_at': get_relative_time(job.created_at.strftime('%Y-%m-%d')),
             'experience_level': job.experience_level,
+            'min_experience_years': job.min_experience_years,
             'tech_stack': job.tech_stack,
             'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo_url)}",
         } for job in jobs]
@@ -482,3 +486,32 @@ def instant_search_jobs():
             'total': 0,
             'results': []
         })
+
+    
+@job_blueprint.route('/api/is_job_saved/<int:job_id>', methods=['GET'])
+@requires_auth
+def is_job_saved(job_id):
+    if 'user' not in session:
+        return jsonify({"error": "Unauthorized access"}), 401
+        
+    user_id = session['user']['uid']
+    bookmark = Bookmark.query.filter_by(userid=user_id, jobid=job_id).first()
+        
+    return jsonify({"is_saved": bookmark is not None})
+
+
+@job_blueprint.route('/api/unsave_job/<int:job_id>', methods=['DELETE'])
+@requires_auth
+def unsave_job(job_id):
+    if 'user' not in session:
+        return jsonify({"error": "Unauthorized access"}), 401
+    
+    user_id = session['user']['uid']
+    bookmark = Bookmark.query.filter_by(userid=user_id, jobid=job_id).first()
+    
+    if bookmark:
+        db.session.delete(bookmark)
+        db.session.commit()
+        return jsonify({"message": "Job unsaved successfully"}), 200
+    else:
+        return jsonify({"error": "Job was not saved"}), 404

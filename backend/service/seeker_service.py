@@ -37,3 +37,25 @@ class SeekerService:
         :param userid: int - ID of the user who applied for the job.
         """
         return Bookmark.query.filter_by(userid=userid).all()
+    
+
+
+    def update_application_status(self, application_id, new_status):
+        """
+        Update the status of an application.
+        :param application_id: int - ID of the application to update.
+        :param new_status: str - New status for the application.
+        :return: bool - True if update was successful, False otherwise.
+        """
+        try:
+            application = Application.query.get(application_id)
+            if not application:
+                return False
+            
+            application.status = new_status
+            db.session.commit()
+            return True
+        except Exception as e:
+            print(f"Error updating application status: {str(e)}")
+            db.session.rollback()
+            return False
