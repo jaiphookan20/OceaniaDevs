@@ -7,7 +7,6 @@ import JobSection from "./components/JobSection";
 import SignupForm from "./components/SignupForm";
 import BottomContainer from "./components/BottomContainer";
 import SearchBar from "./components/SearchBar";
-// import CategoryGrid from "./components/CategoryGrid";
 import JobPost from "./components/JobPost";
 import { toast, Toaster } from "react-hot-toast";
 import SavedAppliedJobSection from "./components/SavedAppliedJobSection";
@@ -25,6 +24,9 @@ import SearchPageBar from "./components/SearchPage";
 import SearchPage from "./components/SearchPage";
 import CompaniesPage from "./components/CompaniesPage";
 import PostJobWithAI from "./recruiter/PostJobWithAI";
+import searchService from "./services/searchService";
+import ApplicationTrackingDashboard from "./components/ApplicationTrackingDashboard";
+import DeveloperProfile from "./components/DeveloperProfile";
 
 const App = () => {
   const [jobs, setJobs] = useState([]);
@@ -34,7 +36,6 @@ const App = () => {
   const [isInSession, setIsInSession] = useState(false);
   const [title, setTitle] = useState("Technology");
   const [searchTitle, setSearchTitle] = useState("Technology");
-
 
   const [filters, setFilters] = useState({
     specialization: "",
@@ -144,44 +145,12 @@ const App = () => {
       fetchJobs();
     } else {
       console.log("Calling Instant Search Jobs");
-      const response = await fetch(
-        `/api/instant_search_jobs?query=${event.target.value}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const data = await response.json();
+      const data = await searchService.instantSearchJobs(event.target.value);
+      setJobs(data.results);
       console.log(data);
       setJobs(data.results);
     }
   };
-
-  // const handleFilterSearch = async () => {
-  //   const queryParams = new URLSearchParams();
-  //   Object.entries(filters).forEach(([key, value]) => {
-  //     if (Array.isArray(value)) {
-  //       value.forEach(item => queryParams.append(key, item));
-  //     } else if (value) {
-  //       queryParams.append(key, value);
-  //     }
-  //   });
-  
-  //   const response = await fetch(
-  //     `/api/filtered_search_jobs?${queryParams.toString()}`,
-  //     {
-  //       method: "GET",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       credentials: "include",
-  //     }
-  //   );
-  //   const data = await response.json();
-  //   setJobs(data.results);
-  //   setTotalJobs(data.total);
-  // };
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -255,26 +224,7 @@ const App = () => {
   }, [filters.specialization]);
 
   const handleFilterSearch = async () => {
-    const queryParams = new URLSearchParams();
-    Object.entries(filters).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        value.forEach(item => queryParams.append(key, item));
-      } else if (value) {
-        queryParams.append(key, value);
-      }
-    });
-  
-    const response = await fetch(
-      `/api/filtered_search_jobs?${queryParams.toString()}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      }
-    );
-    const data = await response.json();
+    const data = await searchService.filteredSearchJobs(filters);
     setJobs(data.results);
     setTotalJobs(data.total);
     setTitle(`${filters.specialization || 'All'} Roles`);
@@ -336,13 +286,6 @@ const App = () => {
             <>
               <Header />
               <TrendingCompanies />
-              {/* <SearchBar
-                searchQuery={searchQuery}
-                onSearchChange={handleSearch}
-                filters={filters}
-                onFilterChange={handleChange}
-                onFilterSearch={handleFilterSearch}
-              /> */}
               <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-1 gap-7">
                 <div className="col-span-2">
                   {Object.entries(groupedJobs).map(([specialization, jobsList]) => (
@@ -366,18 +309,6 @@ const App = () => {
             </>
           }
         />
-         <Route path="/company-page" element={
-          <CompanyPage 
-          title={title}
-          jobs={jobs}
-          onSave={handleSave}
-          onApply={handleApply}
-          onView={handleView}
-          currentPage={currentPage}
-          totalJobs={totalJobs}
-          pageSize={pageSize}
-          onPageChange={handlePageChange}
-          />} />
         <Route
           path="/search-page"
           element={
@@ -417,12 +348,20 @@ const App = () => {
               onSearchChange={handleSearch}
               onFilterChange={handleChange}
               onFilterSearch={handleFilterSearch}
-            />
+            />   
           }
+        />
+         <Route
+          path="/dashboard"
+          element={<ApplicationTrackingDashboard />}
         />
         <Route
           path="/job_post/:jobId"
           element={<JobPost onSave={handleSave} onApply={handleApply} />}
+        />
+        <Route
+          path="/profile"
+          element={<DeveloperProfile />}
         />
         <Route 
           path="/company/:companyId" 
@@ -437,7 +376,7 @@ const App = () => {
         <Route
           path="/saved-jobs"
           element={
-            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
+            <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-7">
               <div className="col-span-2">
                 <SavedAppliedJobSection
                   title="Saved Jobs"
@@ -453,7 +392,7 @@ const App = () => {
         <Route
           path="/applied-jobs"
           element={
-            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
+            <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-7">
               <div className="col-span-2">
                 <SavedAppliedJobSection
                   title="Applied Jobs"
