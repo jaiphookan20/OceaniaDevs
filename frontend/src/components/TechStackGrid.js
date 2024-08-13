@@ -11,7 +11,7 @@ const TechStackGrid = ({ company }) => {
     <div className='pb-4'>
       <div className='p-3'>
         <h3 className='text-slate-600 font-semibold text-lg'>Tech Stack</h3>
-        <p className='text-slate-500 text-md'>Learn about the tools and technologies that the company uses to build, market, and sell its products.</p>
+        <p className='text-slate-500 text-md' style={{fontFamily: "Avenir, san-serif"}}>Learn about the tools and technologies that the company uses to build, market, and sell its products.</p>
       </div>
       <div className="bg-gray-100 p-4 rounded-lg shadow-sm"
         style={{fontFamily: "HeyWow"}}

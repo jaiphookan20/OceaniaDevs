@@ -14,8 +14,8 @@ const SearchBar = ({
 }) => {
   return (
     <div>
-    <div className="justify-items-center	justify-center mx-auto">
-      <div className=" p-4 rounded-lg border border-green-300  mb-10" >
+    <div className="justify-items-center justify-center mx-auto">
+      <div className=" p-4 pb-8  border-b border-green-300  mb-10" >
         <div className="flex items-center space-x-4 mb-4">
           <div className="flex-1 relative">
             <input

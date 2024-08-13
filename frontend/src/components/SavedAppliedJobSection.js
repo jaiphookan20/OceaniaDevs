@@ -18,9 +18,6 @@ const SavedAppliedJobSection = ({
       <SavedAndAppliedJobsHeader title={title} />
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-5xl font-bold"></h2>
-        <a href="#" className="text-indigo-600">
-          View all {title.toLowerCase()}
-        </a>
       </div>
       <div className="bg-white rounded-lg shadow-md">
         {jobs.map((job, index) => (
