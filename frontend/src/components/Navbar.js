@@ -82,11 +82,10 @@ const Navbar = () => {
 
   return (
     <nav
-      className="flex justify-between items-center py-7 px-8 bg-white max-w-8xl mx-auto"
+      className="flex justify-between items-center py-7 px-8 bg-white max-w-7xl mx-auto"
       style={navbarStyles}
     >
       <div className="flex items-center ">
-        {/* <img src={oceBlackLogo}/> */}
         <Logo
           className="h-24 w-auto"
           alt="Logo"
@@ -102,40 +101,22 @@ const Navbar = () => {
         </div>
         <div className="flex justify-between items-center space-x-8">
           <a
-            href="#"
-            className="text-gray-600 hover:text-gray-800 hover:underline"
-          >
-            Overview
-          </a>
-          <a
-            href="#"
-            className="text-gray-600 hover:text-gray-800 hover:underline"
-          >
-            Jobs
-          </a>
-          <a
-            href="#"
-            className="text-gray-600 hover:text-gray-800 hover:underline"
-          >
-            Featured
-          </a>
-          <a
             href="/companies"
             className="text-gray-600 hover:text-gray-800 hover:underline"
           >
             Explore Companies
           </a>
           <a
-            href="/company-page"
-            className="text-gray-600 hover:text-gray-800 hover:underline"
-          >
-            Company Page
-          </a>
-          <a
             href="/search-page"
             className="text-gray-600 hover:text-gray-800 hover:underline"
           >
-            Search Page
+            Search Jobs
+          </a>
+          <a
+            href="/profile"
+            className="text-gray-600 hover:text-gray-800 hover:underline"
+          >
+            Profile
           </a>
         </div>
       </div>
@@ -240,6 +221,13 @@ const Navbar = () => {
                     </>
                   ) : (
                     <>
+                    <Link
+                      to="/dashboard"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      role="menuitem"
+                    >
+                      Application Dashboard
+                    </Link>
                       <Link
                         to="/saved-jobs"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
