@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { icons } from "../data/tech-icons";
 import JobPostSideBar from "./JobPostSideBar";
+import RecommendedJobs from "./RecommendedJobs";
+import HashLoader from "react-spinners/HashLoader";
 
 const JobListing = ({ onSave, onApply }) => {
   const { jobId } = useParams();
@@ -9,6 +11,25 @@ const JobListing = ({ onSave, onApply }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const technologiesRef = useRef(null);
+  const [recommendedJobs, setRecommendedJobs] = useState([]);
+
+  useEffect(() => {
+    const fetchRecommendedJobs = async () => {
+      try {
+        const response = await fetch(`/api/recommended_jobs/${jobId}`);
+        const data = await response.json();
+        setRecommendedJobs(data);
+      } catch (error) {
+        console.error("Error fetching recommended jobs:", error);
+      }
+    };
+  
+    if (job) {
+      fetchRecommendedJobs();
+    }
+  }, [job, jobId]);
+  
+  
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -32,7 +53,11 @@ const JobListing = ({ onSave, onApply }) => {
   }, [jobId]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <HashLoader color="#8823cf" size={120} />
+      </div>
+    );
   }
 
   if (error) {
@@ -92,7 +117,7 @@ const JobListing = ({ onSave, onApply }) => {
     { icon: "https://img.icons8.com/?size=100&id=3BUZy0U5CdQL&format=png&color=000000", label: "Experience", value: job.experience_level },
     { icon: "https://img.icons8.com/?size=100&id=tUxN1SSkN8zG&format=png&color=000000", label: "Salary", value: `${job.salary_range} AUD` },
     { icon: "https://img.icons8.com/?size=100&id=HvkLiNNdKM33&format=png&color=000000", label: "Location", value: job.location },
-    { icon: "https://img.icons8.com/?size=100&id=bnRjsA4q33Cw&format=png&color=000000", label: "Min. Experience", value: `${job.min_experience_years} Years` },
+    { icon: "https://img.icons8.com/?size=100&id=bnRjsA4q33Cw&format=png&color=000000", label: "Min. Experience", value: `${job.min_experience_years}+ Years` },
     { icon: "https://img.icons8.com/?size=100&id=KDmZN631Ig1j&format=png&color=000000", label: "Specialization", value: job.specialization },
     { icon: "https://img.icons8.com/?size=100&id=aUSV1wxr8mk2&format=png&color=000000", label: "Work Location", value: job.work_location },
     { icon: "https://img.icons8.com/?size=100&id=8Y1SrtCBXvmA&format=png&color=000000", label: "Job Arrangement", value: job.job_arrangement }
@@ -105,53 +130,40 @@ const JobListing = ({ onSave, onApply }) => {
         alt={item.label}
         className="mb-2"
       />
-      <p className="text-sm text-gray-600 mb-1">{item.label}</p>
-      <p className="text-md font-semibold text-gray-700 text-center" style={{ fontFamily: "Space Mono, sans-serif" }}>{item.value}</p>
+      <p className="text-sm text-slate-600 mb-1">{item.label}</p>
+      <p className="text-md font-semibold text-gray-700 text-center" style={{ fontFamily: "Avenir, sans-serif" }}>{item.value}</p>
     </div>
   ))}
 </div>
-        <div className="flex justify-between items-between pb-20" 
+        <div className="flex justify-between items-between pxb-20" 
         >
           <div className="w-3/4 pl-8 pr-2">
             <section className="mt-6">
-              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800">
+              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800" style={{ fontFamily: "Avenir, sans-serif" }}>
                 About the role
               </h2>
-              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Space Mono, sans-serif" }}>
+              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Avenir, sans-serif" }}>
                 {job.overview}
               </p>
             </section>
             <section className="mt-6">
-              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800" >
+              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800" style={{ fontFamily: "Avenir, sans-serif" }}>
                 Responsibilities
               </h2>
-              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Space Mono, sans-serif" }}>
+              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Avenir, sans-serif" }}>
                 {job.responsibilities}
-                {/* {"Build and maintain products using Node.js, React, and JavaScript / TypeScript.","Develop, test, and document APIs in Python and JavaScript / TypeScript.","Collaborate closely with all teams to understand requirements for new product features.","Partner with design and product colleagues for accessible and secure user experiences.","Review and provide feedback on code from team members.","Stay current with industry best practices and emerging technologies."} */}
-                {/* <li> Build and maintain products using Node.js, React, and JavaScript / TypeScript </li>
-                <li> Develop, test, and document APIs in Python and JavaScript / TypeScript. </li>
-                <li> Collaborate closely with all teams to understand requirements for new product features. </li>
-                <li> Partner with design and product colleagues for accessible and secure user experiences.</li>                
-                <li> Review and provide feedback on code from team members </li> */}
               </p>
             </section>
             <section className="mt-6">
-              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800" >
+              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800"  style={{ fontFamily: "Avenir, sans-serif" }}>
                 Requirements
               </h2>
-              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Space Mono, sans-serif" }}>
+              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Avenir, sans-serif" }}>
                 {job.requirements}
-                {/* <li> Bachelor’s degree in computer science or equivalent practical experience. </li>
-                <li>Minimum 5 years of software development experience with a solid understanding of design patterns and the ability to architect maintainable, high-performance platforms</li>
-                <li> Minimum 3 years of experience with Python or Node.js. </li>
-                <li> Experience with Python web frameworks such as Django, Flask, or FastAPI </li>
-                <li> Experience with unit and integration testing using Jest and the React Testing Library.</li>                
-                <li> Experience with web API development (GraphQL, RESTful). </li>
-                <li> Experience building and working with UI Component Libraries. </li> */}
               </p>
             </section>
             <section ref={technologiesRef} className="mt-6">
-              <h2 className="text-3xl font-bold mt-4 mb-1 text-violet-600 bg-violet-50">
+              <h2 className="text-3xl font-semibold mt-4 mb-1 text-violet-600 bg-violet-50">
                 Tech Stack
               </h2>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 mt-4">
@@ -172,9 +184,10 @@ const JobListing = ({ onSave, onApply }) => {
             </section>
           </div>
           <div className="w-1/4 p-4">
-            <JobPostSideBar job={job}/>
+            <JobPostSideBar job={job} onSave={onSave} onApply={onApply}/>
           </div>
         </div>
+        <RecommendedJobs jobs={recommendedJobs} />
       </div>
     </div>
   );
