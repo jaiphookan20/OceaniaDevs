@@ -65,7 +65,12 @@ class Company(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
     recruiters = db.relationship('Recruiter', backref='company', lazy=True)
-
+    # New fields:
+    industry = db.Column(industry_enum, nullable=False)
+    state = db.Column(state_enum)
+    city = db.Column(db.String(255))
+    type=db.Column(db.String(255))
+    
 class Job(db.Model):
     __tablename__ = 'jobs'
     job_id = db.Column(db.Integer, primary_key=True)
@@ -117,6 +122,7 @@ class Application(db.Model):
     userid = db.Column(db.Integer, db.ForeignKey('seekers.uid'))
     jobid = db.Column(db.Integer, db.ForeignKey('jobs.job_id'))
     datetimestamp = db.Column(db.DateTime, server_default=db.func.current_timestamp())
+    status = db.Column(db.String(50), default='Applied')  # New field
 
 class Bookmark(db.Model):
     __tablename__ = 'bookmarks'
