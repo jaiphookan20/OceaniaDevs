@@ -69,7 +69,7 @@ def get_job_post_page(job_id):
         'hourly_range': job.hourly_range,
         'contract_duration':job.contract_duration,
         'job_arrangement': job.job_arrangement,
-
+        'jobpost_url': job.jobpost_url,
     }
 
     return jsonify(job_data)
@@ -112,7 +112,8 @@ def get_all_jobs():
             'specialization': job.Job.specialization,
             'min_experience_years': job.Job.min_experience_years,
             'created_at': get_relative_time(job.Job.created_at.strftime('%Y-%m-%d')),
-            'tech_stack': job.Job.tech_stack
+            'tech_stack': job.Job.tech_stack,
+            'jobpost_url': job.Job.jobpost_url        
         }
         # current_app.logger.info(f"Job Data: {job_data}")
         jobs_data.append(job_data)

@@ -4,7 +4,8 @@ from service.jobs_service import JobsService
 from models import Recruiter, Company, Job
 from extensions import db
 from flask_cors import CORS
-from werkzeug.utils import secure_filename
+from utils.time import get_relative_time
+from datetime import datetime
 import os
 import config
 
@@ -60,6 +61,50 @@ def get_all_companies():
     return jsonify(companies), 200
 
 # Get All Jobs Posted by the Recruiter
+# @recruiter_blueprint.route('/api/jobs_by_recruiter')
+# def get_all_jobs_by_recruiter():
+#     if session['user']['type'] != "recruiter":
+#         return jsonify({"error": "Unauthorized access"}), 401
+#     else:
+#         recruiter_id = session['user']['recruiter_id']
+#         recruiter_service = RecruiterService()
+#         jobs_service = JobsService()
+#         recruiter_jobs = recruiter_service.get_all_jobs_by_recruiter(recruiter_id)
+#         # Build the response data
+#         response_data = []
+#         for job in recruiter_jobs:
+#             company = jobs_service.get_company_by_id(job.company_id)
+
+#             job_data = {
+#                 "job_id": job.job_id,
+#                 "recruiter_id": job.recruiter_id,
+#                 "company_id": job.company_id,
+#                 "title": job.title,
+#                 "description": job.description,
+#                 "specialization": job.specialization,
+#                 "job_type": job.job_type,
+#                 "industry": job.industry,
+#                 "salary_range": job.salary_range,
+#                 "salary_type": job.salary_type,
+#                 "work_location": job.work_location,
+#                 "min_experience_years": job.min_experience_years,
+#                 "experience_level": job.experience_level,
+#                 "tech_stack": job.tech_stack,
+#                 "city": job.city,
+#                 "state": job.state,
+#                 "country": job.country,
+#                 "expiry_date": job.expiry_date,
+#                 "jobpost_url": job.jobpost_url,
+#                 "work_rights": job.work_rights,
+#                 "created_at": get_relative_time(job.created_at.strftime('%Y-%m-%d')),
+#                 "updated_at": job.updated_at,
+#                 'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
+#                 "company_name": company.name if company else "N/A",
+#             }
+#             response_data.append(job_data)
+        
+#         return jsonify(response_data)
+
 @recruiter_blueprint.route('/api/jobs_by_recruiter')
 def get_all_jobs_by_recruiter():
     if session['user']['type'] != "recruiter":
@@ -69,11 +114,13 @@ def get_all_jobs_by_recruiter():
         recruiter_service = RecruiterService()
         jobs_service = JobsService()
         recruiter_jobs = recruiter_service.get_all_jobs_by_recruiter(recruiter_id)
-        # Build the response data
-        response_data = []
+        
+        active_jobs = []
+        expired_jobs = []
+        current_date = datetime.now()
+        
         for job in recruiter_jobs:
             company = jobs_service.get_company_by_id(job.company_id)
-
             job_data = {
                 "job_id": job.job_id,
                 "recruiter_id": job.recruiter_id,
@@ -95,14 +142,21 @@ def get_all_jobs_by_recruiter():
                 "expiry_date": job.expiry_date,
                 "jobpost_url": job.jobpost_url,
                 "work_rights": job.work_rights,
-                "created_at": job.created_at,
+                "created_at": get_relative_time(job.created_at.strftime('%Y-%m-%d')),
                 "updated_at": job.updated_at,
                 'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
                 "company_name": company.name if company else "N/A",
             }
-            response_data.append(job_data)
+            
+            if (current_date - job.created_at).days <= 30:
+                active_jobs.append(job_data)
+            else:
+                expired_jobs.append(job_data)
         
-        return jsonify(response_data)
+        return jsonify({
+            "active_jobs": active_jobs,
+            "expired_jobs": expired_jobs
+        })
 
 # -------------------------END OF GET REQUESTS-------------------------------
 

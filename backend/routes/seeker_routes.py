@@ -46,21 +46,68 @@ def update_seeker():
         return render_template('add_seeker.html')
 
 # Get Bookmarked Jobs Route
+# @seeker_blueprint.route('/api/bookmarked_jobs')
+# def get_all_bookmarked_jobs_by_seeker():
+#     if session['user']['type'] != "seeker":
+#         return jsonify({"error": "Unauthorized access"}), 401
+#     else:
+#         seeker_id = session['user']['uid']
+#         print(f"seeker_id: {seeker_id}")
+#         seeker_service = SeekerService()
+#         jobs_service = JobsService()
+#         bookmarked_jobs = seeker_service.get_all_bookmarked_jobs_by_seeker(seeker_id)
+
+#         for bookmarked_job in bookmarked_jobs:
+#             company = jobs_service.get_company_by_jobid(bookmarked_job.jobid)
+#             job = jobs_service.get_job_by_id(bookmarked_job.jobid)
+#             bookmarked_job.company_name = company.name if company else "N/A"
+#             bookmarked_job.title = job.title if job else "N/A"
+#             bookmarked_job.city = job.city if job else "N/A"
+#             bookmarked_job.state = job.state if job else "N/A"
+#             bookmarked_job.country = job.country if job else "N/A"
+#             bookmarked_job.salary_range = job.salary_range if job else "N/A"
+#             bookmarked_job.specialization = job.specialization if job else "N/A"
+#             bookmarked_job.experience_level = job.experience_level if job else "N/A"
+#             bookmarked_job.created_at = job.created_at if job else "N/A"
+#             bookmarked_job.min_experience_years = job.min_experience_years if job else "N/A"
+
+#             bookmarked_job.logo = company.logo_url;            
+
+#         return jsonify(bookmarked_jobs=[{
+#             'job_id': job.jobid,
+#             'title': job.title,
+#             'company': job.company_name,
+#             'city': job.city,
+#             'state': job.state,
+#             'country': job.country,
+#             'experience_level': job.experience_level,
+#             'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo)}",
+#             'created_at': job.created_at.strftime('%Y-%m-%d'),
+#             'specialization': job.specialization,
+#             'salary_range': job.salary_range,
+#             'min_experience_years': job.min_experience_years,
+#         } for job in bookmarked_jobs])
+
 @seeker_blueprint.route('/api/bookmarked_jobs')
 def get_all_bookmarked_jobs_by_seeker():
     if session['user']['type'] != "seeker":
         return jsonify({"error": "Unauthorized access"}), 401
     else:
         seeker_id = session['user']['uid']
+        page = request.args.get('page', 1, type=int)
+        page_size = request.args.get('page_size', 10, type=int)
         print(f"seeker_id: {seeker_id}")
+        
         seeker_service = SeekerService()
         jobs_service = JobsService()
-        bookmarked_jobs = seeker_service.get_all_bookmarked_jobs_by_seeker(seeker_id)
+        # bookmarked_jobs = seeker_service.get_all_bookmarked_jobs_by_seeker(seeker_id)
+        bookmarked_jobs = seeker_service.get_all_bookmarked_jobs_by_seeker(seeker_id, page, page_size)
 
         for bookmarked_job in bookmarked_jobs:
             company = jobs_service.get_company_by_jobid(bookmarked_job.jobid)
             job = jobs_service.get_job_by_id(bookmarked_job.jobid)
             bookmarked_job.company_name = company.name if company else "N/A"
+            bookmarked_job.company_id = company.company_id if company else "N/A"
             bookmarked_job.title = job.title if job else "N/A"
             bookmarked_job.city = job.city if job else "N/A"
             bookmarked_job.state = job.state if job else "N/A"
@@ -86,47 +133,8 @@ def get_all_bookmarked_jobs_by_seeker():
             'specialization': job.specialization,
             'salary_range': job.salary_range,
             'min_experience_years': job.min_experience_years,
+            'company_id': job.company_id,
         } for job in bookmarked_jobs])
-    
-# Get Applied Jobs Route
-# @seeker_blueprint.route('/api/applied_jobs')
-# def get_all_applied_jobs_by_seeker():
-#     if session['user']['type'] != "seeker":
-#         return jsonify({"error": "Unauthorized access"}), 401
-#     else:
-#         seeker_id = session['user']['uid']
-#         seeker_service = SeekerService()
-#         jobs_service = JobsService()
-#         applied_jobs = seeker_service.get_all_applied_jobs_by_seeker(seeker_id)
-
-#         for applied_job in applied_jobs:
-#             company = jobs_service.get_company_by_jobid(applied_job['jobid'])
-#             job = jobs_service.get_job_by_id(applied_job['jobid'])
-#             applied_job['company_name'] = company.name if company else "N/A"
-#             applied_job['title'] = job.title if job else "N/A"
-#             applied_job['city'] = job.city if job else "N/A"
-#             applied_job['state'] = job.state if job else "N/A"
-#             applied_job['country'] = job.country if job else "N/A"
-#             applied_job['experience_level'] = job.experience_level if job else "N/A"
-#             applied_job['specialization'] = job.specialization if job else "N/A"
-#             applied_job['salary_range'] = job.salary_range if job else "N/A"
-#             applied_job['created_at'] = job.created_at if job else "N/A"
-#             applied_job['logo'] = company.logo_url if company else "N/A"
-
-#         return jsonify(applied_jobs=[{
-#             'job_id': job['jobid'],
-#             'title': job['title'],
-#             'company': job['company_name'],
-#             'city': job['city'],
-#             'state': job['state'],
-#             'country': job['country'],
-#             'experience_level': job['experience_level'],
-#             'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job['logo'])}",
-#             'created_at': job['created_at'].isoformat() if isinstance(job['created_at'], datetime) else job['created_at'],
-#             'specialization': job['specialization'],
-#             'salary_range': job['salary_range'],
-#             'applied_at': job['datetimestamp']
-#         } for job in applied_jobs])
 
 @seeker_blueprint.route('/api/applied_jobs')
 def get_all_applied_jobs_by_seeker():

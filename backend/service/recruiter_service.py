@@ -39,7 +39,8 @@ class RecruiterService:
         Retrieve all job posts posted by a recruiter.
         :param recruiter_id: int - The ID of the recruiter to fetch.
         """
-        return Job.query.filter_by(recruiter_id=recruiter_id).all()
+        # return Job.query.filter_by(recruiter_id=recruiter_id).all()
+        return Job.query.filter_by(recruiter_id=recruiter_id).order_by(Job.created_at.desc());
 
     def get_company_by_recruiter_id(self):
         """
@@ -66,7 +67,7 @@ class RecruiterService:
             recruiter.first_name = data.get('firstName')
             recruiter.last_name = data.get('lastName')
             recruiter.position = data.get('position')
-            db.session.commit()
+            # db.session.commit()
             return True
         return False
 
@@ -79,7 +80,7 @@ class RecruiterService:
             if company:
                 recruiter.company_id = company.company_id
                 current_app.logger.info(f"recruiter object: {recruiter}")
-                db.session.commit()
+                # db.session.commit()
                 return True
             else:
                 current_app.logger.error(f"Company not found: {company_name}")
@@ -111,18 +112,18 @@ class RecruiterService:
                 logo_url = logo_url
             )
 
-            db.session.add(new_company)
-            db.session.commit()
+            # db.session.add(new_company)
+            # db.session.commit()
 
-            recruiter = self.get_recruiter_by_id(recruiter_id)
-            recruiter.company_id = new_company.company_id
-            db.session.commit()
+            # recruiter = self.get_recruiter_by_id(recruiter_id)
+            # recruiter.company_id = new_company.company_id
+            # db.session.commit()
 
             return True
         except Exception as e:
             print('Exception in create_company');
             print(e);
-            db.session.rollback()
+            # db.session.rollback()
             return False
 
     def process_job_description(self, description):

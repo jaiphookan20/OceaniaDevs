@@ -31,14 +31,21 @@ class SeekerService:
         """
         return Application.query.filter_by(userid=userid).all()
     
-    def get_all_bookmarked_jobs_by_seeker(self, userid):
-        """
-        Return all bookmarked jobs by userID.
-        :param userid: int - ID of the user who applied for the job.
-        """
-        return Bookmark.query.filter_by(userid=userid).all()
-    
+    # def get_all_bookmarked_jobs_by_seeker(self, userid):
+    #     """
+    #     Return all bookmarked jobs by userID.
+    #     :param userid: int - ID of the user who applied for the job.
+    #     """
+    #     return Bookmark.query.filter_by(userid=userid).all()
 
+    def get_all_bookmarked_jobs_by_seeker(self, userid, page, page_size):
+        """
+        Return all bookmarked jobs by userID with pagination, sorted by most recent first.
+        :param userid: int - ID of the user who bookmarked the job.
+        :param page: int - Page number.
+        :param page_size: int - Number of items per page.
+        """
+        return Bookmark.query.filter_by(userid=userid).order_by(Bookmark.datetimestamp.desc()).paginate(page=page, per_page=page_size, error_out=False).items
 
     def update_application_status(self, application_id, new_status):
         """
