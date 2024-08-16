@@ -4,24 +4,24 @@
 
 @font-face {
   font-family: 'Avenir';
-  src: url('fonts/Avenir-Book.woff2') format('woff2'),
+  src: url('../src/assets/fonts/Avenir-Book.woff2') format('woff2'),
 }
 
 @font-face {
   font-family: 'Roobert-Regular';
-  src: url('fonts/Roobert-Regular.woff2') format('woff2'),
+  src: url('../src/assets/fonts/Roobert-Regular.woff2') format('woff2'),
 }
 
 @font-face {
   font-family: 'HeyWow';
-  src: url('fonts/HeyWowRegular.woff') format('woff2'),
+  src: url('../src/assets/fonts/HeyWowRegular.woff') format('woff'),
 }
-
 
 @font-face {
-  font-family: 'Aeonik';
-  src: url('./fonts/') format('woff2'),
+  font-family: 'Retro';
+  src: url('../src/assets/fonts/LeviWindows.woff2') format('woff2'),
 }
+
 
 body {
   margin: 0;
