@@ -11,6 +11,7 @@ const SearchPageJobSection = ({
   totalJobs,
   pageSize,
   onPageChange,
+  isInSession  // Add this prop
 }) => {
   return (
     <div className="mx-auto max-w-6xl">
@@ -28,6 +29,7 @@ const SearchPageJobSection = ({
             onSave={onSave}
             onApply={onApply}
             onView={onView}
+            isInSession={isInSession}  // Pass isInSession to JobCard
           />
         ))}
       </div>

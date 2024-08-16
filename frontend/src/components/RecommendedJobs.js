@@ -4,6 +4,7 @@ import microsoftLogo from "../assets/microsoft-logo.png"
 import doveTailLogo from "../assets/dovetail-logo.png"
 import buildkiteLogo from "../assets/buildkite-logo.png"
 import linktreeLogo from "../assets/linktree-logo.png"
+import { useNavigate } from "react-router-dom";
 
 const jobListings = [
   {
@@ -63,6 +64,7 @@ const jobListings = [
 ];
 
 const RecommendedJobCard = ({ job }) => (
+
   <div className="bg-white rounded-lg shadow-md p-4" >
     <div className="flex items-center justify-between mb-2">
       <img src={job.logo_url} alt={job.company_name} className="w-10 h-10 rounded" />
@@ -70,8 +72,8 @@ const RecommendedJobCard = ({ job }) => (
         {job.location}
       </span>
     </div>
-    <h3 className="font-semibold text-slate-600 text-lg mb-1">{job.title}</h3>
-    <p className="text-sm text-gray-600 mb-2">{job.company_name}</p>
+    <h3 className="font-semibold text-slate-600 text-lg mb-1 hover:cursor-pointer hover:text-black">{job.title}</h3>
+    <p className="text-sm text-gray-600 mb-2 hover:underline hover:cursor-pointer">{job.company_name}</p>
     {job.salary_range && (
       <div className="flex items-center text-sm text-gray-500 mb-2">
         {/* <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2 mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -100,6 +102,7 @@ const RecommendedJobCard = ({ job }) => (
 );
 
 const RecommendedJobs = ({ jobs }) => {
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-24 mt-10 bg-teal-50/50" style={{fontFamily: "Avenir, san-serif"}}>
       <div className="flex justify-between items-center mb-4 mb-16">

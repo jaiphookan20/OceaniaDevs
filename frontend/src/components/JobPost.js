@@ -5,7 +5,7 @@ import JobPostSideBar from "./JobPostSideBar";
 import RecommendedJobs from "./RecommendedJobs";
 import HashLoader from "react-spinners/HashLoader";
 
-const JobListing = ({ onSave, onApply }) => {
+const JobPost = ({ onSave, onApply, isInSession }) => {
   const { jobId } = useParams();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -111,7 +111,7 @@ const JobListing = ({ onSave, onApply }) => {
           Established in April 2001, Genesis IT is a specialist permanent, fixed-term, and contract IT recruitment business.
           </p>
         </div>
-        <div className="grid grid-cols-4 gap-6 mt-6 p-4 bg-violet-50 rounded-md shadow-sm">
+        <div className="grid grid-cols-4 gap-6 mt-6 p-4 bg-violet-100 rounded-md shadow-sm">
   {[
     { icon: "https://img.icons8.com/?size=100&id=Z3STIRU4hxMn&format=png&color=000000", label: "Industry", value: job.industry },
     { icon: "https://img.icons8.com/?size=100&id=3BUZy0U5CdQL&format=png&color=000000", label: "Experience", value: job.experience_level },
@@ -122,7 +122,7 @@ const JobListing = ({ onSave, onApply }) => {
     { icon: "https://img.icons8.com/?size=100&id=aUSV1wxr8mk2&format=png&color=000000", label: "Work Location", value: job.work_location },
     { icon: "https://img.icons8.com/?size=100&id=8Y1SrtCBXvmA&format=png&color=000000", label: "Job Arrangement", value: job.job_arrangement }
   ].map((item, index) => (
-    <div key={index} className="flex flex-col items-center p-2 bg-white rounded-md shadow-sm transition-all duration-300 hover:shadow-md">
+    <div key={index} className="flex flex-col items-center p-2 bg-slate-50 rounded-md shadow-sm transition-all duration-300 hover:shadow-md">
       <img
         width="40"
         height="40"
@@ -184,7 +184,7 @@ const JobListing = ({ onSave, onApply }) => {
             </section>
           </div>
           <div className="w-1/4 p-4">
-            <JobPostSideBar job={job} onSave={onSave} onApply={onApply}/>
+            <JobPostSideBar job={job} onSave={onSave} onApply={onApply} isInSession={isInSession}/>
           </div>
         </div>
         <RecommendedJobs jobs={recommendedJobs} />
@@ -193,4 +193,4 @@ const JobListing = ({ onSave, onApply }) => {
   );
 };
 
-export default JobListing;
+export default JobPost;

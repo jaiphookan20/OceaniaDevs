@@ -9,8 +9,9 @@ const SavedAndAppliedJobsCard = ({ job, onApply, onSave, onView }) => {
         <img src={job.logo} alt={job.company} className="w-14 h-14 mr-4" />
         <div>
           <h3
-            className="font-bold text-lg flex items-center hover:text-violet-500"
+            className="font-semibold text-slate-800 text-lg flex items-center hover:text-violet-500"
             onClick={() => onView(job.job_id)}
+            style={{fontFamily: "Avenir, san-serif"}}
           >
             {job.title}
           </h3>

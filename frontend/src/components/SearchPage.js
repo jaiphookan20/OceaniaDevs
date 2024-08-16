@@ -17,7 +17,8 @@ const SearchPage = ({
   filters,
   onSearchChange,
   onFilterChange,
-  onFilterSearch
+  onFilterSearch,
+  isInSession
 }) => {
   useEffect(() => {
     // Trigger a search when the component mounts or when filters change
@@ -46,6 +47,7 @@ const SearchPage = ({
             totalJobs={totalJobs}
             pageSize={pageSize}
             onPageChange={onPageChange}
+            isInSession={isInSession}
           />
         </div>
       </div>

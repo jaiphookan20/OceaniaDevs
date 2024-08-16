@@ -5,7 +5,7 @@ import DancingDoodle from "../assets/doodles/DancingDoodle.png";
 const BottomContainer = () => {
   return (
     <header
-      className="text-center py-4 mb-4 rounded-lg shadow-lg max-w-8xl mx-auto bg-violet-400 opacity-90"
+      className="text-center py-4 mb-4 rounded-lg shadow-lg max-w-6xl mx-auto bg-violet-400 opacity-90"
       // className="text-center py-2 mb-2"
     >
       <div className="flex justify-center items-center space-x-4">

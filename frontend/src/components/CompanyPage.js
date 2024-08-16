@@ -5,11 +5,13 @@ import CompanyPageHeader from "./CompanyPageHeader";
 import SignupForm from "./SignupForm";
 import TechStackGrid from "./TechStackGrid";
 import CompanyJobSection from "./CompanyJobSection";
+import HashLoader from "react-spinners/HashLoader";
 
 const CompanyPage = ({ onSave, onApply, onView }) => {
   const [company, setCompany] = useState(null);
   const [jobs, setJobs] = useState([]);
   const { companyId } = useParams();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCompanyDetails = async () => {
@@ -25,13 +27,20 @@ const CompanyPage = ({ onSave, onApply, onView }) => {
       } catch (error) {
         console.error('Error fetching company details:', error);
       }
-    };
+      finally {
+        setLoading(false);
+      }
+  };
 
     fetchCompanyDetails();
   }, [companyId]);
 
-  if (!company) {
-    return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <HashLoader color="#8823cf" size={120} />
+      </div>
+    );
   }
 
   return (
