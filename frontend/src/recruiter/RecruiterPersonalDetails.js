@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const RecruiterPersonalDetails = () => {
+const RecruiterPersonalDetails = ({ onComplete }) => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -28,14 +28,15 @@ const RecruiterPersonalDetails = () => {
       });
       const result = await response.json();
       console.log(result.message);
-      navigate("/employer/new/organization-details");
+      onComplete();
+      // navigate("/employer/new/organization-details");
     } catch (error) {
       console.error("Error updating recruiter info:", error);
     }
   };
 
   return (
-    <div className="flex justify-center items-center p-20 bg-gray-100">
+    <div className="flex justify-center items-center p-20 bg-gray-100" style={{fontFamily: "Avenir, san-serif"}}>
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md border border-green-400">
         <h1 className="text-2xl font-bold mb-4">Tell us more about you</h1>
         <form onSubmit={handleSubmit}>

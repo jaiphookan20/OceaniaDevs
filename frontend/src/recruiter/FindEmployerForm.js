@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const FindEmployerForm = () => {
+const FindEmployerForm = ({ onComplete }) => {
   const [selectedEmployer, setSelectedEmployer] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -52,7 +52,8 @@ const FindEmployerForm = () => {
       const result = await response.json();
       console.log(result.message);
       if (result.message === "Recruiter company updated successfully") {
-        navigate("/employer/post-job");
+        onComplete();
+        // navigate("/employer/post-job");
       }
     } catch (error) {
       console.error("Error updating recruiter company info:", error);
@@ -64,9 +65,9 @@ const FindEmployerForm = () => {
   );
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100"  style={{fontFamily: "Avenir, san-serif"}}>
       <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
-        <h2 className="mb-6 text-2xl font-bold text-center">
+        <h2 className="mb-6 text-3xl font-bold text-center">
           Find your employer
         </h2>
         <form onSubmit={handleSubmit}>
@@ -81,7 +82,7 @@ const FindEmployerForm = () => {
               <button
                 type="button"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="w-full pl-3 pr-10 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="w-full pl-3 pr-10 py-2 mt-1 bg-slate-300 border border-gray-300 rounded-md shadow-sm focus:outline-none hover:bg-violet-500 hover:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               >
                 {selectedEmployer || "Select your employer"}
               </button>
@@ -100,9 +101,10 @@ const FindEmployerForm = () => {
                     {filteredCompanies.map((company, index) => (
                       <div
                         key={index}
-                        className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
+                        className="flex items-center p-2 hover:bg-violet-500 hover:text-white hover:font-semibold cursor-pointer"
                         onClick={() => handleSelect(company)}
                       >
+                        <img src={company.logo_url} className="h-6 w-6 mr-4 rounded-full" />
                         {company.name}
                       </div>
                     ))}
@@ -121,7 +123,7 @@ const FindEmployerForm = () => {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="px-4 py-2 font-medium text-white bg-green-500 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Complete registration
             </button>
@@ -130,7 +132,7 @@ const FindEmployerForm = () => {
         <div className="mt-4 text-center">
           <button
             type="button"
-            className="text-green-600 hover:underline focus:outline-none"
+            className="text-emerald-700 hover:underline focus:outline-none"
             onClick={() => navigate("/employer/organization-details")}
           >
             Didn't find your employer? Create new employer

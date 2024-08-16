@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const RegisterNewEmployer = () => {
+const RegisterNewEmployer = ({onComplete}) => {
   const [formData, setFormData] = useState({
     employerName: "",
     employerWebsite: "",
@@ -41,7 +41,8 @@ const RegisterNewEmployer = () => {
       if (
         result.message === "Company created and recruiter updated successfully"
       ) {
-        navigate("/employer/post-job");
+        onComplete();
+        // navigate("/employer/post-job");
       }
     } catch (error) {
       console.error("Error creating company:", error);
@@ -49,9 +50,9 @@ const RegisterNewEmployer = () => {
   };
 
   return (
-    <div className="flex justify-center items-center p-20 bg-gray-100">
+    <div className="flex justify-center items-center p-20 bg-gray-100"  style={{fontFamily: "Avenir, san-serif"}}>
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md border border-green-400">
-        <h1 className="text-2xl font-bold mb-4">New employer details</h1>
+        <h1 className="text-3xl font-bold mb-4">New employer details</h1>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="employerName" className="block text-gray-700">
