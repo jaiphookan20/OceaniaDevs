@@ -1,3 +1,39 @@
+# Python cache files
 __pycache__/
-*.pyc
-**/__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+*.venv
+env/
+*.env
+
+# IDE files
+.vscode/
+.idea/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Database files
+*.sqlite3
+
+# Environment variables
+.env
+
+# Dependency directories
+node_modules/
+
+# Build directories
+build/
+dist/
+
+# Other unnecessary files
+*.swp
+*.swo
+*.bak
+*.tmp
