@@ -101,21 +101,21 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml down && sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build"
 
-      - name: Check current migration state
+      - name: Check migration files and database state
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db current" || echo "Migration check failed"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs/backend/migrations && ls -l versions/"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T postgres psql -U ${DB_USER} -d ${DB_NAME} -c 'SELECT * FROM alembic_version;'"
 
-      - name: Reset migration history if necessary
-        if: failure()
+      - name: Reset migration state in database
         run: |
-          echo "Migration check failed. Attempting to reset migration history."
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T postgres psql -U ${DB_USER} -d ${DB_NAME} -c 'DROP TABLE IF EXISTS alembic_version;'"
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db stamp head"
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db migrate"
 
-      - name: Run database migrations
+      - name: Run initial migration
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db upgrade"
 
-      - name: Verify migration state
+      - name: Verify final migration state
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db current"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T postgres psql -U ${DB_USER} -d ${DB_NAME} -c 'SELECT * FROM alembic_version;'"
