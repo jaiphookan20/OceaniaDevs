@@ -38,6 +38,12 @@ jobs:
         with:
           name: build
           path: frontend/build
+      
+      - name: Archive backend code
+        uses: actions/upload-artifact@v2
+        with:
+          name: backend-code
+          path: backend
 
   deploy:
     runs-on: ubuntu-latest
@@ -48,6 +54,12 @@ jobs:
         with:
           name: build
           path: ./build
+
+      - name: Download backend code artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: backend-code
+          path: ./backend
 
       - name: Install SSH Key
         uses: shimataro/ssh-key-action@v2
@@ -64,10 +76,11 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "rm -rf ~/OceaniaDevs/frontend/build && mkdir -p ~/OceaniaDevs/frontend/build"
           scp -r -o StrictHostKeyChecking=no ./build/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/frontend/build/
+          scp -r -o StrictHostKeyChecking=no ./backend/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/backend/
 
       - name: Verify deployment
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "ls -R ~/OceaniaDevs/frontend/build/"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "ls -R ~/OceaniaDevs/frontend/build/" && ls -R ~/OceaniaDevs/backend/"
 
       # Uncomment the following step when SSH connection is successful #
       - name: Restart Docker containers
