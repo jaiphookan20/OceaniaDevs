@@ -43,15 +43,12 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: backend-code
-          # path: backend
           path: |
             backend
             !backend/**/__pycache__
             !backend/**/*.pyc
             !backend/**/*.pyo
             !backend/**/*.pyd
-          
-
 
   deploy:
     runs-on: ubuntu-latest
@@ -93,9 +90,8 @@ jobs:
 
       - name: Verify deployment
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "ls -R ~/OceaniaDevs/frontend/build/" && ls -R ~/OceaniaDevs/backend/"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "ls -R ~/OceaniaDevs/frontend/build/ && ls -R ~/OceaniaDevs/backend/"
 
-      # Uncomment the following step when SSH connection is successful #
       - name: Restart Docker containers
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && docker-compose -f docker-compose.yml -f docker-compose.prod.yml down && docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build"
