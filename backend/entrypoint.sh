@@ -14,4 +14,11 @@ sleep 5
 flask db upgrade
 
 # Start the application
-gunicorn --bind 0.0.0.0:4040 "app:create_app()"
+# gunicorn --bind 0.0.0.0:4040 "app:create_app()"
+gunicorn --bind 0.0.0.0:4040 \
+         --workers 3 \
+         --threads 2 \
+         --timeout 120 \
+         --keep-alive 5 \
+         --log-level info \
+         "app:create_app()"
