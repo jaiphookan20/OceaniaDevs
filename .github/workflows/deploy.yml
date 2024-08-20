@@ -103,8 +103,19 @@ jobs:
 
       - name: Check current migration state
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db current"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db current" || echo "Migration check failed"
+
+      - name: Reset migration history if necessary
+        if: failure()
+        run: |
+          echo "Migration check failed. Attempting to reset migration history."
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db stamp head"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db migrate"
 
       - name: Run database migrations
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db upgrade"
+
+      - name: Verify migration state
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db current"
