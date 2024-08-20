@@ -5,7 +5,7 @@ import SearchPageBar from "./SearchPage";
 const CompaniesPageHeader = ( {title}) => {
   return (
     <header className="text-center py-4 rounded-lg mx-auto bg-slate-50/50">
-      <div className="flex justify-between items-center p-10 bg-lime-100 max-w-7xl mx-auto rounded-3xl border border-slate-300">
+      <div className="flex justify-between items-center p-10 bg-lime-100 max-w-7xl mx-auto rounded-3xl border-t border-slate-900">
         <div className="text-start rounded-md">
           <div className="flex">
             <h1 className="text-6xl font-semibold text-emerald-600">

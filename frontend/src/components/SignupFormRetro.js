@@ -7,7 +7,7 @@ const SignupFormRetro = () => {
       <div className="bg-violet-900 text-white p-3 flex justify-between items-center">
         <div className='flex justify-start items-center'>
             <Logo height={40}/>
-            <span className="text-5xl">WARNING: Sign up</span>
+            <span className="text-5xl">WARNING: Unfair Advantage</span>
         </div>
         <div className="flex space-x-2">
           <button className="bg-gray-400 text-black w-8 h-8 flex items-center justify-center text-4xl">-</button>

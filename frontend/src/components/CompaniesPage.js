@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import CompanySearchBar from "./CompaniesSearchBar";
 import CompanyCardSection from "./CompanyCardSection";
-import IndustrySidebar from "./CompaniesSideBar";
 import CompaniesSearchBar from "./CompaniesSearchBar";
 import HashLoader from "react-spinners/HashLoader";
-
+import CompaniesSideBar from "./CompaniesSideBar";
 
 const CompaniesPage = () => {
     const [companies, setCompanies] = useState([]);
@@ -12,17 +10,28 @@ const CompaniesPage = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalCompanies, setTotalCompanies] = useState(0);
     const [selectedIndustries, setSelectedIndustries] = useState([]);
-    // const [isLoading, setIsLoading] = useState(true);
+    const [selectedTypes, setSelectedTypes] = useState([]);
     const [error, setError] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [initialLoading, setInitialLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     
     const pageSize = 10;
 
-    const fetchCompanies = useCallback(async () => {
-      setLoading(true);
+    const fetchCompanies = useCallback(async (isInitialFetch = false) => {
+      if (isInitialFetch) {
+        setInitialLoading(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
       try {
-        const response = await fetch(`/api/filter-companies?page=${currentPage}&page_size=${pageSize}&search=${searchQuery}`);        
+        const industryQuery = selectedIndustries.length > 0 && !selectedIndustries.includes('all') 
+          ? `&industries=${selectedIndustries.join(',')}`
+          : '';
+        const typeQuery = selectedTypes.length > 0 && !selectedTypes.includes('all')
+          ? `&types=${selectedTypes.join(',')}`
+          : '';
+        const response = await fetch(`/api/filter-companies?page=${currentPage}&page_size=${pageSize}&search=${searchQuery}${industryQuery}${typeQuery}`);        
     
         if (!response.ok) {
             throw new Error('Failed to fetch companies');
@@ -36,30 +45,32 @@ const CompaniesPage = () => {
             setCompanies(data.companies);
             setTotalCompanies(data.total_companies);
         }
-        console.log(`companies: ${companies}`);
-
-        } 
-        catch (error) {
-            console.error("Error fetching companies:", error);
-            setError("Failed to fetch companies. Please try again later.");
-        } 
-        finally {
-            setLoading(false);
+      } 
+      catch (error) {
+        console.error("Error fetching companies:", error);
+        setError("Failed to fetch companies. Please try again later.");
+      } 
+      finally {
+        if (isInitialFetch) {
+          setInitialLoading(false);
+        } else {
+          setLoading(false);
         }
-        }, [currentPage, searchQuery, pageSize, selectedIndustries]);   
+      }
+    }, [currentPage, searchQuery, pageSize, selectedIndustries, selectedTypes]);   
 
     useEffect(() => {
-        fetchCompanies();
-    }, [fetchCompanies, currentPage, searchQuery]);
+        fetchCompanies(true);
+    }, []);
 
     useEffect(() => {
-        console.log("Companies state:", companies);
-        console.log("Total companies:", totalCompanies);
-    }, [companies, totalCompanies]);
+        if (!initialLoading) {
+            fetchCompanies();
+        }
+    }, [fetchCompanies, currentPage, searchQuery, selectedIndustries, selectedTypes]);
 
     const handleSearchChange = (query) => {
         setSearchQuery(query);
-        // console.log("searchQuery: " + searchQuery);
         setCurrentPage(1);
     };
 
@@ -72,40 +83,165 @@ const CompaniesPage = () => {
         setCurrentPage(1);
     };
 
-    if (loading) {
+    const handleTypeChange = (types) => {
+        setSelectedTypes(types);
+        setCurrentPage(1);
+    };
+
+    if (initialLoading) {
         return (
           <div className="flex justify-center items-center h-screen">
             <HashLoader color="#8823cf" size={120} />
           </div>
         );
-      }
+    }
 
     return (
         <div className="max-w-7xl p-6 mx-auto">
-            <div className="p-5">
+            <div className="p-4 mb-8 border-t border-b border-slate-200">
                 <h1 className="text-5xl font-semibold text-slate-600 mb-2">Companies Search</h1>
                 <h3 className="text-lg font-medium text-slate-400" style={{fontFamily: "Avenir, san-serif"}}>Search for technology companies across Oceania by industry, region, company size, and more</h3>
             </div>
             <div className="flex">
-            <div className="w-1/5">
-                <IndustrySidebar 
-                    selectedIndustries={selectedIndustries}
-                    onIndustryChange={handleIndustryChange}
-                />
-            </div>
-            <div className="flex-grow ml-8 w-4/5">
-                <CompaniesSearchBar onSearchChange={handleSearchChange} />
-                <CompanyCardSection
-                    companies={companies}
-                    currentPage={currentPage}
-                    totalCompanies={totalCompanies}
-                    pageSize={pageSize}
-                    onPageChange={handlePageChange}
-                />
-            </div>
+                <div className="w-1/5">
+                    <CompaniesSideBar 
+                        selectedIndustries={selectedIndustries}
+                        selectedTypes={selectedTypes}
+                        onIndustryChange={handleIndustryChange}
+                        onTypeChange={handleTypeChange}
+                    />
+                </div>
+                <div className="flex-grow ml-8 w-4/5">
+                    <CompaniesSearchBar onSearchChange={handleSearchChange} />
+                    {loading ? (
+                        <div className="flex justify-center items-center h-64">
+                            <HashLoader color="#8823cf" size={50} />
+                        </div>
+                    ) : (
+                        <CompanyCardSection
+                        companies={companies}
+                        currentPage={currentPage}
+                        totalCompanies={totalCompanies}
+                        pageSize={pageSize}
+                        onPageChange={handlePageChange}
+                        />
+                    )}
+                </div>
             </div>
         </div>
     );
 };
 
 export default CompaniesPage;
+
+
+// import React, { useState, useEffect, useCallback } from "react";
+// import CompanyCardSection from "./CompanyCardSection";
+// import CompaniesSearchBar from "./CompaniesSearchBar";
+// import HashLoader from "react-spinners/HashLoader";
+// import CompaniesSideBar from "./CompaniesSideBar";
+
+
+// const CompaniesPage = () => {
+//     const [companies, setCompanies] = useState([]);
+//     const [searchQuery, setSearchQuery] = useState("");
+//     const [currentPage, setCurrentPage] = useState(1);
+//     const [totalCompanies, setTotalCompanies] = useState(0);
+//     const [selectedIndustries, setSelectedIndustries] = useState([]);
+//     // const [isLoading, setIsLoading] = useState(true);
+//     const [error, setError] = useState(null);
+//     const [loading, setLoading] = useState(true);
+    
+//     const pageSize = 10;
+
+//     const fetchCompanies = useCallback(async () => {
+//       setLoading(true);
+//       setError(null);
+//       try {
+//         const response = await fetch(`/api/filter-companies?page=${currentPage}&page_size=${pageSize}&search=${searchQuery}`);        
+    
+//         if (!response.ok) {
+//             throw new Error('Failed to fetch companies');
+//         }
+//         const data = await response.json();
+
+//         if (Array.isArray(data)) {
+//             setCompanies(data);
+//             setTotalCompanies(data.length);
+//         } else if (data && Array.isArray(data.companies)) {
+//             setCompanies(data.companies);
+//             setTotalCompanies(data.total_companies);
+//         }
+//         console.log(`companies: ${companies}`);
+
+//         } 
+//         catch (error) {
+//             console.error("Error fetching companies:", error);
+//             setError("Failed to fetch companies. Please try again later.");
+//         } 
+//         finally {
+//             setLoading(false);
+//         }
+//         }, [currentPage, searchQuery, pageSize, selectedIndustries]);   
+
+//     useEffect(() => {
+//         fetchCompanies();
+//     }, [fetchCompanies, currentPage, searchQuery]);
+
+//     useEffect(() => {
+//         console.log("Companies state:", companies);
+//         console.log("Total companies:", totalCompanies);
+//     }, [companies, totalCompanies]);
+
+//     const handleSearchChange = (query) => {
+//         setSearchQuery(query);
+//         // console.log("searchQuery: " + searchQuery);
+//         setCurrentPage(1);
+//     };
+
+//     const handlePageChange = (newPage) => {
+//         setCurrentPage(newPage);
+//     };
+
+//     const handleIndustryChange = (industries) => {
+//         setSelectedIndustries(industries);
+//         setCurrentPage(1);
+//     };
+
+//     if (loading) {
+//         return (
+//           <div className="flex justify-center items-center h-screen">
+//             <HashLoader color="#8823cf" size={120} />
+//           </div>
+//         );
+//       }
+
+//     return (
+//         <div className="max-w-7xl p-6 mx-auto">
+//             <div className="p-5">
+//                 <h1 className="text-5xl font-semibold text-slate-600 mb-2">Companies Search</h1>
+//                 <h3 className="text-lg font-medium text-slate-400" style={{fontFamily: "Avenir, san-serif"}}>Search for technology companies across Oceania by industry, region, company size, and more</h3>
+//             </div>
+//             <div className="flex">
+//             <div className="w-1/5">
+//                 <CompaniesSideBar 
+//                     selectedIndustries={selectedIndustries}
+//                     onIndustryChange={handleIndustryChange}
+//                 />
+//             </div>
+//             <div className="flex-grow ml-8 w-4/5">
+//                 <CompaniesSearchBar onSearchChange={handleSearchChange} />
+//                 <CompanyCardSection
+//                     companies={companies}
+//                     currentPage={currentPage}
+//                     totalCompanies={totalCompanies}
+//                     pageSize={pageSize}
+//                     onPageChange={handlePageChange}
+//                 />
+//             </div>
+//             </div>
+//         </div>
+//     );
+// };
+
+// export default CompaniesPage;

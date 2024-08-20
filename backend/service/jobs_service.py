@@ -127,10 +127,18 @@ class JobsService:
         :param userid: int - ID of the user applying for the job.
         :param jobid: int - ID of the job to apply to.
         """
-        print("TYPE OF JOBID", type(jobid))
-        application = Application(userid=userid, jobid=jobid)
-        db.session.add(application)
-        db.session.commit()
+        try:
+            application = Application(userid=userid, jobid=jobid)
+            if application:
+                application.status = "Applied";
+                db.session.add(application)
+                db.session.commit()
+                return True
+            return False
+        except Exception as e:
+            print(f"Error applying to job: {str(e)}")
+            db.session.rollback()
+            return False
 
     # Bookmark a particular job post
     def bookmark_job(self, userid, jobid):

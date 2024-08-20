@@ -63,15 +63,27 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
   if (error) {
     return <div>{error}</div>;
   }
-
+  console.log(job.tech_stack)
   const techStackIcons = job.tech_stack.filter(tech => icons[tech.toLowerCase()]);
   const scrollToTechnologies = () => {
     technologiesRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Helper function to ensure we're working with an array
-  const ensureArray = (data) => Array.isArray(data) ? data : [data];
+  // Helper function to parse the custom string format
+  const parseCustomString = (str) => {
+    if (typeof str !== 'string') {
+      console.warn("Input is not a string:", str);
+      return [];
+    }
+    // Remove the outer curly braces and split by ","
+    const items = str.replace(/^\{|\}$/g, '').split('","');
+    // Remove any remaining quotes and trim whitespace
+    return items.map(item => item.replace(/^"|"$/g, '').trim());
+  };
 
+  const responsibilities = parseCustomString(job.responsibilities[0]);
+  const requirements = parseCustomString(job.requirements[0]);
+  
   return (
     <div className="flex flex-col max-w-6xl mx-auto min-h-screen justify-center">
       <div className="flex-grow container mx-auto bg-white shadow-md rounded-lg border-t">
@@ -135,7 +147,7 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
     </div>
   ))}
 </div>
-        <div className="flex justify-between items-between pxb-20" 
+        {/* <div className="flex justify-between items-between pxb-20" 
         >
           <div className="w-3/4 pl-8 pr-2">
             <section className="mt-6">
@@ -161,6 +173,36 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
               <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Avenir, sans-serif" }}>
                 {job.requirements}
               </p>
+            </section> */}
+            <div className="flex justify-between items-between pxb-20">
+          <div className="w-3/4 pl-8 pr-2">
+            <section className="mt-6">
+              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800" style={{ fontFamily: "Avenir, sans-serif" }}>
+                About the role
+              </h2>
+              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Avenir, sans-serif" }}>
+                {job.overview}
+              </p>
+            </section>
+            <section className="mt-6">
+              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800" style={{ fontFamily: "Avenir, sans-serif" }}>
+                Responsibilities
+              </h2>
+              <ul className="list-disc pl-5 mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Avenir, sans-serif" }}>
+                {responsibilities.map((responsibility, index) => (
+                  <li key={index}>{responsibility}</li>
+                ))}
+              </ul>
+            </section>
+            <section className="mt-6">
+              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800"  style={{ fontFamily: "Avenir, sans-serif" }}>
+                Requirements
+              </h2>
+              <ul className="list-disc pl-5 mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Avenir, sans-serif" }}>
+                {requirements.map((requirement, index) => (
+                  <li key={index}>{requirement}</li>
+                ))}
+              </ul>
             </section>
             <section ref={technologiesRef} className="mt-6">
               <h2 className="text-3xl font-semibold mt-4 mb-1 text-violet-600 bg-violet-50">

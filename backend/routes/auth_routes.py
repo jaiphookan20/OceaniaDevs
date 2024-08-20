@@ -19,13 +19,13 @@ def generate_state():
 
 @auth_blueprint.before_request
 def before_request():
-    current_app.logger.info(f"Session before request: {session}")
+    # current_app.logger.info(f"Session before request: {session}")
     current_app.logger.info(f"Request path: {request.path}")
     current_app.logger.info(f"Request method: {request.method}")
 
 @auth_blueprint.after_request
 def after_request(response):
-    current_app.logger.info(f"Session after request: {session}")
+    # current_app.logger.info(f"Session after request: {session}")
     return response
 
 @auth_blueprint.route("/callback", methods=["GET", "POST"])

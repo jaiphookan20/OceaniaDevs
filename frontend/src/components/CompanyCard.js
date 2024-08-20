@@ -8,12 +8,12 @@ const CompanyCard = ({ company }) => {
       <div className="flex-grow">
         <div className="flex justify-between items-start">
         <h3 className="text-xl text-slate-700 font-semibold hover:cursor-pointer">{company.name}</h3>
-        <p className="text-sm text-slate-500">{company.address}</p>
+        <p className="text-sm text-slate-500">{company.city}, {company.state}</p>
         </div>
         <p className="text-sm mt-2 text-slate-600" >{company.description}</p>
         <div className="mt-3 space-x-2 flex">
             <div className="flex items-center">
-              <span className="bg-fuchsia-100 text-fuchsia-600 font-semibold px-2 py-1 text-sm rounded">IT-Software Development</span>
+              <span className="bg-fuchsia-100 text-fuchsia-600 font-semibold px-2 py-1 text-sm rounded">{company.industry}</span>
             </div>
             <div className="flex items-center">
               <span className="bg-teal-100 text-teal-700 font-semibold px-2 py-1 rounded text-sm">{company.address}</span>
@@ -22,7 +22,7 @@ const CompanyCard = ({ company }) => {
               <span className="bg-lime-100 text-green-700 px-2 py-1 rounded font-semibold text-sm">{company.job_count} Jobs</span>
             </div>
             <div className="flex items-center">
-              <span className="bg-cyan-100 text-cyan-700 px-2 py-1 rounded font-semibold text-sm">Agency</span>
+              <span className="bg-cyan-100 text-cyan-700 px-2 py-1 rounded font-semibold text-sm">{company.type}</span>
             </div>
         </div>
       </div>

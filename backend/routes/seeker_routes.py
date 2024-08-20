@@ -12,39 +12,6 @@ from datetime import datetime
 seeker_blueprint = Blueprint('seeker', __name__)
 CORS(seeker_blueprint, supports_credentials=True, resources={r'/*': {'origins': 'http://localhost:3000'}})
 
-# Update Job Seeker Route
-@seeker_blueprint.route('/api/update_seeker', methods=['GET', 'POST'])
-def update_seeker():
-    """
-    Route for updating a job seeker's information.
-
-    GET: Renders the 'add_seeker.html' template.
-    POST: Extracts form data and calls the 'update_seeker' method of the SeekerService.
-
-    Returns:
-        - For GET: Rendered 'add_seeker.html' template.
-        - For POST: Success message if the seeker is updated successfully.
-        - 401 Unauthorized error if the user is not logged in.
-    """
-    if request.method == 'POST':
-        if 'user' not in session:
-            print('user not in session, cannot update Seeker')
-            return jsonify({"error": "Unauthorized access"}), 401
-
-        # Extract form data and call the update_seeker method of SeekerService
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
-        city = request.form['city']
-        state = request.form['state']
-        country = request.form['country']
-
-        seeker_service = SeekerService()
-        seeker_service.update_seeker(first_name, last_name, city, state, country)
-
-        return "Job Seeker Updated successfully!"
-    else:
-        return render_template('add_seeker.html')
-
 # Get Bookmarked Jobs Route
 # @seeker_blueprint.route('/api/bookmarked_jobs')
 # def get_all_bookmarked_jobs_by_seeker():
@@ -142,9 +109,12 @@ def get_all_applied_jobs_by_seeker():
         return jsonify({"error": "Unauthorized access"}), 401
     else:
         seeker_id = session['user']['uid']
+        page = request.args.get('page', 1, type=int)
+        page_size = request.args.get('page_size', 10, type=int)
+        
         seeker_service = SeekerService()
         jobs_service = JobsService()
-        applied_jobs = seeker_service.get_all_applied_jobs_by_seeker(seeker_id)
+        applied_jobs = seeker_service.get_all_applied_jobs_by_seeker(seeker_id, page, page_size)
 
         applied_jobs_data = []
         for applied_job in applied_jobs:
@@ -160,15 +130,30 @@ def get_all_applied_jobs_by_seeker():
                 'country': job.country if job else "N/A",
                 'experience_level': job.experience_level if job else "N/A",
                 'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}" if company and company.logo_url else None,
-                'created_at': job.created_at.isoformat() if job and job.created_at else "N/A",
+                'created_at': job.created_at.strftime('%Y-%m-%d') if job and job.created_at else "N/A",
                 'specialization': job.specialization if job else "N/A",
                 'salary_range': job.salary_range if job else "N/A",
-                'applied_at': applied_job.datetimestamp.isoformat(),
-                'min_experience_years': job.min_experience_years,
+                'applied_at': applied_job.datetimestamp.strftime('%Y-%m-%d'),
+                'min_experience_years': job.min_experience_years if job else "N/A",
                 'status': applied_job.status if hasattr(applied_job, 'status') else 'Applied'
             })
 
         return jsonify(applied_jobs=applied_jobs_data)
+    
+@seeker_blueprint.route('/api/remove_application/<int:job_id>', methods=['DELETE'])
+def remove_application(job_id):
+    if 'user' not in session or session['user']['type'] != "seeker":
+        return jsonify({"error": "Unauthorized access"}), 401
+    
+    seeker_id = session['user']['uid']
+    seeker_service = SeekerService()
+    success = seeker_service.remove_application(seeker_id, job_id)
+    
+    if success:
+        return jsonify({"message": "Application removed successfully"}), 200
+    else:
+        return jsonify({"error": "Failed to remove application"}), 500
+
 
 @seeker_blueprint.route('/api/user_applications')
 def get_user_applications():
@@ -178,7 +163,7 @@ def get_user_applications():
     seeker_id = session['user']['uid']
     seeker_service = SeekerService()
     jobs_service = JobsService()
-    applications = seeker_service.get_all_applied_jobs_by_seeker(seeker_id)
+    applications = seeker_service.get_user_applications(seeker_id)
 
     application_data = []
     for app in applications:
@@ -216,3 +201,64 @@ def update_application_status(application_id):
         return jsonify({"message": "Application status updated successfully"}), 200
     else:
         return jsonify({"error": "Failed to update application status"}), 500
+    
+
+@seeker_blueprint.route('/api/remove_bookmark', methods=['POST'])
+def remove_bookmark():
+    if 'user' not in session or session['user']['type'] != "seeker":
+        return jsonify({"error": "Unauthorized access"}), 401
+    
+    data = request.json
+    job_id = data.get('jobid')
+    seeker_id = session['user']['uid']
+    
+    if not job_id:
+        return jsonify({"error": "No job ID provided"}), 400
+    
+    seeker_service = SeekerService()
+    success = seeker_service.remove_bookmark(seeker_id, job_id)
+    
+    if success:
+        return jsonify({"message": "Job removed from bookmarks successfully"}), 200
+    else:
+        return jsonify({"error": "Failed to remove job from bookmarks"}), 500
+    
+
+@seeker_blueprint.route('/api/seeker_info', methods=['GET'])
+def get_seeker_info():
+    if 'user' not in session or session['user']['type'] != 'seeker':
+        return jsonify({"error": "Unauthorized"}), 401
+
+    seeker_service = SeekerService()
+    seeker_id = session['user']['uid']
+    seeker = seeker_service.get_seeker_by_id(seeker_id)
+
+    if not seeker:
+        return jsonify({"error": "Seeker not found"}), 404
+
+    seeker_info = {
+        "firstName": seeker.first_name,
+        "lastName": seeker.last_name,
+        "email": seeker.email,
+        "city": seeker.city,
+        "state": seeker.state,
+        "country": seeker.country
+    }
+
+    return jsonify(seeker_info)
+
+# Update Job Seeker Route
+@seeker_blueprint.route('/api/update_seeker', methods=['POST'])
+def update_seeker():
+    if 'user' not in session or session['user']['type'] != 'seeker':
+        return jsonify({"error": "Unauthorized access"}), 401
+
+    seeker_service = SeekerService()
+    seeker_id = session['user']['uid']
+    data = request.json
+
+    result = seeker_service.update_seeker(seeker_id, data)
+    if result:
+        return jsonify({"message": "Seeker info updated successfully"}), 200
+    else:
+        return jsonify({"error": "Failed to update seeker info"}), 400

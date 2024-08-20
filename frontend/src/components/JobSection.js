@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import JobCard from "./JobCard";
 
-const JobSection = ({ title, jobs, onSave, onApply, onView, company, isInSession }) => {
+const JobSection = ({ title, jobs, onSave, onApply, onView, company, isInSession, onViewAll }) => {
   const navigate = useNavigate();
 
 /* We added a handleViewAll function that extracts the specialization from the title and navigates to the search page with the specialization as a query parameter.
@@ -18,7 +18,8 @@ const JobSection = ({ title, jobs, onSave, onApply, onView, company, isInSession
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-3xl font-semibold pl-4 text-slate-600">{title}</h2>
         <button 
-          onClick={handleViewAll}
+          // onClick={handleViewAll}
+          onClick={onViewAll}
           className="text-teal-600 font-semibold hover:text-indigo-700 hover:underline hover:font-semibold"
           style={{fontFamily: "Avenir, san-serif"}}
         >

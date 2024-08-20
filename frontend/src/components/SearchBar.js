@@ -9,38 +9,38 @@ const SearchBar = ({
   filters,
   onFilterChange,
   onFilterSearch,
-  selectedTechnology,
-  setSelectedTechnology,
+  onClearAll,  // New prop for clearing all filters and search
 }) => {
   return (
     <div>
-    <div className="justify-items-center justify-center mx-auto">
-      <div className=" p-4 pb-8  border-b border-green-300  mb-10" >
-        <div className="flex items-center space-x-4 mb-4">
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              placeholder="Search by Title, Company, Technology ...."
-              className="w-full border border-green-400 rounded-lg py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-lime-400"
-              value={searchQuery}
-              onChange={onSearchChange}
-            />
-            <div className="absolute top-1/2 left-3 transform -translate-y-1/2"></div>
+      <div className="justify-items-center justify-center mx-auto">
+        <div className="p-4 pb-8 border-b border-green-300 mb-10">
+          <div className="flex items-center space-x-4 mb-4">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                placeholder="Search by Title, Company, Technology ...."
+                className="w-full border border-green-400 rounded-lg py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-lime-400"
+                value={searchQuery}
+                onChange={onSearchChange}
+              />
+              <div className="absolute top-1/2 left-3 transform -translate-y-1/2"></div>
+            </div>
+            <button
+              className="bg-black text-white rounded-lg px-4 py-2"
+              // onClick={() => onSearchChange({ target: { value: "" } })}
+              onClick={onClearAll}  // Use the new onClearAll prop
+            >
+              Clear All
+            </button>
+            <button
+              className="bg-purple-600 text-white rounded-lg px-4 py-2"
+              onClick={onFilterSearch}
+            >
+              Search
+            </button>
           </div>
-          <button
-            className="bg-black text-white rounded-lg px-4 py-2"
-            onClick={() => onSearchChange({ target: { value: "" } })}
-          >
-            Clear
-          </button>
-          <button
-            className="bg-purple-600 text-white rounded-lg px-4 py-2"
-            onClick={onFilterSearch}
-          >
-            Search
-          </button>
-        </div>
-        <div className="flex space-x-3">
+          <div className="flex space-x-3">
           <select
             name="experience_level"
             className="border border-green-300 bg-green-50 text-green-700 font-medium rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200"
@@ -126,6 +126,8 @@ const SearchBar = ({
           <select
             name="specialization"
             className="border border-green-300 bg-green-50 text-green-700 font-medium  rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200"
+            // value={filters.specialization}
+            // onChange={onFilterChange}
             value={filters.specialization}
             onChange={onFilterChange}
           >

@@ -1,8 +1,7 @@
 import { getRelativeTimeString } from "../utils/time.js";
-
-
-const SavedAndAppliedJobsCard = ({ job, onApply, onSave, onView }) => {
-
+import { toast } from 'react-hot-toast';
+const SavedAndAppliedJobsCard = ({ job, onApply, onSave, onRemove, onView }) => {
+  
   return (
     <div className="flex items-center justify-between bg-zinc-50/50 p-4 border-b border-grey-200 mb-2 rounded-lg shadow-md shadow-slate-200/50 cursor-pointer hover:bg-slate-100 hover:shadow-xl">
       <div className="flex items-center">
@@ -45,11 +44,11 @@ const SavedAndAppliedJobsCard = ({ job, onApply, onSave, onView }) => {
         </div>
       </div>
       <div className="flex space-x-2">
-        <button
-          className="px-4 py-2 border border-gray-300 hover:bg-lime-300 rounded-md"
-          onClick={() => onSave(job.job_id)}
+      <button
+          className="px-4 py-2 border border-gray-300 hover:bg-red-300 rounded-md"
+          onClick={()=>onRemove(job.job_id)}
         >
-          Save
+          Remove
         </button>
         <button
           className="px-4 py-2 bg-black hover:bg-violet-700 text-white rounded-md"
@@ -60,6 +59,5 @@ const SavedAndAppliedJobsCard = ({ job, onApply, onSave, onView }) => {
       </div>
     </div>
   );
-};
-
+}
 export default SavedAndAppliedJobsCard;

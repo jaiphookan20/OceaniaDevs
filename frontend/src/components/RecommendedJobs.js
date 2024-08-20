@@ -6,74 +6,20 @@ import buildkiteLogo from "../assets/buildkite-logo.png"
 import linktreeLogo from "../assets/linktree-logo.png"
 import { useNavigate } from "react-router-dom";
 
-const jobListings = [
-  {
-    logo: canvaLogo,
-    title: 'Senior Revenue Accountant -...',
-    company: 'TrueCommerce',
-    employmentType: 'Full Time',
-    role: 'Revenue Accountant',
-    location: 'United States only',
-    salary: '165k-200k USD'
-  },
-  {
-    logo: microsoftLogo,
-    title: 'Senior Data Analyst',
-    company: 'abridge',
-    employmentType: 'Full Time',
-    role: 'Senior Data Analyst',
-    location: 'United States only',
-    salary: '165k-200k USD'
-  },
-  {
-    logo: canvaLogo,
-    title: 'People Operations Specialist -...',
-    company: 'Couchbase',
-    employmentType: 'Full Time',
-    role: 'People Operations Specialist',
-    location: 'United Kingdom only',
-    salary: '12k-17k USD'
-  },
-  {
-    logo: doveTailLogo,
-    title: 'Grupo QuintoAndar | Senior...',
-    company: 'QuintoAndar',
-    employmentType: 'Full Time',
-    role: 'Database Engineer',
-    location: 'Brazil only',
-    salary: '12k-17k USD'
-  },
-  {
-    logo: buildkiteLogo,
-    title: 'Tibco Integration Specialist -...',
-    company: 'NTT DATA',
-    employmentType: 'Full Time',
-    role: 'Senior Integration Engineer',
-    location: 'United States only',
-    salary: '70k-145k USD'
-  },
-  {
-    logo: linktreeLogo,
-    title: 'Marketing/Listing Coordinator +...',
-    company: 'Somewhere',
-    employmentType: 'Full Time',
-    role: 'Marketing Coordinator',
-    location: 'Philippines only',
-    salary: '12k-17k USD'
-  }
-];
+const RecommendedJobCard = ({ job }) => {
 
-const RecommendedJobCard = ({ job }) => (
+  const navigate = useNavigate();
 
-  <div className="bg-white rounded-lg shadow-md p-4" >
+  return (
+    <div className="bg-white rounded-lg shadow-md p-4" >
     <div className="flex items-center justify-between mb-2">
       <img src={job.logo_url} alt={job.company_name} className="w-10 h-10 rounded" />
       <span className="text-xs text-teal-600 bg-teal-100 px-2 py-1 rounded-full">
         {job.location}
       </span>
     </div>
-    <h3 className="font-semibold text-slate-600 text-lg mb-1 hover:cursor-pointer hover:text-black">{job.title}</h3>
-    <p className="text-sm text-gray-600 mb-2 hover:underline hover:cursor-pointer">{job.company_name}</p>
+    <h3 className="font-semibold text-slate-600 text-lg mb-1 hover:cursor-pointer hover:text-black" onClick={()=>navigate(`/job_post/${job.job_id}`)}>{job.title}</h3>
+    <p className="text-sm text-gray-600 mb-2 hover:underline hover:cursor-pointer" onClick={()=>navigate(`/company/${job.company_id}`)}>{job.company_name}</p>
     {job.salary_range && (
       <div className="flex items-center text-sm text-gray-500 mb-2">
         {/* <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2 mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -99,7 +45,9 @@ const RecommendedJobCard = ({ job }) => (
         )}
     </div>
   </div>
-);
+  )
+
+}
 
 const RecommendedJobs = ({ jobs }) => {
 

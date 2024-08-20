@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Logo from "./Logo";
 import { Link, useNavigate } from "react-router-dom";
-import oceBlackLogo from "../assets/oce-black-logo.png"
+import { UserCircle, BookMarked, BookCheck, Activity, Settings, LogOut,  ChevronDown, ChevronUp } from 'lucide-react';
+
 
 const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -26,6 +27,31 @@ const Navbar = () => {
           setIsLoggedIn(true);
           setUserName(data.userinfo.name);
           setUserType(data.type);
+        } else {
+          setIsLoggedIn(false);
+          setUserName("");
+          setUserType("");
+          setUserType("");
+        }
+
+      } catch (error) {
+        console.error("Error checking session:", error);
+      }
+    };
+
+    const getUserInfo = async () => {
+      try {
+        const response = await fetch(`/api/get-user-info`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+        const data = await response.json();
+        if (data.userinfo) {
+          setIsLoggedIn(true);
+          setUserName(data.userinfo.name);
           setUserType(data.type);
         } else {
           setIsLoggedIn(false);
@@ -33,6 +59,7 @@ const Navbar = () => {
           setUserType("");
           setUserType("");
         }
+
       } catch (error) {
         console.error("Error checking session:", error);
       }
@@ -79,6 +106,15 @@ const Navbar = () => {
       document.removeEventListener("click", handleOutsideClick);
     };
   }, [isDropdownOpen]);
+
+  const getInitials = (name) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase();
+  };
+
 
   return (
     <nav
@@ -153,49 +189,35 @@ const Navbar = () => {
           </>
         )}
 
-        {isLoggedIn ? ( // Show dropdown menu if user is logged in
+{isLoggedIn ? (
           <div className="relative inline-block text-left">
             <div>
               <button
                 type="button"
-                className="flex items-center justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="flex items-center justify-center space-x-2"
                 id="options-menu"
                 aria-haspopup="true"
                 aria-expanded={isDropdownOpen}
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
-                {userName}
-                <svg
-                  className="-mr-1 ml-2 h-5 w-5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.23 7.21a.75.75 0 011.06 0L10 10.92l3.71-3.71a.75.75 0 111.06 1.06l-4 4a.75.75 0 01-1.06 0l-4-4a.75.75 0 010-1.06z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <div className="w-10 h-10 rounded-full bg-violet-700 text-white text-sm font-medium flex items-center justify-center">
+                  {getInitials(userName)}
+                </div>
+                {isDropdownOpen ? (
+                  <ChevronUp className="h-5 w-5 text-gray-500" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-gray-500" />
+                )}
               </button>
             </div>
             {isDropdownOpen && (
               <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-                <div
-                  className="py-1"
-                  role="menu"
-                  aria-orientation="vertical"
-                  aria-labelledby="options-menu"
-                >
-                  <Link
-                    to="/profile"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    role="menuitem"
-                  >
+                <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                  <Link to="/profile" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                    <UserCircle className="mr-3 h-5 w-5" />
                     My Profile
                   </Link>
-                  {userType === "recruiter" ? ( // Show Add Recruiter Details link only for recruiters
+                  {userType === "recruiter" ? (
                     <>
                       <Link
                         to="/employer/add-details"
@@ -228,48 +250,31 @@ const Navbar = () => {
                     </>
                   ) : (
                     <>
-                    <Link
-                      to="/dashboard"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      role="menuitem"
-                    >
-                      Application Dashboard
-                    </Link>
-                      <Link
-                        to="/saved-jobs"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        role="menuitem"
-                      >
+                    <Link to="/dashboard" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                        <Activity className="mr-3 h-5 w-5" />
+                        Application Dashboard
+                      </Link>
+                      <Link to="/saved-jobs" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                        <BookMarked className="mr-3 h-5 w-5" />
                         Saved Jobs
                       </Link>
-                      <Link
-                        to="/applied-jobs"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        role="menuitem"
-                      >
+                      <Link to="/applied-jobs" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                        <BookCheck className="mr-3 h-5 w-5" />
                         Applied Jobs
                       </Link>
                     </>
                   )}
-                  <Link
-                    to="/job-alerts"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    role="menuitem"
-                  >
+                  <Link to="/job-alerts" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                    <Activity className="mr-3 h-5 w-5" />
                     Job Alerts
                   </Link>
-                  <Link
-                    to="/settings"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    role="menuitem"
-                  >
+                  <Link to="/seeker/settings" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                    <Settings className="mr-3 h-5 w-5" />
                     Settings
                   </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    role="menuitem"
-                  >
+                  <div className="border-t border-gray-100 my-1"></div>
+                  <button onClick={handleLogout} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                    <LogOut className="mr-3 h-5 w-5" />
                     Sign out
                   </button>
                 </div>

@@ -47,44 +47,89 @@ class RecruiterService:
         Retrieve a Company Object using the recruiter's recruiter_id.
         :param recruiter_id: int - The ID of the recruiter associated with the company
         """
-        if (session.get('user').get('type') != 'recruiter'):
-            return jsonify({"error": "Unauthorized access. Only Recruiters can access this resource"}), 401
-        recruiter_id = session['user']['recruiter_id'];
-        recruiter = Recruiter.query.get(recruiter_id);
-        company = Company.query.get(recruiter.company_id)
-        print(f"Inside recruiter service: company: {company}")
-        if not company:
+        if 'user' not in session or session['user']['type'] != 'recruiter':
             return None
-        return company;
+        recruiter_id = session['user']['recruiter_id']
+        recruiter = Recruiter.query.get(recruiter_id)
+        return Company.query.get(recruiter.company_id) if recruiter else None
+
     
     # Update Recruiter Personal Data
+    # def update_recruiter_info(self, recruiter_id, data):
+    #     recruiter = self.get_recruiter_by_id(recruiter_id)
+    #     if recruiter:
+    #         # for key, value in data.items():
+    #         #     setattr(recruiter, key, value)
+    #         data = request.get_json()
+    #         recruiter.first_name = data.get('firstName')
+    #         recruiter.last_name = data.get('lastName')
+    #         recruiter.position = data.get('position')
+    #         # db.session.commit()
+    #         return True
+    #     return False
+
+    # def update_recruiter_company(self, recruiter_id, data):
+    #     recruiter = self.get_recruiter_by_id(recruiter_id)
+    #     if recruiter:
+    #         company_name = data.get('company')
+    #         current_app.logger.info(f"company_name: {company_name}")
+    #         company = Company.query.filter_by(name=company_name).first()
+    #         if company:
+    #             recruiter.company_id = company.company_id
+    #             current_app.logger.info(f"recruiter object: {recruiter}")
+    #             # db.session.commit()
+    #             return True
+    #         else:
+    #             current_app.logger.error(f"Company not found: {company_name}")
+    #     return False
+
     def update_recruiter_info(self, recruiter_id, data):
         recruiter = self.get_recruiter_by_id(recruiter_id)
         if recruiter:
-            # for key, value in data.items():
-            #     setattr(recruiter, key, value)
-            data = request.get_json()
-            recruiter.first_name = data.get('firstName')
-            recruiter.last_name = data.get('lastName')
-            recruiter.position = data.get('position')
-            # db.session.commit()
-            return True
+            recruiter.first_name = data.get('firstName', recruiter.first_name)
+            recruiter.last_name = data.get('lastName', recruiter.last_name)
+            recruiter.mobile = data.get('mobile', recruiter.mobile)
+            recruiter.position = data.get('position', recruiter.position)
+            
+            try:
+                db.session.commit()
+                return True
+            except Exception as e:
+                current_app.logger.error(f"Error updating recruiter info: {str(e)}")
+                db.session.rollback()
+                return False
         return False
 
-    def update_recruiter_company(self, recruiter_id, data):
+    def update_recruiter_company(self, recruiter_id, data, logo):
         recruiter = self.get_recruiter_by_id(recruiter_id)
-        if recruiter:
-            company_name = data.get('company')
-            current_app.logger.info(f"company_name: {company_name}")
-            company = Company.query.filter_by(name=company_name).first()
+        if recruiter and recruiter.company_id:
+            company = Company.query.get(recruiter.company_id)
             if company:
-                recruiter.company_id = company.company_id
-                current_app.logger.info(f"recruiter object: {recruiter}")
-                # db.session.commit()
-                return True
-            else:
-                current_app.logger.error(f"Company not found: {company_name}")
+                company.country = data.get('country', company.country)
+                company.size = data.get('employerSize', company.size)
+                company.website_url = data.get('website', company.website_url)
+                company.address = data.get('address', company.address)
+                company.description = data.get('description', company.description)[:200]
+                company.type = data.get('type', company.type)
+                company.city = data.get('city', company.city)
+                company.state = data.get('state', company.state)
+                company.industry = data.get('industry', company.industry)
+                
+                if logo:
+                    filename = secure_filename(logo.filename)
+                    logo_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+                    logo.save(logo_path)
+                    company.logo_url = f"/uploads/upload_company_logo/{filename}"
+                
+                try:
+                    db.session.commit()
+                    return True
+                except Exception as e:
+                    current_app.logger.error(f"Error updating company info: {str(e)}")
+                    db.session.rollback()
+                    return False
         return False
+
         
     def create_company(self, recruiter_id, data, logo_file):
         try:
@@ -183,7 +228,7 @@ class RecruiterService:
                 3. 'industry': Identify the end market or industry of the client that the role serves. If client is federal government, industry = 'government'. Use one of the following: ['Government', 'Banking & Financial Services', 'Fashion', 'Mining', 'Healthcare', 'IT - Software Development', 'IT - Data Analytics', 'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 'Marketing & Advertising', 'Media & Communications', 'Non-Profit & NGO', 'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 'Telecommunications', 'Transportation & Logistics'].
                 4. 'responsibilities': List main job duties and expectations.
                 5. 'requirements': Enumerate essential qualifications and skills needed.
-                6. 'specialization': Classify the job into ONE of these categories: 'Frontend', 'Backend', 'Cloud & Infrastructure', 'Business Intelligence & Data', 'Machine Learning & AI', 'Full-Stack', 'Mobile', 'Cybersecurity', 'Business Application Development', 'DevOps & IT', 'Project Management', 'QA & Testing'. Note: 'Cloud & Infrastructure' includes Solution Architect roles.
+                6. 'specialization': Classify the job into ONLY ONE of these categories: 'Frontend', 'Backend', 'Cloud & Infrastructure', 'Business Intelligence & Data', 'Machine Learning & AI', 'Full-Stack', 'Mobile', 'Cybersecurity', 'Business Application Development', 'DevOps & IT', 'Project Management', 'QA & Testing'. Note: 'Cloud & Infrastructure' includes Solution Architect roles. You cannot select any other category other than the ones listed.
                 7. 'technologies': List specific software technologies mentioned (e.g., Java, TypeScript, React, AWS). Exclude general terms like 'LLM services', 'Containers', 'CI/CD' or 'REST APIs'.
                 8. 'experience_level': If 'min_experience_years' value is available, classify on basis of the 'min_experience_years' value: if value is between '0-2': 'Junior'; '3-5': 'Mid-Level', '6-10': 'Senior', '10+':'Executive'. If min_experience_years value not available, Classify as you deem fit into one of: 'Junior', 'Mid-Level', 'Senior', or 'Executive'.                
                 9. 'salary_type': If only available, specify the type of salary or payment arrangement (e.g., 'Annual', 'Hourly', 'Daily').
@@ -350,14 +395,52 @@ class RecruiterService:
             "job_count": self.get_job_count_for_company(company.company_id)
         } for company in companies]
 
-    def get_companies_with_pagination(self, page, page_size, search):
+    # def get_companies_with_pagination(self, page, page_size, search):
+    #     query = Company.query
+
+    #     current_app.logger.info(f"Search query: {search}")
+
+    #     if search:
+    #         query = query.filter(Company.name.ilike(f'%{search}%'))
+    #         current_app.logger.info(f"Filtered query: {query}")
+
+    #     total_companies = query.count()
+    #     current_app.logger.info(f"Total companies after filter: {total_companies}")
+
+    #     companies = query.order_by(Company.name).paginate(page=page, per_page=page_size, error_out=False).items
+
+    #     return [{
+    #         "company_id": company.company_id,
+    #         "name": company.name,
+    #         "description": company.description,
+    #         "logo_url": f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
+    #         "address": company.address,
+    #         "city": company.city,
+    #         "state": company.state,
+    #         "industry": company.industry,
+    #         "type": company.type,
+    #         "job_count": self.get_job_count_for_company(company.company_id)
+    #     } for company in companies], total_companies
+
+    # In recruiter_service.py
+
+    def get_companies_with_pagination(self, page, page_size, search, industries, types):
         query = Company.query
 
         current_app.logger.info(f"Search query: {search}")
+        current_app.logger.info(f"Industries filter: {industries}")
+        current_app.logger.info(f"Types filter: {types}")
 
         if search:
             query = query.filter(Company.name.ilike(f'%{search}%'))
-            current_app.logger.info(f"Filtered query: {query}")
+
+        if industries and 'all' not in industries:
+            query = query.filter(Company.industry.in_(industries))
+
+        if types and 'all' not in types:
+            query = query.filter(Company.type.in_(types))
+
+        current_app.logger.info(f"Filtered query: {query}")
 
         total_companies = query.count()
         current_app.logger.info(f"Total companies after filter: {total_companies}")
@@ -370,8 +453,12 @@ class RecruiterService:
             "description": company.description,
             "logo_url": f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
             "address": company.address,
+            "city": company.city,
+            "state": company.state,
+            "industry": company.industry,
+            "type": company.type,
             "job_count": self.get_job_count_for_company(company.company_id)
-        } for company in companies], total_companies
+        } for company in companies], total_companies 
 
 
     def get_job_count_for_company(self, company_id):
@@ -432,6 +519,7 @@ class RecruiterService:
             result.append({
                 "job_id": job.job_id,
                 "title": job.title,
+                "company_id": company.company_id,
                 "company_name": company.name,
                 "logo_url": f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
                 "location": f"{job.city}, {job.state}, {job.country}",
@@ -443,3 +531,62 @@ class RecruiterService:
             })
         
         return result
+
+    
+    # def extract_text_from_pdf(self, pdf_file):
+    #     try:
+    #         pdf_reader = PyPDF2.PdfReader(pdf_file)
+    #         text = ""
+    #         for page in pdf_reader.pages:
+    #             text += page.extract_text()
+    #         return text
+    #     except Exception as e:
+    #         current_app.logger.error(f"Error extracting text from PDF: {str(e)}")
+    #         return None
+
+    def process_resume(self, resume_text):
+        messages = [
+            {
+                "role": "system",
+                "content": "You are an AI assistant specialized in analyzing resumes and extracting specific information."
+            },
+            {
+                "role": "user",
+                "content": f"""Analyze the following resume and extract the requested information if available. Provide a response in JSON format with these keys: 'name', 'email', 'city', 'state', 'education', 'gpa', 'grade', 'work_experience', 'technologies', 'projects'.
+
+                Instructions for each key:
+                1. 'name': Full name of the applicant.
+                2. 'email': Email address of the applicant.
+                3. 'city': City of residence.
+                4. 'state': State of residence.
+                5. 'education': An array of objects, each with 'university', 'degree', and 'graduation_year'.
+                6. 'gpa': GPA if mentioned.
+                7. 'grade': Overall grade if mentioned.
+                8. 'work_experience': An array of objects, each with 'company', 'position', 'duration', and 'responsibilities'.
+                9. 'technologies': An array of technologies, programming languages, and tools mentioned.
+                10. 'projects': An array of objects, each with 'name' and 'description'.
+
+                Important:
+                - If any information is not available in the resume, omit that key from the JSON response.
+                - For work experience, structure the information properly and include all relevant details.
+                - Ensure all extracted information is accurate and properly formatted.
+
+                Resume Text: {resume_text}
+                """
+            }
+        ]
+
+        try:
+            response = self.openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=messages,
+                response_format={"type": "json_object"}
+            )
+
+            content = response.choices[0].message.content
+            processed_data = json.loads(content)
+            return processed_data
+
+        except Exception as e:
+            current_app.logger.error(f"OpenAI API request failed: {str(e)}")
+            return None

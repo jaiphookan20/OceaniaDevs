@@ -5,6 +5,7 @@ from models import Recruiter, Company, Job
 from extensions import db
 from flask_cors import CORS
 from utils.time import get_relative_time
+from werkzeug.utils import secure_filename
 from datetime import datetime
 import os
 import config
@@ -157,41 +158,118 @@ def get_all_jobs_by_recruiter():
             "active_jobs": active_jobs,
             "expired_jobs": expired_jobs
         })
-
-# -------------------------END OF GET REQUESTS-------------------------------
-
-# Update Recruiter Personal Data
-@recruiter_blueprint.route('/api/register/employer/info', methods=['POST'])
-def update_recruiter_info():
-    if "user" not in session or session["user"]["type"] != "recruiter":
-        return jsonify({"message": "Unauthorized"}), 401
+    
+@recruiter_blueprint.route('/api/recruiter_info', methods=['GET'])
+def get_recruiter_info():
+    if 'user' not in session or session['user']['type'] != 'recruiter':
+        return jsonify({"error": "Unauthorized"}), 401
 
     recruiter_service = RecruiterService()
-    recruiter_id = session["user"]["recruiter_id"]
-    data = request.get_json()
-    
+    recruiter_id = session['user']['recruiter_id']
+    recruiter = recruiter_service.get_recruiter_by_id(recruiter_id)
+    company = recruiter_service.get_company_by_recruiter_id()
+
+    if not recruiter:
+        return jsonify({"error": "Recruiter not found"}), 404
+
+    personal_info = {
+        "firstName": recruiter.first_name,
+        "lastName": recruiter.last_name,
+        "email": recruiter.email,
+        "position": recruiter.position
+    }
+
+    employer_info = {
+        "employerName": company.name if company else "",
+        "country": company.country if company else "",
+        "employerSize": company.size if company else "",
+        "website": company.website_url if company else "",
+        "address": company.address if company else "",
+        "description": company.description if company else "",
+        "type": company.type if company else "",
+        "city": company.city if company else "",
+        "state": company.state if company else "",
+        "industry": company.industry if company else "",
+        "logo_url": f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}" if company and company.logo_url else ""
+    }
+
+    return jsonify({"personal_info": personal_info, "employer_info": employer_info})
+
+# -------------------------END OF GET REQUESTS-------------------------------
+# Update Recruiter Personal Data
+# @recruiter_blueprint.route('/api/update_recruiter_info', methods=['POST'])
+# def update_recruiter_info():
+#     if 'user' not in session or session['user']['type'] != 'recruiter':
+#         return jsonify({"error": "Unauthorized"}), 401
+
+#     recruiter_service = RecruiterService()
+#     recruiter_id = session['user']['recruiter_id']
+#     data = request.json
+
+#     result = recruiter_service.update_recruiter_info(recruiter_id, data)
+#     if result:
+#         return jsonify({"message": "Recruiter info updated successfully"}), 200
+#     else:
+#         return jsonify({"error": "Failed to update recruiter info"}), 400
+
+@recruiter_blueprint.route('/api/update_recruiter_info', methods=['POST'])
+def update_recruiter_info():
+    if 'user' not in session or session['user']['type'] != 'recruiter':
+        return jsonify({"error": "Unauthorized"}), 401
+
+    recruiter_service = RecruiterService()
+    recruiter_id = session['user']['recruiter_id']
+    data = request.json
+
+    # Remove email from the data to be updated
+    data.pop('email', None)
+
     result = recruiter_service.update_recruiter_info(recruiter_id, data)
-    
     if result:
         return jsonify({"message": "Recruiter info updated successfully"}), 200
     else:
-        return jsonify({"message": "Recruiter not found"}), 404
+        return jsonify({"error": "Failed to update recruiter info"}), 400
 
-@recruiter_blueprint.route('/api/register/employer/update_company', methods=['POST'])
+@recruiter_blueprint.route('/api/update_recruiter_company', methods=['POST'])
 def update_recruiter_company():
-    if "user" not in session or session["user"]["type"] != "recruiter":
-        return jsonify({"message": "Unauthorized"}), 401
+    if 'user' not in session or session['user']['type'] != 'recruiter':
+        return jsonify({"error": "Unauthorized"}), 401
 
     recruiter_service = RecruiterService()
-    recruiter_id = session["user"]["recruiter_id"]
-    data = request.get_json()
+    recruiter_id = session['user']['recruiter_id']
     
-    result = recruiter_service.update_recruiter_company(recruiter_id, data)
-    
+    data = request.form.to_dict()
+    logo = request.files.get('logo')
+
+    # Remove employerName from the data to be updated
+    data.pop('employerName', None)
+
+    # Ensure description is not longer than 200 characters
+    if 'description' in data:
+        data['description'] = data['description'][:200]
+
+    result = recruiter_service.update_recruiter_company(recruiter_id, data, logo)
     if result:
-        return jsonify({"message": "Recruiter company updated successfully"}), 200
+        return jsonify({"message": "Company info updated successfully"}), 200
     else:
-        return jsonify({"message": "Company not found or Recruiter not found"}), 404
+        return jsonify({"error": "Failed to update company info"}), 400
+
+
+# @recruiter_blueprint.route('/api/register/employer/update_company', methods=['POST'])
+# def update_recruiter_company():
+#     if "user" not in session or session["user"]["type"] != "recruiter":
+#         return jsonify({"message": "Unauthorized"}), 401
+
+#     recruiter_service = RecruiterService()
+#     recruiter_id = session["user"]["recruiter_id"]
+#     data = request.get_json()
+    
+#     result = recruiter_service.update_recruiter_company(recruiter_id, data)
+    
+#     if result:
+#         return jsonify({"message": "Recruiter company updated successfully"}), 200
+#     else:
+#         return jsonify({"message": "Company not found or Recruiter not found"}), 404
     
 # Create Recruiter's Company if Company not present in DB
 @recruiter_blueprint.route('/api/register/employer/create_company', methods=['POST'])
@@ -369,19 +447,44 @@ def remove_job(job_id):
     else:
         return jsonify({"message": "Unauthorized"}), 401
 
+# @recruiter_blueprint.route('/api/filter-companies', methods=['GET'])
+# def get_companies():
+#     try:
+#         page = int(request.args.get('page', 1))
+#         page_size = int(request.args.get('page_size', 10))
+#         search = request.args.get('search', '')
+
+#         current_app.logger.info(f"get_companies search request: {search}")
+
+#         recruiter_service = RecruiterService()
+#         companies, total_companies = recruiter_service.get_companies_with_pagination(page, page_size, search)
+#         current_app.logger.info(f"get_companies 'companies': {companies}")
+#         print(companies);
+#         return jsonify({
+#             'companies': companies,
+#             'total_companies': total_companies
+#         })
+#     except Exception as e:
+#         current_app.logger.error(f"Error in get_companies: {str(e)}")
+#         return jsonify({'error': 'An error occurred while fetching companies'}), 500
+
 @recruiter_blueprint.route('/api/filter-companies', methods=['GET'])
 def get_companies():
     try:
         page = int(request.args.get('page', 1))
         page_size = int(request.args.get('page_size', 10))
         search = request.args.get('search', '')
+        industries = request.args.get('industries', '').split(',') if request.args.get('industries') else []
+        types = request.args.get('types', '').split(',') if request.args.get('types') else []
 
         current_app.logger.info(f"get_companies search request: {search}")
+        current_app.logger.info(f"get_companies industries filter: {industries}")
+        current_app.logger.info(f"get_companies types filter: {types}")
 
         recruiter_service = RecruiterService()
-        companies, total_companies = recruiter_service.get_companies_with_pagination(page, page_size, search)
+        companies, total_companies = recruiter_service.get_companies_with_pagination(page, page_size, search, industries, types)
         current_app.logger.info(f"get_companies 'companies': {companies}")
-        print(companies);
+
         return jsonify({
             'companies': companies,
             'total_companies': total_companies
@@ -389,6 +492,7 @@ def get_companies():
     except Exception as e:
         current_app.logger.error(f"Error in get_companies: {str(e)}")
         return jsonify({'error': 'An error occurred while fetching companies'}), 500
+
 
 @recruiter_blueprint.route('/api/company/<int:company_id>', methods=['GET'])
 def get_company_details(company_id):
@@ -431,3 +535,14 @@ def get_recommended_jobs(job_id):
     recruiter_service = RecruiterService()
     recommended_jobs = recruiter_service.get_recommended_jobs(job_id)
     return jsonify(recommended_jobs)
+
+
+@recruiter_blueprint.route('/api/process_resume', methods=['POST'])
+def process_resume():
+        data = request.json
+        recruiter_service = RecruiterService()
+        resume_text = recruiter_service.process_resume(data.get('resume'));
+        if resume_text:
+            return jsonify(resume_text), 200
+        else:
+            return jsonify({"error": "Failed to process resume"}), 500
