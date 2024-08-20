@@ -82,18 +82,28 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} echo "SSH connection successful" || exit 1
 
-      - name: Deploy to server
+      # - name: Deploy to server
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "rm -rf ~/OceaniaDevs/frontend/build && mkdir -p ~/OceaniaDevs/frontend/build"
+      #     scp -r -o StrictHostKeyChecking=no ./build/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/frontend/build/
+          
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "find ~/OceaniaDevs/backend -type d -name '__pycache__' -exec rm -rf {} + && find ~/OceaniaDevs/backend -name '*.pyc' -delete"
+          
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "rm -rf ~/OceaniaDevs/backend && mkdir -p ~/OceaniaDevs/backend"
+          
+      #     scp -r -o StrictHostKeyChecking=no ./backend/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/backend/
+
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "chmod +x ~/OceaniaDevs/backend/entrypoint.sh"
+      - name: Clean up and deploy to server
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "rm -rf ~/OceaniaDevs/frontend/build && mkdir -p ~/OceaniaDevs/frontend/build"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "sudo find ~/OceaniaDevs -type d -name '__pycache__' -exec sudo rm -rf {} + && sudo find ~/OceaniaDevs -name '*.pyc' -delete"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "sudo rm -rf ~/OceaniaDevs/frontend/build && sudo mkdir -p ~/OceaniaDevs/frontend/build && sudo chown -R ${{ secrets.LIGHTSAIL_USER }}:${{ secrets.LIGHTSAIL_USER }} ~/OceaniaDevs/frontend/build"
           scp -r -o StrictHostKeyChecking=no ./build/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/frontend/build/
           
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "find ~/OceaniaDevs/backend -type d -name '__pycache__' -exec rm -rf {} + && find ~/OceaniaDevs/backend -name '*.pyc' -delete"
-          
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "rm -rf ~/OceaniaDevs/backend && mkdir -p ~/OceaniaDevs/backend"
-          
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "sudo rm -rf ~/OceaniaDevs/backend && sudo mkdir -p ~/OceaniaDevs/backend && sudo chown -R ${{ secrets.LIGHTSAIL_USER }}:${{ secrets.LIGHTSAIL_USER }} ~/OceaniaDevs/backend"
           scp -r -o StrictHostKeyChecking=no ./backend/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/backend/
-
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "chmod +x ~/OceaniaDevs/backend/entrypoint.sh"
+          
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "sudo chmod +x ~/OceaniaDevs/backend/entrypoint.sh"
 
       - name: Verify deployment
         run: |
@@ -101,4 +111,8 @@ jobs:
 
       - name: Restart Docker containers
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && docker-compose -f docker-compose.yml -f docker-compose.prod.yml down && docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml down && sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build"
+
+      - name: Run database migrations
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db upgrade"
