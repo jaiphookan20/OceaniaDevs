@@ -43,12 +43,14 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: backend-code
-          path: 
-          backend
-          !backend/**/__pycache__
-          !backend/**/*.pyc
-          !backend/**/*.pyo
-          !backend/**/*.pyd
+          # path: backend
+          path: |
+            backend
+            !backend/**/__pycache__
+            !backend/**/*.pyc
+            !backend/**/*.pyo
+            !backend/**/*.pyd
+          
 
 
   deploy:
