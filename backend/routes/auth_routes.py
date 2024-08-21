@@ -96,16 +96,38 @@ def callback():
         current_app.logger.error(f"Error in callback: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
+# @auth_blueprint.route("/login/<string:type>")
+# def login(type):
+#     state = generate_state()
+#     session['oauth_state'] = state
+#     current_app.logger.info(f"Generated state for login: {state}")
+#     current_app.logger.info(f"Session after setting state: {session}")
+#     return oauth.auth0.authorize_redirect(
+#         redirect_uri=url_for("auth.callback", _external=True) + f'?type={type}',
+#         state=state
+#     )
+
 @auth_blueprint.route("/login/<string:type>")
 def login(type):
-    state = generate_state()
-    session['oauth_state'] = state
-    current_app.logger.info(f"Generated state for login: {state}")
-    current_app.logger.info(f"Session after setting state: {session}")
-    return oauth.auth0.authorize_redirect(
-        redirect_uri=url_for("auth.callback", _external=True) + f'?type={type}',
-        state=state
-    )
+    try:
+        state = generate_state()
+        session['oauth_state'] = state
+        current_app.logger.info(f"Generated state for login: {state}")
+        current_app.logger.info(f"Session after setting state: {session}")
+        current_app.logger.info(f"Auth0 Domain: {config.AUTH0_DOMAIN}")
+        current_app.logger.info(f"Auth0 Client ID: {config.AUTH0_CLIENT_ID}")
+        redirect_uri = url_for("auth.callback", _external=True) + f'?type={type}'
+        current_app.logger.info(f"Redirect URI: {redirect_uri}")
+        
+        auth_url = oauth.auth0.authorize_redirect(
+            redirect_uri=redirect_uri,
+            state=state
+        )
+        current_app.logger.info(f"Generated Auth URL: {auth_url}")
+        return auth_url
+    except Exception as e:
+        current_app.logger.error(f"Error in login route: {str(e)}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
 
 @auth_blueprint.route("/register/<string:type>")
 def signup(type):
@@ -124,7 +146,20 @@ def logout():
     current_app.logger.info("User logged out, session cleared")
     return redirect(f"{config.BASE_URL}/")
 
+# def init_auth(app):
+#     oauth.init_app(app)
+#     oauth.register(
+#         "auth0",
+#         client_id=config.AUTH0_CLIENT_ID,
+#         client_secret=config.AUTH0_CLIENT_SECRET,
+#         client_kwargs={
+#             "scope": "openid profile email",
+#         },
+#         server_metadata_url=f'https://{config.AUTH0_DOMAIN}/.well-known/openid-configuration'
+#     )
+
 def init_auth(app):
+    current_app.logger.info(f"Initializing Auth0 with domain: {config.AUTH0_DOMAIN}")
     oauth.init_app(app)
     oauth.register(
         "auth0",
@@ -135,6 +170,8 @@ def init_auth(app):
         },
         server_metadata_url=f'https://{config.AUTH0_DOMAIN}/.well-known/openid-configuration'
     )
+    current_app.logger.info("Auth0 initialization completed")
+    current_app.logger.info(f"Registered client: {oauth.auth0.__dict__}")
 
     app.config['SESSION_TYPE'] = 'redis'
     app.config['SESSION_PERMANENT'] = True
