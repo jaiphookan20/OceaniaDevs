@@ -13,9 +13,9 @@ sleep 10
 # Ensure correct permissions for the app directory
 chown -R www-data:www-data /app
 
-# Run migrations with verbose output
+# Run migrations without verbose output
 echo "Running database migrations..."
-su www-data -s /bin/sh -c "flask db upgrade --verbose"
+su www-data -s /bin/sh -c "flask db upgrade"
 
 # Check if migrations were successful
 if [ $? -ne 0 ]; then
