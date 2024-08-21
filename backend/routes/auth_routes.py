@@ -159,7 +159,7 @@ def logout():
 #     )
 
 def init_auth(app):
-    current_app.logger.info(f"Initializing Auth0 with domain: {config.AUTH0_DOMAIN}")
+    print(f"Initializing Auth0 with domain: {config.AUTH0_DOMAIN}")
     oauth.init_app(app)
     oauth.register(
         "auth0",
@@ -170,18 +170,8 @@ def init_auth(app):
         },
         server_metadata_url=f'https://{config.AUTH0_DOMAIN}/.well-known/openid-configuration'
     )
-    current_app.logger.info("Auth0 initialization completed")
-    current_app.logger.info(f"Registered client: {oauth.auth0.__dict__}")
-
-    app.config['SESSION_TYPE'] = 'redis'
-    app.config['SESSION_PERMANENT'] = True
-    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
-    app.config['SESSION_USE_SIGNER'] = True
-    app.config['SESSION_COOKIE_SECURE'] = False  # Set to False since we're not using HTTPS
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-
-    return app
+    print("Auth0 initialization completed")
+    print(f"Registered client: {oauth.auth0.__dict__}")
 
 
 # THIS IS WORKING FINE. COMMENTED OUT TO TEST CODE ABOVE (MORE LOGGING TO DEBUG AUTH0 LOGIN ERROR)
