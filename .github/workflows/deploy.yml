@@ -95,7 +95,7 @@ jobs:
 
       - name: Copy .env file
         run: |
-        scp -o StrictHostKeyChecking=no .env ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/
+          scp -o StrictHostKeyChecking=no .env ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/
 
       - name: Clean up and deploy to server
         run: |
