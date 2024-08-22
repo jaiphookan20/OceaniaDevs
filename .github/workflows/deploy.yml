@@ -101,6 +101,30 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml down && sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build"
 
+      - name: Debug - Check Docker Compose Config
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml config"
+
+      - name: Debug - Check Backend Logs
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml logs backend"
+
+      - name: Debug - Check Entrypoint Script
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && cat backend/entrypoint.sh"
+
+      - name: Start Other Services
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d postgres redis nginx"
+
+      - name: Build and Start Backend
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml build backend && sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d backend"
+      
+      - name: Debug - Run Backend Manually
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml run --rm backend bash -c 'python -c \"import config; print(config.AUTH0_DOMAIN)\" && flask db current'"
+      
       # # NEW STEP
       - name: Generate and apply migrations
         run: |
