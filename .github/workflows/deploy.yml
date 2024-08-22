@@ -99,15 +99,10 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cat ~/OceaniaDevs/.env"
 
-      - name: Verify .env file contents
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && cat .env | grep AUTH0"
-
       - name: Deploy backend code
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "sudo rm -rf ~/OceaniaDevs/backend && sudo mkdir -p ~/OceaniaDevs/backend && sudo chown -R ${{ secrets.LIGHTSAIL_USER }}:${{ secrets.LIGHTSAIL_USER }} ~/OceaniaDevs/backend"
           scp -r -o StrictHostKeyChecking=no ./backend/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/backend/
-          scp -r -o StrictHostKeyChecking=no ./backend/migrations ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/backend/
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "sudo chmod +x ~/OceaniaDevs/backend/entrypoint.sh"
 
       - name: Deploy frontend build
@@ -119,26 +114,24 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "ls -R ~/OceaniaDevs/frontend/build/ && ls -R ~/OceaniaDevs/backend/"
 
-      - name: Check migrations directory
+      - name: Remove existing migrations
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs/backend/migrations && ls -R"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs/backend && rm -rf migrations"
 
-      - name: Check migration file
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs/backend/migrations/versions && cat *.py"
-      
       - name: Restart Docker containers
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml down && sudo docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml up -d --build"
 
-      - name: Check alembic_version table
+      - name: Initialize new migration
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T postgres psql -U ${{ secrets.DB_USER }} -d ${{ secrets.DB_NAME }} -c 'SELECT * FROM alembic_version;'"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db init"
 
-      - name: Reset migrations
+      - name: Create new migration
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db stamp base"
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db migrate"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db migrate -m 'initial migration'"
+
+      - name: Apply new migration
+        run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db upgrade"
 
       - name: Check current migration state
@@ -149,9 +142,9 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs/backend/migrations/versions && ls -la"
 
-      - name: Verify final migration state
+      - name: Check alembic_version table
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db current"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T postgres psql -U ${{ secrets.DB_USER }} -d ${{ secrets.DB_NAME }} -c 'SELECT * FROM alembic_version;'"
 
       - name: Check PostgreSQL container status
         run: |
@@ -165,21 +158,9 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend env | grep -E 'DB_|AUTH0_'"
 
-      - name: Check Auth0 environment variables
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend env | grep AUTH0"
-
       - name: Test database connection
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend python -c \"import psycopg2; conn = psycopg2.connect(dbname='${{ secrets.DB_NAME }}', user='${{ secrets.DB_USER }}', password='${{ secrets.DB_PASSWORD }}', host='postgres'); print('Database connection successful')\""
-
-      - name: Check network connectivity
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend ping -c 4 postgres"
-
-      - name: Check migration status
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml exec -T backend flask db current"
 
       - name: Check database state
         run: |
@@ -193,14 +174,6 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml logs backend"
 
-      - name: Debug - Check Docker Compose Config
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml config"
-
-      - name: Debug - Run Backend Manually
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml run --rm backend bash -c 'python -c \"import config; print(config.AUTH0_DOMAIN)\" && flask db current'"
-
-      - name: Verify final state
+      - name: Verify final migration state
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db current" || echo "Failed to check current migration state"
