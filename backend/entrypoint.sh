@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# Print environment variables for debugging
+echo "AUTH0_DOMAIN: $AUTH0_DOMAIN"
+echo "AUTH0_CLIENT_ID: $AUTH0_CLIENT_ID"
+echo "AUTH0_CLIENT_SECRET is set: $(if [ -n "$AUTH0_CLIENT_SECRET" ]; then echo "Yes"; else echo "No"; fi)"
+echo "APP_SECRET_KEY is set: $(if [ -n "$APP_SECRET_KEY" ]; then echo "Yes"; else echo "No"; fi)"
+
 # Wait for the database to be ready
 echo "Waiting for PostgreSQL..."
 while ! nc -z $DB_HOST 5432; do
