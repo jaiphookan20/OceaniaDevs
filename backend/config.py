@@ -4,6 +4,10 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+print("Current working directory:", os.getcwd())
+print("Contents of current directory:", os.listdir())
+print("Contents of /app directory:", os.listdir('/app'))
+
 DB_HOST = os.environ.get('DB_HOST', 'postgres')  # Use 'postgres' as the default value
 # DB_HOST = os.getenv('DB_HOST', 'localhost') # use localhost, when using in local system, use 'postgres' when using in docker container
 DB_NAME = os.getenv('DB_NAME', 'job_board')
