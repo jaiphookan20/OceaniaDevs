@@ -122,6 +122,26 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml down && sudo docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml up -d --build"
 
+      - name: Check PostgreSQL container status
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose ps postgres"
+
+      - name: Check PostgreSQL logs
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose logs postgres"
+
+      - name: Check backend environment variables
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend env | grep -E 'DB_|AUTH0_'"
+
+      - name: Test database connection
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend python -c \"import psycopg2; conn = psycopg2.connect(dbname='${{ secrets.DB_NAME }}', user='${{ secrets.DB_USER }}', password='${{ secrets.DB_PASSWORD }}', host='postgres'); print('Database connection successful')\""
+
+      - name: Check network connectivity
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend ping -c 4 postgres"
+
       - name: Check migration status
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml exec -T backend flask db current"
