@@ -26,7 +26,7 @@ TEST_DB_NAME = os.getenv('TEST_DB_NAME', 'test_job_board')
 TEST_DB_USER = os.getenv('TEST_DB_USER', 'jai')
 TEST_DB_PASSWORD = os.getenv('TEST_DB_PASSWORD', 'techboard')
 
-# BASE_URL = os.getenv('BASE_URL', 'http://54.79.190.69')
+BASE_URL = os.getenv('BASE_URL', 'http://54.79.190.69')
 
 # Uncomment and use http://localhost during local docker setup ie not in AWS Lightsail
-BASE_URL = os.getenv('BASE_URL', 'http://localhost') 
+# BASE_URL = os.getenv('BASE_URL', 'http://localhost') 
