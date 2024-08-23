@@ -122,46 +122,22 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml down && sudo docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml up -d --build"
 
+      - name: Remove existing migrations
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs/backend && sudo rm -rf migrations"
+
       - name: Initialize new migration
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db init"
 
-      - name: Check server memory
+      - name: Create new migration
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "free -h"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db migrate -m 'initial migration'"
 
-      - name: Increase memory limit for backend container
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose up -d --no-deps --memory=1g backend"
-
-      - name: Run migration with low memory profile
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend bash -c 'PYTHONUNBUFFERED=1 python -c \"from flask_migrate import migrate; from app import create_app, db; app = create_app(); app.app_context().push(); migrate(message='initial migration')\"'"
-
-      - name: Check backend logs after migration
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose logs --tail=100 backend"
-
-      - name: Check migrations directory
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs/backend && ls -R migrations"
-
-      - name: Print models.py
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cat ~/OceaniaDevs/backend/models.py"
-
-      - name: Generate migration script
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db revision --autogenerate -m 'initial migration'"
-
-      - name: Apply migration
+      - name: Apply new migration
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db upgrade"
-
-      - name: Check backend logs
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose logs backend"
-
+      
       - name: Check current migration state
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && sudo docker-compose exec -T backend flask db current"
