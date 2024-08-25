@@ -16,7 +16,7 @@ const CompanyCard = ({ company }) => {
               <span className="bg-fuchsia-100 text-fuchsia-600 font-semibold px-2 py-1 text-sm rounded">{company.industry}</span>
             </div>
             <div className="flex items-center">
-              <span className="bg-teal-100 text-teal-700 font-semibold px-2 py-1 rounded text-sm">{company.address}</span>
+              <span className="bg-teal-100 text-teal-700 font-semibold px-2 py-1 rounded text-sm">{company.city}, {company.state}</span>
             </div>
             <div className="flex items-center">
               <span className="bg-lime-100 text-green-700 px-2 py-1 rounded font-semibold text-sm">{company.job_count} Jobs</span>
