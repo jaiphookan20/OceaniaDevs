@@ -41,7 +41,7 @@ const FindEmployerForm = ({ onComplete }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("/api/register/employer/update_company", {
+      const response = await fetch("/api/update_recruiter_company", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -133,7 +133,8 @@ const FindEmployerForm = ({ onComplete }) => {
           <button
             type="button"
             className="text-emerald-700 hover:underline focus:outline-none"
-            onClick={() => navigate("/employer/organization-details")}
+            // onClick={() => navigate("/employer/organization-details")}
+            onClick={() => onComplete()}
           >
             Didn't find your employer? Create new employer
           </button>

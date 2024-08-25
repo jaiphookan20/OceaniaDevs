@@ -5,7 +5,7 @@ import HashLoader from "react-spinners/HashLoader";
 
 const PostJobWithAI = () => {
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",

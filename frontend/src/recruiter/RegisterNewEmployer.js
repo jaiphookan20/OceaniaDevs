@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 const RegisterNewEmployer = ({onComplete}) => {
   const [formData, setFormData] = useState({
@@ -41,11 +42,13 @@ const RegisterNewEmployer = ({onComplete}) => {
       if (
         result.message === "Company created and recruiter updated successfully"
       ) {
+        toast.success("Updated Successfully")
         onComplete();
         // navigate("/employer/post-job");
       }
     } catch (error) {
       console.error("Error creating company:", error);
+      toast.success("Error Creating Company")
     }
   };
 

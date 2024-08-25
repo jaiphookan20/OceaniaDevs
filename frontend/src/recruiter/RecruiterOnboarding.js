@@ -44,8 +44,8 @@ const RecruiterOnboarding = () => {
         return <FindEmployerForm onComplete={nextStep} onCreateNew={goToCreateEmployer} />;
       case 3:
         return <RegisterNewEmployer onComplete={nextStep} />;
-      case 4:
-        return <Navigate to="/employer/post-job" />;
+      // case 4:
+      //   return <Navigate to="/employer/post-job-ai" />;
       default:
         return <Navigate to="/" />;
     }

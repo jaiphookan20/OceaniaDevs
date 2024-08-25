@@ -18,7 +18,7 @@ const RecruiterPersonalDetails = ({ onComplete }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("/api/register/employer/info", {
+      const response = await fetch("/api/update_recruiter_info", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
