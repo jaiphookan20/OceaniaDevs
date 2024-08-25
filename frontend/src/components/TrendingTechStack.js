@@ -27,51 +27,61 @@ const Button = ({ children, className }) => (
 const colleges = [
   {
     name: "Java",
+    title: "Java",
     logo: java,
     interviews: 525
   },
   {
     name: "Python",
+    title: "Python",
     logo: python,
     interviews: 919
   },
   {
     name: "AWS",
+    title: "AWS",
     logo: aws,
     interviews: 710
   },
   {
     name: "React",
+    title: "react",
     logo: react,
     interviews: 525
   },
   {
     name: "C#",
+    title: "csharp",
     logo: csharp,
     interviews: 1210
   },
   {
     name: "Javascript",
+    title: "Javascript",
     logo: javascript,
     interviews: 919
   },
   {
     name: "Django",
+    title: "django",
     logo: django,
     interviews: 710
   },
   {
     name: "Typescript",
+    title: "typescript",
     logo: typescript,
     interviews: 1210
   },
   {
     name: ".NET",
+    title: ".NET",
     logo: dotnet,
     interviews: 1210
   },
   {
     name: "NodeJS",
+    title: "nodejs",
     logo: nodejs,
     interviews: 1210
   },
@@ -79,6 +89,12 @@ const colleges = [
 
 const TrendingTechStackGrid = () => {
   const navigate = useNavigate();
+  
+  const handleTechClick = (techName) => {
+    console.log("Clicking Logo")
+    navigate(`/search-page?tech=${encodeURIComponent(techName)}`);
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto px-4 py-8" style={{fontFamily: "Avenir, san-serif"}}>
       <h1 className="text-3xl font-semibold text-slate-700 mb-8 text-center" style={{fontFamily: "Roobert-Regular, san-serif"}}>
@@ -87,13 +103,15 @@ const TrendingTechStackGrid = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 p-3 rounded-md ">
         {colleges.map((college, index) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow duration-300 rounded-xl bg-slate-300 shadow-xl ">
+          <Card 
+            key={index} 
+            className="hover:shadow-lg transition-shadow duration-300 rounded-xl bg-slate-300 shadow-xl cursor-pointer"
+          >
             <div className="p-3">
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-4" onClick={() => handleTechClick(college.title.toLowerCase())}>
                 <img src={college.logo} alt={`${college.name} logo`} className="h-16 w-16 rounded-lg object-cover" />
                 <div>
                   <h2 className="font-semibold text-slate-700 text-lg">{college.name}</h2>
-                  {/* <p className="text-sm text-slate-500 ">{college.interviews} Jobs</p> */}
                 </div>
               </div>
             </div>
@@ -110,5 +128,4 @@ const TrendingTechStackGrid = () => {
   );
 };
 
-export default TrendingTechStackGrid;
-
+export default TrendingTechStackGrid
