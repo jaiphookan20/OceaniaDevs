@@ -176,12 +176,12 @@ import { toast } from "react-hot-toast";
 import LoginModal from "./LoginModal";
 import NotificationPopup from "./NotificationPopup";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, ChevronLeft, ArrowLeft, ArrowRight } from "lucide-react";
+import { ChevronRight, ChevronLeft, Hourglass } from "lucide-react";
 import newTooltipGif from "../assets/new-tooltip.gif"
 import { icons } from "../data/tech-icons";
 
 
-const JobCard = ({ job, onSave, onApply, onView, isInSession }) => {
+const JobCard = ({ job, onSave, onApply, onView, isInSession, userData }) => {
   const [isSaved, setIsSaved] = useState(false);
   const [isApplied, setIsApplied] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -229,6 +229,11 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession }) => {
       return;
     }
 
+    if (userData && userData.type =="recruiter") {
+      toast.error("Cannot Save as a Recruiter");
+      return;
+    }
+
     try {
       if (isSaved) {
         await fetch(`/api/unsave_job/${job.job_id}`, {
@@ -252,6 +257,11 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession }) => {
   const handleApply = async () => {
     if (!isInSession) {
       setIsLoginModalOpen(true);
+      return;
+    }
+
+    if (userData && userData.type =="recruiter") {
+      toast.error("Cannot Apply as a Recruiter");
       return;
     }
 
@@ -295,7 +305,7 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession }) => {
                     onClick={() => onView(job.job_id)}
                   >
                     {job.title}
-                    {(job.created_at === "1 day" || job.created_at === "Today" || job.created_at === "1 week") && (
+                    {(job.created_at === "2 days ago" || job.created_at === "Today" || job.created_at === "1 week ago") && (
                       <img
                         src={newTooltipGif}
                         alt="New"
@@ -321,13 +331,13 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession }) => {
                         {job.salary_range}
                       </span>
                     )}
-                    {job.min_experience_years && job.min_experience_years !== '' || job.min_experience_years==0 && (
+                    {job.min_experience_years > 0 && (
                       <span className="bg-rose-50 text-rose-700 px-2 py-1 rounded-lg">
                         {job.min_experience_years}+ Years
                       </span>
                     )}
                     <span className="text-gray-600 bg-purple-50 text-purple-700 px-2 py-1 rounded-lg">
-                      {job.created_at} ago
+                      {job.created_at}
                     </span>
                   </div>
                 </div>
@@ -346,9 +356,10 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession }) => {
                 <button
                   className={`px-4 py-2 rounded-md ${
                     isApplied
-                      ? "bg-green-600 text-white cursor-not-allowed"
+                      ? "bg-lime-400 border border-emerald-600 text-black cursor-not-allowed"
                       : "bg-black hover:bg-violet-700 text-white"
                   }`}
+                  
                   onClick={handleApply}
                   disabled={isApplied}
                 >

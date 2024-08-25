@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import JobCard from "./JobCard";
 
-const JobSection = ({ title, jobs, onSave, onApply, onView, company, isInSession, onViewAll }) => {
+const JobSection = ({ title, jobs, onSave, onApply, onView, company, isInSession, onViewAll, userData }) => {
   const navigate = useNavigate();
 
 /* We added a handleViewAll function that extracts the specialization from the title and navigates to the search page with the specialization as a query parameter.
@@ -36,6 +36,7 @@ const JobSection = ({ title, jobs, onSave, onApply, onView, company, isInSession
             onApply={onApply}
             onView={onView}
             isInSession={isInSession}
+            userData={userData}
           />
         ))}
       </div>

@@ -120,7 +120,7 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
             {job.company}
           </h3>
           <p className="text-gray-500 mt-2 text-xl">
-          Established in April 2001, Genesis IT is a specialist permanent, fixed-term, and contract IT recruitment business.
+            {job.company_description}
           </p>
         </div>
         <div className="grid grid-cols-4 gap-6 mt-6 p-4 bg-violet-100 rounded-md shadow-sm">
