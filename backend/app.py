@@ -103,8 +103,8 @@ def create_app():
     cache.init_app(app)
     Session(app)
 
-    # Initialize auth-related configurations
-    init_auth(app)
+    with app.app_context():
+        init_auth(app);
 
     # Test Redis connection
     try:

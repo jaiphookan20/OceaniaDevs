@@ -2,13 +2,34 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { icons } from "../data/tech-icons";
 import JobPostSideBar from "./JobPostSideBar";
+import RecommendedJobs from "./RecommendedJobs";
+import HashLoader from "react-spinners/HashLoader";
 
-const JobListing = ({ onSave, onApply }) => {
+const JobPost = ({ onSave, onApply, isInSession }) => {
   const { jobId } = useParams();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const technologiesRef = useRef(null);
+  const [recommendedJobs, setRecommendedJobs] = useState([]);
+
+  useEffect(() => {
+    const fetchRecommendedJobs = async () => {
+      try {
+        const response = await fetch(`/api/recommended_jobs/${jobId}`);
+        const data = await response.json();
+        setRecommendedJobs(data);
+      } catch (error) {
+        console.error("Error fetching recommended jobs:", error);
+      }
+    };
+  
+    if (job) {
+      fetchRecommendedJobs();
+    }
+  }, [job, jobId]);
+  
+  
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -32,21 +53,37 @@ const JobListing = ({ onSave, onApply }) => {
   }, [jobId]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <HashLoader color="#8823cf" size={120} />
+      </div>
+    );
   }
 
   if (error) {
     return <div>{error}</div>;
   }
-
+  console.log(job.tech_stack)
   const techStackIcons = job.tech_stack.filter(tech => icons[tech.toLowerCase()]);
   const scrollToTechnologies = () => {
     technologiesRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Helper function to ensure we're working with an array
-  const ensureArray = (data) => Array.isArray(data) ? data : [data];
+  // Helper function to parse the custom string format
+  const parseCustomString = (str) => {
+    if (typeof str !== 'string') {
+      console.warn("Input is not a string:", str);
+      return [];
+    }
+    // Remove the outer curly braces and split by ","
+    const items = str.replace(/^\{|\}$/g, '').split('","');
+    // Remove any remaining quotes and trim whitespace
+    return items.map(item => item.replace(/^"|"$/g, '').trim());
+  };
 
+  const responsibilities = parseCustomString(job.responsibilities[0]);
+  const requirements = parseCustomString(job.requirements[0]);
+  
   return (
     <div className="flex flex-col max-w-6xl mx-auto min-h-screen justify-center">
       <div className="flex-grow container mx-auto bg-white shadow-md rounded-lg border-t">
@@ -83,21 +120,21 @@ const JobListing = ({ onSave, onApply }) => {
             {job.company}
           </h3>
           <p className="text-gray-500 mt-2 text-xl">
-          Established in April 2001, Genesis IT is a specialist permanent, fixed-term, and contract IT recruitment business.
+            {job.company_description}
           </p>
         </div>
-        <div className="grid grid-cols-4 gap-6 mt-6 p-4 bg-violet-50 rounded-md shadow-sm">
+        <div className="grid grid-cols-4 gap-6 mt-6 p-4 bg-violet-100 rounded-md shadow-sm">
   {[
     { icon: "https://img.icons8.com/?size=100&id=Z3STIRU4hxMn&format=png&color=000000", label: "Industry", value: job.industry },
     { icon: "https://img.icons8.com/?size=100&id=3BUZy0U5CdQL&format=png&color=000000", label: "Experience", value: job.experience_level },
     { icon: "https://img.icons8.com/?size=100&id=tUxN1SSkN8zG&format=png&color=000000", label: "Salary", value: `${job.salary_range} AUD` },
     { icon: "https://img.icons8.com/?size=100&id=HvkLiNNdKM33&format=png&color=000000", label: "Location", value: job.location },
-    { icon: "https://img.icons8.com/?size=100&id=bnRjsA4q33Cw&format=png&color=000000", label: "Min. Experience", value: `${job.min_experience_years} Years` },
+    { icon: "https://img.icons8.com/?size=100&id=bnRjsA4q33Cw&format=png&color=000000", label: "Min. Experience", value: `${job.min_experience_years}+ Years` },
     { icon: "https://img.icons8.com/?size=100&id=KDmZN631Ig1j&format=png&color=000000", label: "Specialization", value: job.specialization },
     { icon: "https://img.icons8.com/?size=100&id=aUSV1wxr8mk2&format=png&color=000000", label: "Work Location", value: job.work_location },
     { icon: "https://img.icons8.com/?size=100&id=8Y1SrtCBXvmA&format=png&color=000000", label: "Job Arrangement", value: job.job_arrangement }
   ].map((item, index) => (
-    <div key={index} className="flex flex-col items-center p-2 bg-white rounded-md shadow-sm transition-all duration-300 hover:shadow-md">
+    <div key={index} className="flex flex-col items-center p-2 bg-slate-50 rounded-md shadow-sm transition-all duration-300 hover:shadow-md">
       <img
         width="40"
         height="40"
@@ -105,53 +142,70 @@ const JobListing = ({ onSave, onApply }) => {
         alt={item.label}
         className="mb-2"
       />
-      <p className="text-sm text-gray-600 mb-1">{item.label}</p>
-      <p className="text-md font-semibold text-gray-700 text-center" style={{ fontFamily: "Space Mono, sans-serif" }}>{item.value}</p>
+      <p className="text-sm text-slate-600 mb-1">{item.label}</p>
+      <p className="text-md font-semibold text-gray-700 text-center" style={{ fontFamily: "Avenir, sans-serif" }}>{item.value}</p>
     </div>
   ))}
 </div>
-        <div className="flex justify-between items-between pb-20" 
+        {/* <div className="flex justify-between items-between pxb-20" 
         >
           <div className="w-3/4 pl-8 pr-2">
             <section className="mt-6">
-              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800">
+              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800" style={{ fontFamily: "Avenir, sans-serif" }}>
                 About the role
               </h2>
-              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Space Mono, sans-serif" }}>
+              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Avenir, sans-serif" }}>
                 {job.overview}
               </p>
             </section>
             <section className="mt-6">
-              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800" >
+              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800" style={{ fontFamily: "Avenir, sans-serif" }}>
                 Responsibilities
               </h2>
-              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Space Mono, sans-serif" }}>
+              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Avenir, sans-serif" }}>
                 {job.responsibilities}
-                {/* {"Build and maintain products using Node.js, React, and JavaScript / TypeScript.","Develop, test, and document APIs in Python and JavaScript / TypeScript.","Collaborate closely with all teams to understand requirements for new product features.","Partner with design and product colleagues for accessible and secure user experiences.","Review and provide feedback on code from team members.","Stay current with industry best practices and emerging technologies."} */}
-                {/* <li> Build and maintain products using Node.js, React, and JavaScript / TypeScript </li>
-                <li> Develop, test, and document APIs in Python and JavaScript / TypeScript. </li>
-                <li> Collaborate closely with all teams to understand requirements for new product features. </li>
-                <li> Partner with design and product colleagues for accessible and secure user experiences.</li>                
-                <li> Review and provide feedback on code from team members </li> */}
               </p>
             </section>
             <section className="mt-6">
-              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800" >
+              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800"  style={{ fontFamily: "Avenir, sans-serif" }}>
                 Requirements
               </h2>
-              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Space Mono, sans-serif" }}>
+              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Avenir, sans-serif" }}>
                 {job.requirements}
-                {/* <li> Bachelor’s degree in computer science or equivalent practical experience. </li>
-                <li>Minimum 5 years of software development experience with a solid understanding of design patterns and the ability to architect maintainable, high-performance platforms</li>
-                <li> Minimum 3 years of experience with Python or Node.js. </li>
-                <li> Experience with Python web frameworks such as Django, Flask, or FastAPI </li>
-                <li> Experience with unit and integration testing using Jest and the React Testing Library.</li>                
-                <li> Experience with web API development (GraphQL, RESTful). </li>
-                <li> Experience building and working with UI Component Libraries. </li> */}
+              </p>
+            </section> */}
+            <div className="flex justify-between items-between pxb-20">
+          <div className="w-3/4 pl-8 pr-2">
+            <section className="mt-6">
+              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800" style={{ fontFamily: "Avenir, sans-serif" }}>
+                About the role
+              </h2>
+              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Avenir, sans-serif" }}>
+                {job.overview}
               </p>
             </section>
+            <section className="mt-6">
+              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800" style={{ fontFamily: "Avenir, sans-serif" }}>
+                Responsibilities
+              </h2>
+              <ul className="list-disc pl-5 mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Avenir, sans-serif" }}>
+                {responsibilities.map((responsibility, index) => (
+                  <li key={index}>{responsibility}</li>
+                ))}
+              </ul>
+            </section>
+            <section className="mt-6">
+              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800"  style={{ fontFamily: "Avenir, sans-serif" }}>
+                Requirements
+              </h2>
+              <ul className="list-disc pl-5 mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Avenir, sans-serif" }}>
+                {requirements.map((requirement, index) => (
+                  <li key={index}>{requirement}</li>
+                ))}
+              </ul>
+            </section>
             <section ref={technologiesRef} className="mt-6">
-              <h2 className="text-3xl font-bold mt-4 mb-1 text-violet-600 bg-violet-50">
+              <h2 className="text-3xl font-semibold mt-4 mb-1 text-violet-600 bg-violet-50">
                 Tech Stack
               </h2>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 mt-4">
@@ -172,12 +226,13 @@ const JobListing = ({ onSave, onApply }) => {
             </section>
           </div>
           <div className="w-1/4 p-4">
-            <JobPostSideBar job={job}/>
+            <JobPostSideBar job={job} onSave={onSave} onApply={onApply} isInSession={isInSession}/>
           </div>
         </div>
+        <RecommendedJobs jobs={recommendedJobs} />
       </div>
     </div>
   );
 };
 
-export default JobListing;
+export default JobPost;

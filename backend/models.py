@@ -10,6 +10,8 @@ country_enum = ENUM('Australia', 'New Zealand', name='country_enum', create_type
 job_type_enum = ENUM('premium', 'normal', name='job_type', create_type=False)
 industry_enum = ENUM('Government', 'Banking & Financial Services', 'Fashion', 'Mining', 'Healthcare', 'IT - Software Development', 'IT - Data Analytics', 'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 'Marketing & Advertising', 'Media & Communications', 'Non-Profit & NGO', 'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 'Telecommunications', 'Transportation & Logistics', name='industry_type', create_type=False)
 salary_range_enum = ENUM('20000 - 40000', '40000 - 60000', '60000 - 80000', '80000 - 100000', '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000', '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+', name='salary_range_type', create_type=False)
+# type_enum=ENUM('Agency', 'Company', create_type=False);
+# city_enum = ENUM('Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adelaide', 'Gold Coast', 'Newcastle', 'Canberra', 'Geelong', 'Hobart', 'Townsville', 'Cairns', 'Darwin', name='city_enum', create_type=False)
 
 # Define your models
 class Seeker(db.Model):
@@ -19,7 +21,7 @@ class Seeker(db.Model):
     first_name = db.Column(db.String(255))
     last_name = db.Column(db.String(255))
     email = db.Column(db.String(255), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128))
+    password_hash = db.Column(db.String(128)) # need to get rid of this
     city = db.Column(db.String(255))
     state = db.Column(state_enum)
     country = db.Column(country_enum)
@@ -65,6 +67,11 @@ class Company(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
     recruiters = db.relationship('Recruiter', backref='company', lazy=True)
+    # New fields:
+    industry = db.Column(industry_enum);
+    state = db.Column(state_enum);
+    city = db.Column(db.String(255));
+    type=db.Column(db.String(255));
 
 class Job(db.Model):
     __tablename__ = 'jobs'
@@ -117,6 +124,7 @@ class Application(db.Model):
     userid = db.Column(db.Integer, db.ForeignKey('seekers.uid'))
     jobid = db.Column(db.Integer, db.ForeignKey('jobs.job_id'))
     datetimestamp = db.Column(db.DateTime, server_default=db.func.current_timestamp())
+    status = db.Column(db.String(50), default='Applied')  # New field
 
 class Bookmark(db.Model):
     __tablename__ = 'bookmarks'

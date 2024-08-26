@@ -1,15 +1,18 @@
-from flask import Flask, request, jsonify, Blueprint
+from datetime import time
+from flask import Flask, request, jsonify, Blueprint, current_app, Response, stream_with_context
 from models import Job, Candidate
 from extensions import db
 import numpy as np
 from flask_cors import CORS
 from utils.openai import get_embedding
 from matching.similarity_search_service import SimilaritySearch
+import time as python_time  # Rename the import to avoid confusion
+import json
 
 simsearch_blueprint = Blueprint('simsearch', __name__)
 CORS(simsearch_blueprint, supports_credentials=True, resources={r'/*': {'origins': 'http://localhost:3000'}})
     
-@simsearch_blueprint.route('/add_candidates_bulk', methods=['POST'])
+@simsearch_blueprint.route('/api/add_candidates_bulk', methods=['POST'])
 def add_candidates_bulk():
     data = request.get_json()
     candidates = data['candidates']
@@ -59,7 +62,7 @@ def add_candidates_bulk():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
-@simsearch_blueprint.route('/generate_job_embedding/<int:job_id>', methods=['POST'])
+@simsearch_blueprint.route('/api/generate_job_embedding/<int:job_id>', methods=['POST'])
 def generate_job_embedding_route(job_id):
     """
     Endpoint to generate and store an embedding for a specific job
@@ -72,7 +75,7 @@ def generate_job_embedding_route(job_id):
         return jsonify({'status': 'error', 'message': 'Job not found'}), 404
     
 
-@simsearch_blueprint.route('/get_matching_candidates/<int:job_id>', methods=['GET'])
+@simsearch_blueprint.route('/api/get_matching_candidates/<int:job_id>', methods=['GET'])
 def get_matching_candidates_route(job_id):
     """
     Endpoint to find and return candidates matching a specific job.
@@ -95,38 +98,84 @@ def get_matching_candidates_route(job_id):
     
     return jsonify({'status': 'success', 'matches': results}), 200
 
-@simsearch_blueprint.route('/get_matching_candidates_with_explanation/<int:job_id>', methods=['GET'])
+# @simsearch_blueprint.route('/api/get_matching_candidates_with_explanation/<int:job_id>', methods=['GET'])
+# def get_matching_candidates_with_explanation_route(job_id):
+#     sim_search_service = SimilaritySearch()
+#     candidates = sim_search_service.find_matching_candidates(job_id)
+#     if candidates is None:
+#         return jsonify({'status': 'error', 'message': 'Job not found or embedding not generated'}), 404
+
+#     job = Job.query.get(job_id)
+#     job_text = f"{job.title} {job.description} {job.specialization} {' '.join(job.tech_stack)}"
+
+#     results = []
+#     for candidate in candidates:
+#         candidate_text = f"{candidate['position']} {candidate['work_experience']} {' '.join(candidate['favorite_languages'])} {' '.join(candidate['technologies'])}"
+#         explanation = sim_search_service.generate_explanation(job_text, candidate_text)
+        
+#         if 'error' in explanation:
+#             current_app.logger.error(f"Error generating explanation for candidate {candidate['candidate_id']}: {explanation['error']}")
+#             explanation = {'match_explanation': 'Unable to generate explanation due to an error.', 'mismatch_explanation': 'N/A'}
+        
+#         results.append({
+#             'candidate_id': candidate['candidate_id'],
+#             'name': candidate['name'],
+#             'position': candidate['position'],
+#             'years_experience': candidate['years_experience'],
+#             'work_experience': candidate['work_experience'],
+#             'favorite_languages': candidate['favorite_languages'],
+#             'technologies': candidate['technologies'],
+#             'explanation': explanation
+#         })
+
+#     return jsonify({'status': 'success', 'matches': results}), 200
+
+@simsearch_blueprint.route('/api/get_matching_candidates_with_explanation/<int:job_id>', methods=['GET'])
 def get_matching_candidates_with_explanation_route(job_id):
-    """
-    Endpoint to find matching candidates for a job and provide an explanation for each match.
-    """
-    sim_search_service = SimilaritySearch()
-    candidates = sim_search_service.find_matching_candidates(job_id)
-    if candidates is None:
-        return jsonify({'status': 'error', 'message': 'Job not found or embedding not generated'}), 404
+    def generate():
+        sim_search_service = SimilaritySearch()
+        candidates = sim_search_service.find_matching_candidates(job_id)
+        if candidates is None:
+            yield json.dumps({'status': 'error', 'message': 'Job not found or embedding not generated'})
+            return
 
-    # Retrieve the job details
-    job = Job.query.get(job_id)
-    job_text = f"{job.title} {job.description} {job.specialization} {' '.join(job.tech_stack)}"
+        job = Job.query.get(job_id)
+        job_text = f"{job.title} {job.description} {job.specialization} {' '.join(job.tech_stack)}"
 
-    results = []
-    for candidate in candidates:
-        # Combine candidate information into a single text string
-        candidate_text = f"{candidate['position']} {candidate['work_experience']} {' '.join(candidate['favorite_languages'])} {' '.join(candidate['technologies'])}"
-        
-        # Generate an explanation for why this candidate matches the job
-        explanation = sim_search_service.generate_explanation(job_text, candidate_text)  
-        
-        # Add the candidate information and explanation to the results
-        results.append({
-            'candidate_id': candidate['candidate_id'],
-            'name': candidate['name'],
-            'position': candidate['position'],
-            'years_experience': candidate['years_experience'],
-            'work_experience': candidate['work_experience'],
-            'favorite_languages': candidate['favorite_languages'],
-            'technologies': candidate['technologies'],
-            'explanation': explanation
-        })
+        yield '{"status": "success", "matches": ['
 
-    return jsonify({'status': 'success', 'matches': results}), 200
+        first = True
+        for candidate in candidates:
+            if not first:
+                yield ','
+            first = False
+
+            candidate_text = f"{candidate['position']} {candidate['work_experience']} {' '.join(candidate['favorite_languages'])} {' '.join(candidate['technologies'])}"
+            
+            current_app.logger.info(f"Generating explanation for candidate {candidate['candidate_id']}")
+            start_time = time.time()
+            explanation = sim_search_service.generate_explanation(job_text, candidate_text)
+            end_time = time.time()
+            
+            current_app.logger.info(f"Explanation generated in {end_time - start_time:.2f} seconds")
+            
+            if isinstance(explanation, dict) and 'error' in explanation:
+                current_app.logger.error(f"Error generating explanation for candidate {candidate['candidate_id']}: {explanation['error']}")
+                explanation = {'match_explanation': 'Unable to generate explanation due to an error.', 'mismatch_explanation': 'N/A'}
+            
+            result = {
+                'candidate_id': candidate['candidate_id'],
+                'name': candidate['name'],
+                'position': candidate['position'],
+                'years_experience': candidate['years_experience'],
+                'work_experience': candidate['work_experience'],
+                'favorite_languages': candidate['favorite_languages'],
+                'technologies': candidate['technologies'],
+                'explanation': explanation
+            }
+            
+            yield json.dumps(result)
+
+        yield ']}'
+
+    return Response(stream_with_context(generate()), content_type='application/json')

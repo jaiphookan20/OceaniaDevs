@@ -1,114 +1,247 @@
-// CompaniesPage.js
 import React, { useState, useEffect, useCallback } from "react";
-import CompaniesPageHeader from "./CompaniesPageHeader";
-import CompanySearchBar from "./CompanySearchBar";
 import CompanyCardSection from "./CompanyCardSection";
+import CompaniesSearchBar from "./CompaniesSearchBar";
+import HashLoader from "react-spinners/HashLoader";
+import CompaniesSideBar from "./CompaniesSideBar";
 
 const CompaniesPage = () => {
     const [companies, setCompanies] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [totalCompanies, setTotalCompanies] = useState(0);
-    const pageSize = 10;
-  
-    useEffect(() => {
-      fetchCompanies();
-    }, [currentPage, searchQuery]);
-
-    const fetchCompanies = useCallback(async () => {
-        try {
-          const response = await fetch(`/api/companies?page=${currentPage}&page_size=${pageSize}&search=${searchQuery}`);
-          const data = await response.json();
-          console.log(data);
-          setCompanies(data);
-          setTotalCompanies(data.total_companies);
-        } catch (error) {
-          console.error("Error fetching companies:", error);
-        }
-      }, [currentPage, searchQuery, pageSize]);
-
-      useEffect(() => {
-        fetchCompanies();
-      }, [fetchCompanies]);
+    const [selectedIndustries, setSelectedIndustries] = useState([]);
+    const [selectedTypes, setSelectedTypes] = useState([]);
+    const [error, setError] = useState(null);
+    const [initialLoading, setInitialLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     
-      const handleSearchChange = (query) => {
+    const pageSize = 10;
+
+    const fetchCompanies = useCallback(async (isInitialFetch = false) => {
+      if (isInitialFetch) {
+        setInitialLoading(true);
+      } else {
+        setLoading(true);
+      }
+      setError(null);
+      try {
+        const industryQuery = selectedIndustries.length > 0 && !selectedIndustries.includes('all') 
+          ? `&industries=${selectedIndustries.join(',')}`
+          : '';
+        const typeQuery = selectedTypes.length > 0 && !selectedTypes.includes('all')
+          ? `&types=${selectedTypes.join(',')}`
+          : '';
+        const response = await fetch(`/api/filter-companies?page=${currentPage}&page_size=${pageSize}&search=${searchQuery}${industryQuery}${typeQuery}`);        
+    
+        if (!response.ok) {
+            throw new Error('Failed to fetch companies');
+        }
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+            setCompanies(data);
+            setTotalCompanies(data.length);
+        } else if (data && Array.isArray(data.companies)) {
+            setCompanies(data.companies);
+            setTotalCompanies(data.total_companies);
+        }
+      } 
+      catch (error) {
+        console.error("Error fetching companies:", error);
+        setError("Failed to fetch companies. Please try again later.");
+      } 
+      finally {
+        if (isInitialFetch) {
+          setInitialLoading(false);
+        } else {
+          setLoading(false);
+        }
+      }
+    }, [currentPage, searchQuery, pageSize, selectedIndustries, selectedTypes]);   
+
+    useEffect(() => {
+        fetchCompanies(true);
+    }, []);
+
+    useEffect(() => {
+        if (!initialLoading) {
+            fetchCompanies();
+        }
+    }, [fetchCompanies, currentPage, searchQuery, selectedIndustries, selectedTypes]);
+
+    const handleSearchChange = (query) => {
         setSearchQuery(query);
         setCurrentPage(1);
-      };
-    
-      const handlePageChange = (newPage) => {
-        setCurrentPage(newPage);
-      };
+    };
 
-  return (
-    <div className="max-w-6xl mx-auto">
-      <CompaniesPageHeader />
-      {/* <CompanySearchBar
-        searchQuery={searchQuery}
-        onSearchChange={handleSearchChange}
-      /> */}
-      <CompanySearchBar onSearchChange={handleSearchChange} />
-      <CompanyCardSection
-        companies={companies}
-        currentPage={currentPage}
-        totalCompanies={totalCompanies}
-        pageSize={pageSize}
-        onPageChange={handlePageChange}
-      />
-    </div>
-  );
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+    };
+
+    const handleIndustryChange = (industries) => {
+        setSelectedIndustries(industries);
+        setCurrentPage(1);
+    };
+
+    const handleTypeChange = (types) => {
+        setSelectedTypes(types);
+        setCurrentPage(1);
+    };
+
+    if (initialLoading) {
+        return (
+          <div className="flex justify-center items-center h-screen">
+            <HashLoader color="#8823cf" size={120} />
+          </div>
+        );
+    }
+
+    return (
+        <div className="max-w-7xl p-6 mx-auto">
+            <div className="p-4 mb-8 border-t border-b border-slate-200">
+                <h1 className="text-5xl font-semibold text-slate-600 mb-2">Companies Search</h1>
+                <h3 className="text-lg font-medium text-slate-400" style={{fontFamily: "Avenir, san-serif"}}>Search for technology companies across Oceania by industry, region, company size, and more</h3>
+            </div>
+            <div className="flex">
+                <div className="w-1/5">
+                    <CompaniesSideBar 
+                        selectedIndustries={selectedIndustries}
+                        selectedTypes={selectedTypes}
+                        onIndustryChange={handleIndustryChange}
+                        onTypeChange={handleTypeChange}
+                    />
+                </div>
+                <div className="flex-grow ml-8 w-4/5">
+                    <CompaniesSearchBar onSearchChange={handleSearchChange} />
+                    {loading ? (
+                        <div className="flex justify-center items-center h-64">
+                            <HashLoader color="#8823cf" size={50} />
+                        </div>
+                    ) : (
+                        <CompanyCardSection
+                        companies={companies}
+                        currentPage={currentPage}
+                        totalCompanies={totalCompanies}
+                        pageSize={pageSize}
+                        onPageChange={handlePageChange}
+                        />
+                    )}
+                </div>
+            </div>
+        </div>
+    );
 };
 
 export default CompaniesPage;
 
-// import React, { useEffect } from "react";
-// import JobSection from "./JobSection";
-// import SearchBar from "./SearchBar";
-// import SearchPageHeader from "./SearchPageHeader";
-// import SearchPageJobSection from "./SearchPageJobSection";
-// import CompanyPageHeader from "./CompanyPageHeader";
-// import CompaniesPageHeader from "./CompaniesPageHeader";
 
-// const CompaniesPage = ({
-//   title,
-//   jobs,
-//   onSave,
-//   onApply,
-//   onView,
-//   currentPage,
-//   totalJobs,
-//   pageSize,
-//   onPageChange,
-//   searchQuery,
-//   filters,
-//   onSearchChange,
-//   onFilterChange,
-//   onFilterSearch
-// }) => {
-//   return (
-//     <div className="max-w-6xl mx-auto">
-//       <CompaniesPageHeader title={title} />
-//       <SearchBar
-//         searchQuery={searchQuery}
-//         onSearchChange={onSearchChange}
-//         filters={filters}
-//         onFilterChange={onFilterChange}
-//         onFilterSearch={onFilterSearch}
-//       />
-//       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-7">
-//         <div className="col-span-2">
-//           <SearchPageJobSection
-//             title={`${filters.specialization || 'All'} Roles`}
-//             jobs={jobs}
-//             currentPage={currentPage}
-//             totalJobs={totalJobs}
-//             pageSize={pageSize}
-//             onPageChange={onPageChange}
-//           />
+// import React, { useState, useEffect, useCallback } from "react";
+// import CompanyCardSection from "./CompanyCardSection";
+// import CompaniesSearchBar from "./CompaniesSearchBar";
+// import HashLoader from "react-spinners/HashLoader";
+// import CompaniesSideBar from "./CompaniesSideBar";
+
+
+// const CompaniesPage = () => {
+//     const [companies, setCompanies] = useState([]);
+//     const [searchQuery, setSearchQuery] = useState("");
+//     const [currentPage, setCurrentPage] = useState(1);
+//     const [totalCompanies, setTotalCompanies] = useState(0);
+//     const [selectedIndustries, setSelectedIndustries] = useState([]);
+//     // const [isLoading, setIsLoading] = useState(true);
+//     const [error, setError] = useState(null);
+//     const [loading, setLoading] = useState(true);
+    
+//     const pageSize = 10;
+
+//     const fetchCompanies = useCallback(async () => {
+//       setLoading(true);
+//       setError(null);
+//       try {
+//         const response = await fetch(`/api/filter-companies?page=${currentPage}&page_size=${pageSize}&search=${searchQuery}`);        
+    
+//         if (!response.ok) {
+//             throw new Error('Failed to fetch companies');
+//         }
+//         const data = await response.json();
+
+//         if (Array.isArray(data)) {
+//             setCompanies(data);
+//             setTotalCompanies(data.length);
+//         } else if (data && Array.isArray(data.companies)) {
+//             setCompanies(data.companies);
+//             setTotalCompanies(data.total_companies);
+//         }
+//         console.log(`companies: ${companies}`);
+
+//         } 
+//         catch (error) {
+//             console.error("Error fetching companies:", error);
+//             setError("Failed to fetch companies. Please try again later.");
+//         } 
+//         finally {
+//             setLoading(false);
+//         }
+//         }, [currentPage, searchQuery, pageSize, selectedIndustries]);   
+
+//     useEffect(() => {
+//         fetchCompanies();
+//     }, [fetchCompanies, currentPage, searchQuery]);
+
+//     useEffect(() => {
+//         console.log("Companies state:", companies);
+//         console.log("Total companies:", totalCompanies);
+//     }, [companies, totalCompanies]);
+
+//     const handleSearchChange = (query) => {
+//         setSearchQuery(query);
+//         // console.log("searchQuery: " + searchQuery);
+//         setCurrentPage(1);
+//     };
+
+//     const handlePageChange = (newPage) => {
+//         setCurrentPage(newPage);
+//     };
+
+//     const handleIndustryChange = (industries) => {
+//         setSelectedIndustries(industries);
+//         setCurrentPage(1);
+//     };
+
+//     if (loading) {
+//         return (
+//           <div className="flex justify-center items-center h-screen">
+//             <HashLoader color="#8823cf" size={120} />
+//           </div>
+//         );
+//       }
+
+//     return (
+//         <div className="max-w-7xl p-6 mx-auto">
+//             <div className="p-5">
+//                 <h1 className="text-5xl font-semibold text-slate-600 mb-2">Companies Search</h1>
+//                 <h3 className="text-lg font-medium text-slate-400" style={{fontFamily: "Avenir, san-serif"}}>Search for technology companies across Oceania by industry, region, company size, and more</h3>
+//             </div>
+//             <div className="flex">
+//             <div className="w-1/5">
+//                 <CompaniesSideBar 
+//                     selectedIndustries={selectedIndustries}
+//                     onIndustryChange={handleIndustryChange}
+//                 />
+//             </div>
+//             <div className="flex-grow ml-8 w-4/5">
+//                 <CompaniesSearchBar onSearchChange={handleSearchChange} />
+//                 <CompanyCardSection
+//                     companies={companies}
+//                     currentPage={currentPage}
+//                     totalCompanies={totalCompanies}
+//                     pageSize={pageSize}
+//                     onPageChange={handlePageChange}
+//                 />
+//             </div>
+//             </div>
 //         </div>
-//       </div>
-//     </div>
-//   );
+//     );
 // };
 
 // export default CompaniesPage;

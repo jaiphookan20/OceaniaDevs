@@ -3,7 +3,8 @@ import JobsPostedByRecruiterSection from "./JobsPostedByRecruiterSection";
 import { useNavigate } from "react-router-dom";
 
 const RecruiterDashboard = () => {
-  const [jobs, setJobs] = useState([]);
+  const [activeJobs, setActiveJobs] = useState([]);
+  const [expiredJobs, setExpiredJobs] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -15,7 +16,8 @@ const RecruiterDashboard = () => {
         });
         if (response.ok) {
           const jobsData = await response.json();
-          setJobs(jobsData);
+          setActiveJobs(jobsData.active_jobs);
+          setExpiredJobs(jobsData.expired_jobs);
         } else {
           console.error("Failed to fetch jobs.");
         }
@@ -27,7 +29,6 @@ const RecruiterDashboard = () => {
   }, []);
 
   const handleEdit = (jobId) => {
-    // Navigate to the EditJob page with jobId
     navigate(`/edit-job/${jobId}`);
   };
 
@@ -39,8 +40,8 @@ const RecruiterDashboard = () => {
       });
       if (response.ok) {
         console.log(`Job with jobId ${jobId} successfully removed`);
-        /* Remove the job from the local state */
-        setJobs(jobs.filter((job) => job.job_id !== jobId));
+        setActiveJobs(activeJobs.filter((job) => job.job_id !== jobId));
+        setExpiredJobs(expiredJobs.filter((job) => job.job_id !== jobId));
       } else {
         console.error(`Failed to remove jobId ${jobId}`);
       }
@@ -50,10 +51,11 @@ const RecruiterDashboard = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <JobsPostedByRecruiterSection
-        title="Posted Jobs"
-        jobs={jobs}
+        title="Recruiter Dashboard"
+        activeJobs={activeJobs}
+        expiredJobs={expiredJobs}
         onEdit={handleEdit}
         onView={(jobId) => navigate(`/job_post/${jobId}`)}
         onRemove={handleRemove}
@@ -63,3 +65,5 @@ const RecruiterDashboard = () => {
 };
 
 export default RecruiterDashboard;
+
+

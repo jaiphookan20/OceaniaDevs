@@ -4,6 +4,10 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+print("Current working directory:", os.getcwd())
+print("Contents of current directory:", os.listdir())
+print("Contents of /app directory:", os.listdir('/app'))
+
 DB_HOST = os.environ.get('DB_HOST', 'postgres')  # Use 'postgres' as the default value
 # DB_HOST = os.getenv('DB_HOST', 'localhost') # use localhost, when using in local system, use 'postgres' when using in docker container
 DB_NAME = os.getenv('DB_NAME', 'job_board')
@@ -15,6 +19,11 @@ AUTH0_CLIENT_ID = os.getenv('AUTH0_CLIENT_ID')
 AUTH0_CLIENT_SECRET = os.getenv('AUTH0_CLIENT_SECRET')
 AUTH0_DOMAIN = os.getenv('AUTH0_DOMAIN')
 AUTH0_SECRET_KEY=os.getenv('APP_SECRET_KEY')
+
+print(f"Loaded AUTH0_DOMAIN: {AUTH0_DOMAIN}")
+print(f"Loaded AUTH0_CLIENT_ID: {AUTH0_CLIENT_ID}")
+print(f"AUTH0_CLIENT_SECRET is set: {'Yes' if AUTH0_CLIENT_SECRET else 'No'}")
+print(f"AUTH0_SECRET_KEY is set: {'Yes' if AUTH0_SECRET_KEY else 'No'}")
 
 # Test database configuration
 TEST_DB_NAME = os.getenv('TEST_DB_NAME', 'test_job_board')

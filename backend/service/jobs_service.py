@@ -1,7 +1,8 @@
 from extensions import db
 from models import Job, Recruiter, Company,Application, Bookmark
 from flask import jsonify
-from sqlalchemy import and_, func, or_ 
+from sqlalchemy import desc
+from datetime import datetime, timedelta
 
 class JobsService:
 
@@ -32,7 +33,7 @@ class JobsService:
     
     def get_company_by_id(self, company_id):
         """
-        Return a Company object by the id.
+    Return a Company object by the id.
         :return: Return a Company object
         """
         return Company.query.filter_by(company_id=company_id).first()
@@ -44,29 +45,6 @@ class JobsService:
         """
         job = Job.query.filter_by(job_id=jobid).first()
         return Company.query.filter_by(company_id=job.company_id).first()
-    
-    # Return the list of all available jobs along with job title, company name, job city, state, country
-    # def get_available_jobs(self):
-    #     """
-    #     Return the list of all available jobs along with job_id, job title, company name, job city, state, and country.
-
-    #     The structure of the job tuple is as follows:
-    #     So, job[0] refers to the Job object instance, and job[0].job_id accesses the job_id attribute of that Job object instance.
-    #     For example, if the job tuple looks like this:
-    #     job = (
-    #         <Job 5>,
-    #         'Principal Frontend Software Engineer',
-    #         'Atlassian',
-    #         'Sydney',
-    #         'NSW',
-    #         'Australia'
-    #     )
-    #     Then, job[0] would be <Job 5>, which is the Job object instance with job_id 5. Therefore, job[0].job_id would give you the value 5.
-    #     So, job[0].job_id represents the job_id of the specific Job object instance in that tuple, not the first job in the list.
-    #     :return: List of tuples with job details
-    #     """
-    #     return Job.query.join(Company, Job.company_id == Company.company_id).add_columns(
-    #         Job.job_id, Job.title, Company.name.label('company_name'), Job.city, Job.state, Job.country, Job.specialization, Job.experience_level, Job.tech_stack, Job.salary_range).all()
     
     def get_available_jobs(self):
             """
@@ -91,28 +69,57 @@ class JobsService:
             Job.job_id, Job.title, Company.name.label('company_name'), Job.city, Job.state, Job.country, Job.specialization, Job.experience_level, Job.tech_stack, Job.salary_range).all()
 
     # Get Available Jobs (Pagination)
-    def get_available_jobs_with_pagination(self, page, page_size):
-        """
-        Fetch available jobs with pagination.
+    # def get_available_jobs_with_pagination(self, page, page_size):
+    #     """
+    #     Fetch available jobs with pagination, ordered by creation date (newest first).
+    #     Only return non-expired jobs (less than 30 days old).
         
-        Args:
-            page (int): The page number to fetch.
-            page_size (int): The number of jobs per page.
+    #     Args:
+    #         page (int): The page number to fetch.
+    #         page_size (int): The number of jobs per page.
         
-        Returns:
-            tuple: A tuple containing a list of jobs and the total job count.
-        """
+    #     Returns:
+    #         tuple: A tuple containing a list of jobs and the total job count.
+    #     """
+    #     try:
+    #         print("Attempting to fetch jobs from database")
+    #         offset = (page - 1) * page_size
+            
+    #         # Calculate the date 30 days ago
+    #         thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+            
+    #         # Join Job and Company tables to get job and company details
+    #         jobs_query = db.session.query(Job, Company).join(Company, Job.company_id == Company.company_id)
+            
+    #         # Filter for non-expired jobs and order by creation date (newest first)
+    #         jobs_query = jobs_query.filter(Job.created_at >= thirty_days_ago).order_by(desc(Job.created_at))
+            
+    #         # Get the total number of non-expired jobs
+    #         total_jobs = jobs_query.count()
+            
+    #         # Fetch jobs with pagination
+    #         jobs = jobs_query.offset(offset).limit(page_size).all()
+            
+    #         return jobs, total_jobs
+    #     except Exception as e:
+    #         print(f"Error fetching jobs: {e}")
+    #         return [], 0
+        
+    def get_available_jobs_with_pagination(self, page, page_size, specialization=None):
         try:
-            print("Attempting to fetch jobs from database")
-            offset = (page - 1) * page_size  # Calculate the offset for pagination
+            offset = (page - 1) * page_size
+            thirty_days_ago = datetime.utcnow() - timedelta(days=30)
             
-            # Join Job and Company tables to get job and company details
             jobs_query = db.session.query(Job, Company).join(Company, Job.company_id == Company.company_id)
+            jobs_query = jobs_query.filter(Job.created_at >= thirty_days_ago)
             
-            # Get the total number of jobs
+            if specialization:
+                jobs_query = jobs_query.filter(Job.specialization == specialization)
+            
+            # highlight-next-line
+            jobs_query = jobs_query.order_by(desc(Job.created_at))
+            
             total_jobs = jobs_query.count()
-            
-            # Fetch jobs with pagination
             jobs = jobs_query.offset(offset).limit(page_size).all()
             
             return jobs, total_jobs
@@ -127,10 +134,18 @@ class JobsService:
         :param userid: int - ID of the user applying for the job.
         :param jobid: int - ID of the job to apply to.
         """
-        print("TYPE OF JOBID", type(jobid))
-        application = Application(userid=userid, jobid=jobid)
-        db.session.add(application)
-        db.session.commit()
+        try:
+            application = Application(userid=userid, jobid=jobid)
+            if application:
+                application.status = "Applied";
+                db.session.add(application)
+                db.session.commit()
+                return True
+            return False
+        except Exception as e:
+            print(f"Error applying to job: {str(e)}")
+            db.session.rollback()
+            return False
 
     # Bookmark a particular job post
     def bookmark_job(self, userid, jobid):
@@ -187,3 +202,14 @@ class JobsService:
             query = query.filter(Job.specialization == specialization)
         
         return query.all()
+    
+
+    def get_latest_jobs_by_specialization(self, specialization, limit=5):
+        return (
+            db.session.query(Job, Company)
+            .join(Company, Job.company_id == Company.company_id)
+            .filter(Job.specialization == specialization)
+            .order_by(Job.created_at.desc())
+            .limit(limit)
+            .all()
+        )

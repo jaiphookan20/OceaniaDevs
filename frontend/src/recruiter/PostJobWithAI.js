@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import HashLoader from "react-spinners/HashLoader";
 
 const PostJobWithAI = () => {
+
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -28,6 +31,7 @@ const PostJobWithAI = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const response = await fetch("/api/add_job_ai", {
         // Updated URL
@@ -39,6 +43,7 @@ const PostJobWithAI = () => {
         body: JSON.stringify(formData),
       });
       if (response.ok) {
+        setLoading(false);
         const data = await response.json();
         toast.success(data.message || "Job successfully added!");
         navigate("/");
@@ -47,10 +52,19 @@ const PostJobWithAI = () => {
         toast.error(errorData.error || "Failed to add job.");
       }
     } catch (error) {
+      setLoading(false);
       console.error("Error submitting the form:", error);
       toast.error("An error occurred. Please try again.");
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <HashLoader color="#8823cf" size={120} />
+      </div>
+    );
+}
 
   return (
     <div className="flex justify-center items-center p-20 bg-gray-100">

@@ -1,4 +1,3 @@
-// CompanyCardSection.js
 import React from "react";
 import CompanyCard from "./CompanyCard";
 
@@ -9,28 +8,42 @@ const CompanyCardSection = ({
   pageSize,
   onPageChange,
 }) => {
+  if (!Array.isArray(companies)) {
+    console.error("companies is not an array:", companies);
+    return <div>Error: Invalid company data</div>;
+  }
+
+  const totalPages = Math.ceil(totalCompanies / pageSize);
+
   return (
-    <div className="mx-auto max-w-6xl">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div>
+      <div className="flex justify-between">
+        <div className="text-sm text-gray-600 mb-4">
+          Showing {Math.min((currentPage - 1) * pageSize + 1, totalCompanies)} - {Math.min(currentPage * pageSize, totalCompanies)} of {totalCompanies} companies
+        </div>
+      </div>
+
+      <div className="space-y-4">
         {companies.map((company) => (
           <CompanyCard key={company.company_id} company={company} />
         ))}
       </div>
-      <div className="flex justify-between items-center mt-4 mb-14">
+
+      <div className="flex justify-between items-center mt-8">
         <button
           disabled={currentPage === 1}
           onClick={() => onPageChange(currentPage - 1)}
-          className="px-4 py-2 bg-black text-white rounded"
+          className="px-4 py-2 bgblack text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Previous
         </button>
         <span>
-          Page {currentPage} of {Math.ceil(totalCompanies / pageSize)}
+          Page {currentPage} of {totalPages}
         </span>
         <button
-          disabled={currentPage === Math.ceil(totalCompanies / pageSize)}
+          disabled={currentPage === totalPages}
           onClick={() => onPageChange(currentPage + 1)}
-          className="px-4 py-2 bg-black text-white rounded"
+          className="px-4 py-2 bg-black text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Next
         </button>
@@ -40,3 +53,67 @@ const CompanyCardSection = ({
 };
 
 export default CompanyCardSection;
+
+
+// import React from "react";
+// import CompanyCard from "./CompanyCard";
+
+// const CompanyCardSection = ({
+//   companies,
+//   currentPage,
+//   totalCompanies,
+//   pageSize,
+//   onPageChange,
+// }) => {
+//   if (!Array.isArray(companies)) {
+//     console.error("companies is not an array:", companies);
+//     return <div>Error: Invalid company data</div>;
+//   }
+
+//   return (
+//     <div>
+//       <div className="flex justify-between">
+//         <div className="text-sm text-gray-600 mb-4">
+//           Showing {companies.length} of {totalCompanies || 0}+ companies
+//         </div>
+//         <div className="flex justify-end mb-4">
+//           <div className="mr-2">Sort by</div>
+//           <select className="border rounded px-2 py-1">
+//               <option>Default</option>
+//           </select>
+//         </div>
+//       </div>
+      
+//       <div className="">
+//         {companies.map((company) => (
+//           <CompanyCard key={company.company_id} company={company} />
+//         ))}
+//       </div>
+//       {totalCompanies > pageSize && (
+//         <div className="flex justify-between items-center mt-8">
+//           <button
+//             disabled={currentPage === 1}
+//             onClick={() => onPageChange(currentPage - 1)}
+//             className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+//           >
+//             Previous
+//           </button>
+//           <span>
+//             Page {currentPage} of {Math.ceil((totalCompanies || 0) / pageSize)}
+//           </span>
+//           <button
+//             disabled={currentPage === Math.ceil((totalCompanies || 0) / pageSize)}
+//             onClick={() => onPageChange(currentPage + 1)}
+//             className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+//           >
+//             Next
+//           </button>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default CompanyCardSection;
+
+

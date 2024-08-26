@@ -81,7 +81,7 @@ const EditJob = () => {
   };
 
   return (
-    <div className="flex justify-center items-center p-20 bg-gray-100">
+    <div className="flex justify-center items-center p-20 bg-gray-100" style={{fontFamily: "Avenir, san-serif"}}>
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md border border-green-400">
         <h1 className="text-2xl font-bold mb-4">Edit Job</h1>
         <form onSubmit={handleSubmit}>

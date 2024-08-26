@@ -3,7 +3,7 @@ import Logo from "./Logo";
 
 const Footer = () => {
   return (
-    <footer className="bg-grey-300 py-10 px-4">
+    <footer className="bg-gray-50 py-10 px-4 border-t border-grey-800 mt-16" style={{fontFamily: "Avenir, san-serif"}}>
       <div className="container mx-auto">
         <div className="flex flex-wrap justify-between mb-8">
           <div className="w-1/2 md:w-1/4 mb-4">

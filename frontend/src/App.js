@@ -1,40 +1,43 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, useCallback } from "react";
 import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import JobSection from "./components/JobSection";
-import SignupForm from "./components/SignupForm";
-import BottomContainer from "./components/BottomContainer";
-import SearchBar from "./components/SearchBar";
-// import CategoryGrid from "./components/CategoryGrid";
 import JobPost from "./components/JobPost";
 import { toast, Toaster } from "react-hot-toast";
 import SavedAppliedJobSection from "./components/SavedAppliedJobSection";
-import MarqueeDemo from "./components/magicui/MarqueeDemo";
-import FindEmployerForm from "./recruiter/FindEmployerForm";
-import RegisterNewEmployer from "./recruiter/RegisterNewEmployer";
-import PostJob from "./recruiter/PostJob";
-import RecruiterDashboard from "./components/RecruiterDashboard";
-import EditJob from "./components/EditJob";
-import RecruiterPersonalDetails from "./recruiter/RecruiterPersonalDetails";
-// import SearchPageBar from "./components/SearchPageBar";
-import CompanyPage from "./components/CompanyPage";
 import TrendingCompanies from "./components/TrendingCompanies";
-import SearchPageBar from "./components/SearchPage";
 import SearchPage from "./components/SearchPage";
 import CompaniesPage from "./components/CompaniesPage";
+import searchService from "./services/searchService";
+import ApplicationTrackingDashboard from "./components/ApplicationTrackingDashboard";
+import DeveloperProfile from "./components/DeveloperProfile";
+import RecruiterSettings from "./components/RecruiterSettings";
+import RecruiterOnboarding from "./recruiter/RecruiterOnboarding";
+import SignupFormRetro from "./components/SignupFormRetro";
+import SeekerSettings from "./components/SeekerSettings";
+import TrendingTechStackGrid from "./components/TrendingTechStack";
+import CompanyPage from "./components/CompanyPage";
+import PostJob from "./recruiter/PostJob";
 import PostJobWithAI from "./recruiter/PostJobWithAI";
+import RecruiterDashboard from "./components/RecruiterDashboard";
+import EditJob from "./components/EditJob";
+import HashLoader from "react-spinners/HashLoader";
 
 const App = () => {
-  const [jobs, setJobs] = useState([]);
+  const [homePageJobs, setHomePageJobs] = useState([]);
+  const [allJobs, setAllJobs] = useState([]);
   const [savedJobs, setSavedJobs] = useState([]);
   const [appliedJobs, setAppliedJobs] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isInSession, setIsInSession] = useState(false);
-  const [title, setTitle] = useState("Technology");
   const [searchTitle, setSearchTitle] = useState("Technology");
-
+  const [isInOnboarding, setIsInOnboarding] = useState(false);
+  const [specialization, setSpecialization] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [userData, setUserData] = useState([]);
 
   const [filters, setFilters] = useState({
     specialization: "",
@@ -50,51 +53,111 @@ const App = () => {
   const pageSize = 10;
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const response = await fetch(`/api/check-session`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        });
-        const data = await response.json();
-        if (data.userinfo) {
-          console.log(`${data.userinfo.name} is in session`);
-          setIsInSession(true);
-          fetchSavedJobs();
-          fetchAppliedJobs();
-        } else {
-          setIsInSession(false);
-        }
-      } catch (error) {
-        console.error("Error checking session:", error);
-      }
-    };
+    // Scroll to the top of the page when the location changes
+    window.scrollTo(0, 0);
+  }, [location]);
 
+  useEffect(() => {
+    fetchHomePageJobs();
+    fetchAllJobs();
     checkSession();
   }, []);
+
+  const checkSession = async () => {
+    try {
+      const response = await fetch(`/api/check-session`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      const data = await response.json();
+      if (data.userinfo) {
+        setUserData(data);
+      }
+      // if (data.userinfo && data.type === "seeker") {
+      //   console.log(`${data.userinfo.name} is in session`);
+      //   setIsInSession(true);
+      // } else {
+      //   setIsInSession(false);
+      // }
+
+      if (data.userinfo) {
+        console.log(`${data.userinfo.name} is in session`);
+        setIsInSession(true);
+      } else {
+        setIsInSession(false);
+      }
+    } catch (error) {
+      console.error("Error checking session:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (isInSession) {
+      if (location.pathname === "/saved-jobs") {
+        fetchSavedJobs();
+      } else if (location.pathname === "/applied-jobs") {
+        fetchAppliedJobs();
+      }
+    }
+  }, [location, isInSession]);
+  
+  const fetchHomePageJobs = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/home_page_jobs`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      if (!response.ok) {
+        setLoading(false);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setHomePageJobs(data.jobs);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching home page jobs:", error);
+      setLoading(false);
+    }
+  };
+
+const fetchAllJobs = async (page = 1, filters = {}) => {
+  try {
+    const response = await searchService.filteredSearchJobs({...filters, page, page_size: pageSize});
+    setAllJobs(response.jobs);
+    setTotalJobs(response.total_jobs);
+    return response;
+  } catch (error) {
+    console.error("Error fetching all jobs:", error);
+    return { jobs: [], total_jobs: 0 };
+  }
+};
+
 
   const handleSave = async (jobId) => {
     try {
       if (!isInSession) {
         toast.error("Sign in first to save a job.");
-      } 
-      else {
-        const response = await fetch(`/api/bookmark_job`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({ jobid: jobId }),
-        });
-        const result = await response.json();
-        toast.success(result.message);
-      }
+      } else {
+          const response = await fetch(`/api/bookmark_job`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({ jobid: jobId }),
+          });
+          const result = await response.json();
+          toast.success(result.message);
+        }
     } catch (error) {
       console.error("Error saving job:", error);
       toast.error("Failed to save job.");
@@ -103,11 +166,9 @@ const App = () => {
 
   const handleApply = async (jobId) => {
     try {
-
       if (!isInSession) {
         toast.error("Sign in first to apply.");
-      }       
-      else {
+      } else {
         const response = await fetch(`/api/apply_to_job`, {
           method: "POST",
           headers: {
@@ -116,12 +177,10 @@ const App = () => {
           credentials: "include",
           body: JSON.stringify({ jobid: jobId }),
         });
-        
         const result = await response.json();
         toast.success("Boom!");
         navigate(`/job_post/${jobId}`);
       }
-      
     } catch (error) {
       console.error("Error applying to job:", error);
       toast.error("Failed to apply to job.");
@@ -132,154 +191,71 @@ const App = () => {
     navigate(`/job_post/${jobId}`);
   };
 
-
   const handleSearch = async (event) => {
-    setSearchQuery(event.target.value);
-    const title = `${event.target.value} Roles`;
-    setTitle(title);
-    setSearchTitle(event.target.value || "Technology");
-    
-    if (event.target.value.trim() === "") {
-      console.log("fetchJobs called");
-      fetchJobs();
+    const searchValue = event.target.value;
+    setSearchQuery(searchValue);
+    setSearchTitle(searchValue || "Technology"); 
+    if (searchValue.trim() === "") {
+      // When clearing the search, fetch all jobs again
+      const allJobsData = await fetchAllJobs();
+      setAllJobs(allJobsData.jobs);
+      setTotalJobs(allJobsData.total_jobs);
     } else {
-      console.log("Calling Instant Search Jobs");
-      const response = await fetch(
-        `/api/instant_search_jobs?query=${event.target.value}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const data = await response.json();
-      console.log(data);
-      setJobs(data.results);
+      const data = await searchService.instantSearchJobs(searchValue);
+      setAllJobs(data.results);
+      setTotalJobs(data.total);
     }
   };
-
-  // const handleFilterSearch = async () => {
-  //   const queryParams = new URLSearchParams();
-  //   Object.entries(filters).forEach(([key, value]) => {
-  //     if (Array.isArray(value)) {
-  //       value.forEach(item => queryParams.append(key, item));
-  //     } else if (value) {
-  //       queryParams.append(key, value);
-  //     }
-  //   });
   
-  //   const response = await fetch(
-  //     `/api/filtered_search_jobs?${queryParams.toString()}`,
-  //     {
-  //       method: "GET",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       credentials: "include",
-  //     }
-  //   );
-  //   const data = await response.json();
-  //   setJobs(data.results);
-  //   setTotalJobs(data.total);
-  // };
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFilters({
-      ...filters,
+    setFilters(prevFilters => ({
+      ...prevFilters,
       [name]: value,
+    }));
+  };
+
+  const handleViewAllRoles = (specialize) => {
+    setSpecialization(specialize);
+    setFilters(prevFilters => {
+      const newFilters = {
+        ...prevFilters,
+        specialization: specialize,
+        tech_stack: []
+      };
+      setSearchTitle(`${specialize} Jobs`);
+      setCurrentPage(1);
+      fetchAllJobs(1, newFilters).then(data => {
+        setAllJobs(data.jobs);
+        setTotalJobs(data.total_jobs);
+        navigate('/search-page');
+      });
+      return newFilters;
     });
   };
 
-  const fetchJobs = async (page = 1, pageSize = 12) => {
+  
+  const handleFilterSearch = useCallback(async (page = 1) => {
     try {
-      const response = await fetch(
-        `/api/alljobs?page=${page}&page_size=${pageSize}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        }
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log(data)
-      setJobs(data.jobs);
-      console.log(data.jobs)
+      const data = await searchService.filteredSearchJobs({...filters, page, page_size: pageSize});
+      setAllJobs(data.jobs);
       setTotalJobs(data.total_jobs);
       setCurrentPage(page);
+      if (filters.tech_stack.length > 0) {
+        setSearchTitle(`${filters.tech_stack[0].charAt(0).toUpperCase() + filters.tech_stack[0].slice(1)} Jobs`);
+      } else if (filters.specialization) {
+        setSearchTitle(`${filters.specialization} Jobs`);
+      } else {
+        setSearchTitle("Technology Jobs");
+      }
     } catch (error) {
-      console.error("Error fetching jobs:", error);
+      console.error('Error fetching filtered jobs:', error);
+      setAllJobs([]);
+      setTotalJobs(0);
+      toast.error("Failed to fetch jobs. Please try again later.");
     }
-  };
-
-  useEffect(() => {
-    fetchJobs();
-  }, []);
-
-  // Group jobs by specialization
-  const groupedJobs = jobs.reduce((acc, job) => {
-    const specialization = job.specialization || "Other";
-    if (!acc[specialization]) {
-      acc[specialization] = [];
-    }
-    acc[specialization].push(job);
-    return acc;
-  }, {});
-
-  const location = useLocation();
-
-  //   We added a new useEffect hook that listens for changes in the URL (using useLocation).
-// When the URL changes and contains a 'specialization' query parameter, we update the filters state with this specialization.
-// We added another useEffect hook that triggers handleFilterSearch whenever filters.specialization changes.
-// We updated handleFilterSearch to set the title based on the current specialization.
-// We ensured that handleFilterSearch updates both the jobs state and the totalJobs state with the results from the API call.
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const specialization = searchParams.get('specialization');
-    if (specialization) {
-      setFilters(prevFilters => ({
-        ...prevFilters,
-        specialization: specialization
-      }));
-    }
-  }, [location]);
-
-  useEffect(() => {
-    if (filters.specialization) {
-      handleFilterSearch();
-    }
-  }, [filters.specialization]);
-
-  const handleFilterSearch = async () => {
-    const queryParams = new URLSearchParams();
-    Object.entries(filters).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        value.forEach(item => queryParams.append(key, item));
-      } else if (value) {
-        queryParams.append(key, value);
-      }
-    });
-  
-    const response = await fetch(
-      `/api/filtered_search_jobs?${queryParams.toString()}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      }
-    );
-    const data = await response.json();
-    setJobs(data.results);
-    setTotalJobs(data.total);
-    setTitle(`${filters.specialization || 'All'} Roles`);
-  };
-
+  }, [filters, pageSize]);
 
   const fetchSavedJobs = async () => {
     try {
@@ -318,16 +294,139 @@ const App = () => {
   };
 
   const handlePageChange = (newPage) => {
-    fetchJobs(newPage, pageSize);
+    setCurrentPage(newPage);
+    fetchAllJobs(newPage);
   };
 
+
+  useEffect(() => {
+    const onboardingPaths = [
+      '/employer/add-details',
+      '/employer/new/organization-details',
+      '/employer/organization-details'
+    ];
+    setIsInOnboarding(onboardingPaths.includes(location.pathname));
+  }, [location]);
+
+  const removeBookmark = async (jobId) => {
+    try {
+      const response = await fetch('/api/remove_bookmark', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ jobid: jobId }),
+      });
+      if (response.ok) {
+        setSavedJobs(savedJobs.filter(job => job.job_id !== jobId));
+      }
+    } catch (error) {
+      console.error("Error removing bookmark:", error);
+    }
+  };
+
+  const removeApplication = async (jobId) => {
+    try {
+      const response = await fetch(`/api/remove_application/${jobId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (response.ok) {
+        setAppliedJobs(prevJobs => prevJobs.filter(job => job.job_id !== jobId));
+        toast.success("Application removed successfully");
+      } else {
+        toast.error("Failed to remove application");
+      }
+    } catch (error) {
+      console.error("Error removing application:", error);
+      toast.error("Error removing application");
+    }
+  };
+
+
+  const handleClearAll = async () => {
+    setSearchQuery("");
+    setSearchTitle("Technology");
+    setFilters({
+      specialization: "",
+      experience_level: "",
+      city: "",
+      industry: "",
+      tech_stack: [],
+      salary_range: "",
+    });
+    fetchAllJobs(1);
+  };
+
+  const fetchMoreSavedJobs = async (page, pageSize) => {
+    try {
+      const response = await fetch(`/api/bookmarked_jobs?page=${page}&page_size=${pageSize}`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.bookmarked_jobs || []; // Ensure we always return an array
+    } catch (error) {
+      console.error("Error fetching more saved jobs:", error);
+      return []; // Return an empty array in case of error
+    }
+  };
+
+
+  const fetchMoreAppliedJobs = async (page, pageSize) => {
+    try {
+      const response = await fetch(`/api/applied_jobs?page=${page}&page_size=${pageSize}`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.applied_jobs || []; // Ensure we always return an array
+    } catch (error) {
+      console.error("Error fetching more applied jobs:", error);
+      return []; // Return an empty array in case of error
+    }
+  };
+
+  const handleTechFilter = (tech) => {
+    setFilters(prevFilters => {
+      const newFilters = {
+        ...prevFilters,
+        tech_stack: [tech],
+        specialization: ''
+      };
+      setSearchTitle(`${tech.charAt(0).toUpperCase() + tech.slice(1)} Jobs`);
+      fetchAllJobs(1, newFilters).then(data => {
+        setAllJobs(data.jobs);
+        setTotalJobs(data.total_jobs);
+      });
+      return newFilters;
+    });
+    navigate('/search-page');
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <HashLoader color="#8823cf" size={120} />
+      </div>
+    );
+}
+
   return (
-    <div
-      className="bg-slate-40 p-6"
-      style={{ fontFamily: "Roobert-Regular, sans-serif" }}
-    >
+    <div className="bg-slate-40 p-6" style={{ fontFamily: "Roobert-Regular, sans-serif" }}>
       <Toaster />
-      <Navbar />
+      {!isInOnboarding && <Navbar />}
       <Routes>
         <Route
           exact
@@ -335,17 +434,11 @@ const App = () => {
           element={
             <>
               <Header />
-              <TrendingCompanies />
-              {/* <SearchBar
-                searchQuery={searchQuery}
-                onSearchChange={handleSearch}
-                filters={filters}
-                onFilterChange={handleChange}
-                onFilterSearch={handleFilterSearch}
-              /> */}
+              {/* <TrendingCompanies /> */}
+              <TrendingTechStackGrid />
               <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-1 gap-7">
                 <div className="col-span-2">
-                  {Object.entries(groupedJobs).map(([specialization, jobsList]) => (
+                  {Object.entries(homePageJobs).map(([specialization, jobsList]) => (
                     <JobSection
                       key={specialization}
                       title={`${specialization} Roles`}
@@ -357,33 +450,24 @@ const App = () => {
                       totalJobs={totalJobs}
                       pageSize={pageSize}
                       onPageChange={handlePageChange}
+                      isInSession={isInSession}
+                      onViewAll={() => handleViewAllRoles(specialization)}
+                      userData={userData}
                     />
                   ))}
                 </div>
-                {/* <SignupForm /> */}
               </div>
-              <BottomContainer />
+              <SignupFormRetro />
             </>
           }
         />
-         <Route path="/company-page" element={
-          <CompanyPage 
-          title={title}
-          jobs={jobs}
-          onSave={handleSave}
-          onApply={handleApply}
-          onView={handleView}
-          currentPage={currentPage}
-          totalJobs={totalJobs}
-          pageSize={pageSize}
-          onPageChange={handlePageChange}
-          />} />
         <Route
           path="/search-page"
           element={
             <SearchPage
-              title={`${searchTitle}` }
-              jobs={jobs}
+              // title={`${filters.specialization || searchTitle}`}
+              title={searchTitle}
+              jobs={allJobs}
               onSave={handleSave}
               onApply={handleApply}
               onView={handleView}
@@ -396,15 +480,20 @@ const App = () => {
               onSearchChange={handleSearch}
               onFilterChange={handleChange}
               onFilterSearch={handleFilterSearch}
+              isInSession={isInSession}
+              specialization={specialization}
+              onClearAll={handleClearAll}  // Pass the new handleClearAll function
+              onTechFilter={handleTechFilter}
             />
           }
         />
+        <Route path="/employer/*" element={<RecruiterOnboarding />} />
         <Route
           path="/companies"
           element={
             <CompaniesPage
-              title={`${searchTitle}` }
-              jobs={jobs}
+              title={searchTitle}
+              jobs={allJobs}
               onSave={handleSave}
               onApply={handleApply}
               onView={handleView}
@@ -420,31 +509,41 @@ const App = () => {
             />
           }
         />
-        <Route
-          path="/job_post/:jobId"
-          element={<JobPost onSave={handleSave} onApply={handleApply} />}
-        />
         <Route 
           path="/company/:companyId" 
           element={
-            <CompanyPage
+            <CompanyPage 
               onSave={handleSave}
               onApply={handleApply}
               onView={handleView}
             />
           } 
         />
+        <Route path="/employer/post-job" element={<PostJob />} />
+        <Route path="/employer/post-job-ai" element={<PostJobWithAI />} />
+        <Route path="/dashboard" element={<ApplicationTrackingDashboard />} />
+        <Route path="/recruiter-dashboard" element={<RecruiterDashboard />} />
+        <Route path="/recruiter-settings" element={<RecruiterSettings />} />
+        <Route path="/edit-job/:jobId" element={<EditJob />} />z
+        <Route
+          path="/job_post/:jobId"
+          element={<JobPost onSave={handleSave} onApply={handleApply} isInSession={isInSession} />}
+        />
+        <Route path="/profile" element={<DeveloperProfile />} />
         <Route
           path="/saved-jobs"
           element={
-            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
+            <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-7">
               <div className="col-span-2">
                 <SavedAppliedJobSection
                   title="Saved Jobs"
-                  onSave={handleSave}
                   jobs={savedJobs}
                   onApply={handleApply}
                   onView={handleView}
+                  // fetchMoreJobs={fetchSavedJobs}
+                  fetchMoreJobs={fetchMoreSavedJobs}
+                  onRemove={removeBookmark}
+                  isSavedJobs={true}
                 />
               </div>
             </div>
@@ -453,37 +552,24 @@ const App = () => {
         <Route
           path="/applied-jobs"
           element={
-            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
+            <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-7">
               <div className="col-span-2">
                 <SavedAppliedJobSection
                   title="Applied Jobs"
-                  onSave={handleSave}
                   jobs={appliedJobs}
                   onApply={handleApply}
                   onView={handleView}
+                  fetchMoreJobs={fetchMoreAppliedJobs}
+                  onRemove={removeApplication}
+                  isSavedJobs={false}
                 />
               </div>
             </div>
           }
         />
-        <Route path="/recruiter-dashboard" element={<RecruiterDashboard />} />
-        <Route path="/edit-job/:jobId" element={<EditJob />} />
-        <Route path="/employer/post-job" element={<PostJob />} />
-        <Route path="/employer/post-job-ai" element={<PostJobWithAI />} />
-        <Route
-          path="/employer/add-details"
-          element={<RecruiterPersonalDetails />}
-        />
-        <Route
-          path="/employer/organization-details"
-          element={<RegisterNewEmployer />}
-        />
-        <Route
-          path="/employer/new/organization-details"
-          element={<FindEmployerForm />}
-        />
+        <Route path="/seeker/settings" element={<SeekerSettings />} />
       </Routes>
-      <Footer />
+      {!isInOnboarding && <Footer />}
     </div>
   );
 };

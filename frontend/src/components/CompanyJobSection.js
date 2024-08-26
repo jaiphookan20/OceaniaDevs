@@ -9,12 +9,6 @@ const CompanyJobSection = ({ title, jobs, onSave, onApply, onView, company }) =>
     <div className="mx-auto max-w-6xl mb-8">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-3xl font-bold pl-4">{title}</h2>
-        {/* <button 
-          onClick={handleViewAll}
-          className="text-indigo-600 hover:text-indigo-700 hover:underline hover:font-semibold"
-        >
-          View all {title}
-        </button> */}
       </div>
       <div className="bg-white rounded-lg shadow-md">
         {jobs.map((job, index) => (
