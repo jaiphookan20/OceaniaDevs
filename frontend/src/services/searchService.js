@@ -1,9 +1,23 @@
 const searchService = {
-    filteredSearchJobs: async (filters) => {
+  filteredSearchJobs: async (filters) => {
+    try {
       const queryParams = new URLSearchParams(filters);
+      console.log('Sending request to:', `/api/filtered_search_jobs?${queryParams}`);
       const response = await fetch(`/api/filtered_search_jobs?${queryParams}`);
-      return response.json();
-    },
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log('API response:', data);
+      return {
+        jobs: data.results,
+        total_jobs: data.total
+      };
+    } catch (error) {
+      console.error('Error in filteredSearchJobs:', error);
+      throw error;
+    }
+  },
   
     searchCompanies: async (filters) => {
       const queryParams = new URLSearchParams(filters);

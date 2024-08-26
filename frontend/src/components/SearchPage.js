@@ -26,29 +26,29 @@ const SearchPage = ({
   onTechFilter
 }) => {
   
-  useEffect(() => {
-    // Trigger a search when the component mounts or when filters change
-    // highlight-next-line
-    onFilterSearch(1); // Always start from the first page when filters change
-  }, [filters]);
-
-  useEffect(() => {
-    // Update filters when specialization changes
-    if (specialization) {
-      onFilterChange({ target: { name: "specialization", value: specialization } });
-    }
-  }, [specialization]);
-
-
   const location = useLocation();
+
+  useEffect(() => {
+    console.log('jobs:', jobs);
+    if (!jobs || jobs.length === 0) {
+      console.log('Calling onFilterSearch');
+      onFilterSearch(1);
+    }
+  }, [jobs, onFilterSearch]);
+
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const tech = searchParams.get('tech');
     if (tech) {
       onTechFilter(tech);
+    } else if (specialization) {
+      onFilterChange({ target: { name: "specialization", value: specialization } });
+      onFilterSearch(1);
+    } else if (!jobs || jobs.length === 0) {
+      onFilterSearch(1);
     }
-  }, [location]);
+  }, [location, specialization, jobs, onTechFilter, onFilterChange, onFilterSearch]);
 
 
   return (
@@ -59,7 +59,7 @@ const SearchPage = ({
         onSearchChange={onSearchChange}
         filters={filters}
         onFilterChange={onFilterChange}
-        onFilterSearch={onFilterSearch}
+        onFilterSearch={() => onFilterSearch(1)}
         onClearAll={onClearAll}
       />
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-7">

@@ -32,7 +32,7 @@ const SavedAndAppliedJobsCard = ({ job, onApply, onSave, onRemove, onView }) => 
                 {job.salary_range}
               </span>
             )}
-            {job.min_experience_years && job.min_experience_years !== '' && (
+            {job.min_experience_years && job.min_experience_years > 0 && (
               <span className="bg-rose-50 text-rose-700 px-2 py-1 rounded-lg">
                 {job.min_experience_years}+ Years
               </span>

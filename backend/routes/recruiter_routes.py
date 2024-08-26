@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, current_app, stream_with_context, Response
 from service.recruiter_service import RecruiterService
 from service.jobs_service import JobsService
 from models import Recruiter, Company, Job
@@ -546,3 +546,14 @@ def process_resume():
             return jsonify(resume_text), 200
         else:
             return jsonify({"error": "Failed to process resume"}), 500
+        
+
+@recruiter_blueprint.route('/api/process-jobs', methods=['POST'])
+def process_jobs():
+    recruiter_service = RecruiterService()
+
+    def generate():
+        for result in recruiter_service.process_jobs_from_json():
+            yield result
+
+    return Response(stream_with_context(generate()), content_type='application/json')

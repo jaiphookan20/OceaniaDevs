@@ -10,6 +10,9 @@ import os
 from dotenv import load_dotenv
 from utils.openai import OpenAI
 from utils.time import get_relative_time
+import concurrent.futures
+from concurrent.futures import TimeoutError
+import time
 import config
 class RecruiterService:
 
@@ -21,9 +24,9 @@ class RecruiterService:
             "Content-Type": "application/json"
         }
         # Add logging or print statements
-        print("RecruiterService initialized.")
-        current_app.logger.info(f"OpenAI client set: {self.openai_client is not None}")
-        print(f"OpenAI client set: {self.openai_client is not None}")
+        # print("RecruiterService initialized.")
+        # current_app.logger.info(f"OpenAI client set: {self.openai_client is not None}")
+        # print(f"OpenAI client set: {self.openai_client is not None}")
 
     def get_recruiter_by_id(self, recruiter_id):
         """
@@ -88,7 +91,6 @@ class RecruiterService:
         if recruiter:
             recruiter.first_name = data.get('firstName', recruiter.first_name)
             recruiter.last_name = data.get('lastName', recruiter.last_name)
-            recruiter.mobile = data.get('mobile', recruiter.mobile)
             recruiter.position = data.get('position', recruiter.position)
             
             try:
@@ -157,12 +159,12 @@ class RecruiterService:
                 logo_url = logo_url
             )
 
-            # db.session.add(new_company)
-            # db.session.commit()
+            db.session.add(new_company)
+            db.session.commit()
 
-            # recruiter = self.get_recruiter_by_id(recruiter_id)
-            # recruiter.company_id = new_company.company_id
-            # db.session.commit()
+            recruiter = self.get_recruiter_by_id(recruiter_id)
+            recruiter.company_id = new_company.company_id
+            db.session.commit()
 
             return True
         except Exception as e:
@@ -312,7 +314,14 @@ class RecruiterService:
         try:
             title = job_data.get('title')
             description = job_data.get('description')
-            processed_data = self.process_job_description_openai(title, description)
+
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(self.process_job_description_openai, title, description)
+                try:
+                    processed_data = future.result(timeout=180)  # 3 minutes timeout
+                except TimeoutError:
+                    return None, "OpenAI API call timed out after 3 minutes"
+
             current_app.logger.info(f"Processed Data: {processed_data}")
 
             if processed_data:
@@ -334,7 +343,6 @@ class RecruiterService:
                     country=job_data.get('country') or processed_data.get('country'),
                     work_rights=job_data.get('work_rights') or processed_data.get('work_rights'),
                     tech_stack=job_data.get('tech_stack') or processed_data.get('technologies'),
-                    # new fields:
                     overview=processed_data.get('overview') or processed_data.get('overview'),
                     responsibilities=job_data.get('responsibilities', '') or processed_data.get('responsibilities'),
                     requirements=job_data.get('requirements', '') or processed_data.get('requirements'),
@@ -344,9 +352,9 @@ class RecruiterService:
                     daily_range=job_data.get('daily_range') or processed_data.get('daily_range'),
                 )
                 
-                current_app.logger.info(new_job);
-                db.session.add(new_job)
-                db.session.commit();
+                current_app.logger.info(new_job)
+                # db.session.add(new_job)
+                # db.session.commit()
 
                 return new_job, None
             else:
@@ -356,7 +364,6 @@ class RecruiterService:
             db.session.rollback()
             current_app.logger.error(f"Error adding job: {str(e)}")
             return None, f"An error occurred while adding the job: {str(e)}"
-
 
     # Update a job post with given updates
     def update_job(self, job_id, data):
@@ -590,3 +597,92 @@ class RecruiterService:
         except Exception as e:
             current_app.logger.error(f"OpenAI API request failed: {str(e)}")
             return None
+                
+    def process_jobs_from_json(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        input_file_path = os.path.join(current_dir, 'jobs.json')
+        output_file_path = os.path.join(current_dir, 'processing_results.json')
+
+        try:
+            with open(input_file_path, 'r') as file:
+                jobs_data = json.load(file)
+        except FileNotFoundError:
+            yield json.dumps({"error": f"Input file {input_file_path} not found"})
+            return
+        except json.JSONDecodeError:
+            yield json.dumps({"error": f"Invalid JSON in {input_file_path}"})
+            return
+
+        excluded_categories = ["PR & Communications", "Digital Marketing", "SEO/SEM"]
+        filtered_jobs = [job for job in jobs_data if job['category'] not in excluded_categories]
+        
+        recruiter_id = 15
+        company_id = 10
+        results = []
+        
+        for job in filtered_jobs:
+            try:
+                job_data = {
+                    'recruiter_id': recruiter_id,
+                    'company_id': company_id,
+                    'title': job['title'],
+                    'description': job['description'],
+                    'jobpost_url': job['url'],
+                    'job_arrangement': job['jobType'],
+                    'city': job['jobHighlights']['location'],
+                    'country': 'Australia',  
+                }
+                
+                start_time = time.time()
+                new_job, error = self.add_job_programmatically(job_data)
+                processing_time = time.time() - start_time
+
+                if new_job:
+                    processed_data = {
+                        'job_id': new_job.job_id,
+                        'title': new_job.title,
+                        'description': new_job.description,
+                        'jobpost_url': new_job.jobpost_url,
+                        'job_arrangement': new_job.job_arrangement,
+                        'city': new_job.city,
+                        'country': new_job.country,
+                        'specialization': new_job.specialization,
+                        'industry': new_job.industry,
+                        'salary_range': new_job.salary_range,
+                        'work_location': new_job.work_location,
+                        'experience_level': new_job.experience_level,
+                        'tech_stack': new_job.tech_stack,
+                    }
+                else:
+                    processed_data = None
+
+                result = {
+                    'title': job['title'],
+                    'success': error is None,
+                    'error': str(error) if error else None,
+                    'processed_data': processed_data,
+                    'processing_time': processing_time
+                }
+
+                results.append(result)
+                yield json.dumps(result) + "\n"
+            
+            except Exception as e:
+                error_result = {
+                    'title': job.get('title', 'Unknown'),
+                    'success': False,
+                    'error': f"Unexpected error: {str(e)}",
+                    'processed_data': None
+                }
+                results.append(error_result)
+                yield json.dumps(error_result) + "\n"
+            
+            # Add a small delay between processing jobs to prevent overwhelming the API
+            time.sleep(1)
+        
+        try:
+            with open(output_file_path, 'w') as file:
+                json.dump(results, file, indent=2)
+            yield json.dumps({"message": f"Processing complete. Results saved to {output_file_path}"})
+        except IOError as e:
+            yield json.dumps({"error": f"Error saving results: {str(e)}"})

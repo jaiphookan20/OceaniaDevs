@@ -9,37 +9,45 @@ const SearchBar = ({
   filters,
   onFilterChange,
   onFilterSearch,
-  onClearAll,  // New prop for clearing all filters and search
+  onClearAll,
 }) => {
+
+  const handleSearch = (e) => {
+    e.preventDefault(); // Prevent default form submission
+    onFilterSearch(); // Call the search function without passing the event
+  };
+
   return (
     <div>
       <div className="justify-items-center justify-center mx-auto">
         <div className="p-4 pb-8 border-b border-green-300 mb-10">
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                placeholder="Search by Title, Company, Technology ...."
-                className="w-full border border-green-400 rounded-lg py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-lime-400"
-                value={searchQuery}
-                onChange={onSearchChange}
-              />
-              <div className="absolute top-1/2 left-3 transform -translate-y-1/2"></div>
+        <form onSubmit={handleSearch}>
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  placeholder="Search by Title, Company, Technology ...."
+                  className="w-full border border-green-400 rounded-lg py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-lime-400"
+                  value={searchQuery}
+                  onChange={onSearchChange}
+                />
+                <div className="absolute top-1/2 left-3 transform -translate-y-1/2"></div>
+              </div>
+              <button
+                type="button"
+                className="bg-black text-white rounded-lg px-4 py-2"
+                onClick={onClearAll}
+              >
+                Clear All
+              </button>
+              <button
+                type="submit"
+                className="bg-purple-600 text-white rounded-lg px-4 py-2"
+              >
+                Search
+              </button>
             </div>
-            <button
-              className="bg-black text-white rounded-lg px-4 py-2"
-              // onClick={() => onSearchChange({ target: { value: "" } })}
-              onClick={onClearAll}  // Use the new onClearAll prop
-            >
-              Clear All
-            </button>
-            <button
-              className="bg-purple-600 text-white rounded-lg px-4 py-2"
-              onClick={onFilterSearch}
-            >
-              Search
-            </button>
-          </div>
+          </form>
           <div className="flex space-x-3">
           <select
             name="experience_level"

@@ -27,19 +27,19 @@ const Button = ({ children, className }) => (
 const colleges = [
   {
     name: "Java",
-    title: "Java",
+    title: "java",
     logo: java,
     interviews: 525
   },
   {
     name: "Python",
-    title: "Python",
+    title: "python",
     logo: python,
     interviews: 919
   },
   {
     name: "AWS",
-    title: "AWS",
+    title: "aws",
     logo: aws,
     interviews: 710
   },

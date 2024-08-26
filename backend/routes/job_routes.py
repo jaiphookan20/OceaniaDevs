@@ -56,11 +56,12 @@ def get_job_post_page(job_id):
         'specialization': job.specialization,
         'salary_type': job.salary_type,
         'work_location': job.work_location,
-        'location': f"{job.city}, {job.state}",
+    'location': f"{job.city}, {job.state}",
         'min_experience_years': job.min_experience_years,
         'experience_level': job.experience_level,
         'city': job.city,
         'description': job.description,
+        'company_description': company.description,
         'state': job.state,
         'work_rights': job.work_rights,
         'description': job.description,
@@ -75,34 +76,71 @@ def get_job_post_page(job_id):
     return jsonify(job_data)
 
 # Get All Jobs ie Populate Job Feed:
+# @job_blueprint.route('/api/alljobs', methods=['GET'])
+# def get_all_jobs():
+#     """
+#     Fetch all jobs with pagination.
+    
+#     Query Parameters:
+#         page (int): The page number to fetch.
+#         page_size (int): The number of jobs per page.
+    
+#     Returns:
+#         json: A JSON response containing job data, page info, and total job count.
+#     """
+#     # Get the page number from the request
+#     page = request.args.get('page', 1, type=int)  
+#     # Get the page size from the request
+#     page_size = request.args.get('page_size', 25, type=int)   
+    
+#     jobs_service = JobsService()  # Initialize the JobsService
+
+#     jobs, total_jobs = jobs_service.get_available_jobs_with_pagination(page, page_size)  # Fetch paginated jobs
+
+#     # Format the job data for the response
+#     jobs_data = []
+#     for job in jobs:
+                
+#         job_data = {
+#             'title': job.Job.title,
+#             'company': job.Company.name,  # Accessing company name from the Company table
+#             'company_id': job.Company.company_id,
+#             'location': f"{job.Job.city}, {job.Job.state}",
+#             'city': job.Job.city,
+#             'experience_level': job.Job.experience_level,
+#             'job_id': job.Job.job_id,
+#             'salary_range': job.Job.salary_range,
+#             'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.Company.logo_url)}",
+#             'specialization': job.Job.specialization,
+#             'min_experience_years': job.Job.min_experience_years,
+#             'created_at': get_relative_time(job.Job.created_at.strftime('%Y-%m-%d')),
+#             'tech_stack': job.Job.tech_stack,
+#             'jobpost_url': job.Job.jobpost_url        
+#         }
+#         # current_app.logger.info(f"Job Data: {job_data}")
+#         jobs_data.append(job_data)
+    
+#     # Return the job data, page info, and total job count
+#     return jsonify({
+#         'jobs': jobs_data,
+#         'page': page,
+#         'page_size': page_size,
+#         'total_jobs': total_jobs
+#     })
+
 @job_blueprint.route('/api/alljobs', methods=['GET'])
 def get_all_jobs():
-    """
-    Fetch all jobs with pagination.
+    page = request.args.get('page', 1, type=int)
+    page_size = request.args.get('page_size', 10, type=int)
+    specialization = request.args.get('specialization', None)
     
-    Query Parameters:
-        page (int): The page number to fetch.
-        page_size (int): The number of jobs per page.
+    jobs_service = JobsService()
+    jobs, total_jobs = jobs_service.get_available_jobs_with_pagination(page, page_size, specialization)
     
-    Returns:
-        json: A JSON response containing job data, page info, and total job count.
-    """
-    # Get the page number from the request
-    page = request.args.get('page', 1, type=int)  
-    # Get the page size from the request
-    page_size = request.args.get('page_size', 25, type=int)   
-    
-    jobs_service = JobsService()  # Initialize the JobsService
-
-    jobs, total_jobs = jobs_service.get_available_jobs_with_pagination(page, page_size)  # Fetch paginated jobs
-
-    # Format the job data for the response
-    jobs_data = []
-    for job in jobs:
-                
-        job_data = {
+    jobs_data = [
+        {
             'title': job.Job.title,
-            'company': job.Company.name,  # Accessing company name from the Company table
+            'company': job.Company.name,
             'company_id': job.Company.company_id,
             'location': f"{job.Job.city}, {job.Job.state}",
             'city': job.Job.city,
@@ -115,11 +153,9 @@ def get_all_jobs():
             'created_at': get_relative_time(job.Job.created_at.strftime('%Y-%m-%d')),
             'tech_stack': job.Job.tech_stack,
             'jobpost_url': job.Job.jobpost_url        
-        }
-        # current_app.logger.info(f"Job Data: {job_data}")
-        jobs_data.append(job_data)
+        } for job in jobs
+    ]
     
-    # Return the job data, page info, and total job count
     return jsonify({
         'jobs': jobs_data,
         'page': page,
@@ -357,6 +393,40 @@ def unsave_job(job_id):
         return jsonify({"message": "Job unsaved successfully"}), 200
     else:
         return jsonify({"error": "Job was not saved"}), 404
+    
+@job_blueprint.route('/api/home_page_jobs', methods=['GET'])
+def get_home_page_jobs():
+    jobs_service = JobsService()
+    
+    specializations = ['Frontend', 'Backend', 'Full-Stack', 'DevOps & IT', 'Cloud & Infrastructure', 'Business Intelligence & Data', 'Machine Learning & AI', 'Mobile', 'Cybersecurity', 'Business Application Development', 'Project Management', 'QA & Testing']
+    
+    all_jobs = {}
+    for specialization in specializations:
+        jobs = jobs_service.get_latest_jobs_by_specialization(specialization, limit=5)
+        if jobs:
+            all_jobs[specialization] = [
+                {
+                    'title': job.Job.title,
+                    'company': job.Company.name,
+                    'company_id': job.Company.company_id,
+                    'location': f"{job.Job.city}, {job.Job.state}",
+                    'city': job.Job.city,
+                    'experience_level': job.Job.experience_level,
+                    'job_id': job.Job.job_id,
+                    'salary_range': job.Job.salary_range,
+                    'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.Company.logo_url)}",
+                    'specialization': job.Job.specialization,
+                    'min_experience_years': job.Job.min_experience_years,
+                    'created_at': get_relative_time(job.Job.created_at.strftime('%Y-%m-%d')),
+                    'tech_stack': job.Job.tech_stack,
+                    'jobpost_url': job.Job.jobpost_url        
+                } for job in jobs
+            ]
+    
+    return jsonify({
+        'jobs': all_jobs,
+        'total_jobs': sum(len(jobs) for jobs in all_jobs.values())
+    })
     
 
     
