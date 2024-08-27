@@ -78,13 +78,23 @@ jobs:
           known_hosts: ${{ secrets.KNOWN_HOSTS }}
           if_key_exists: replace
 
-      - name: Test SSH connection
+      - name: Stop and remove existing containers and networks
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} echo "SSH connection successful" || exit 1
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+            cd ~/OceaniaDevs && \
+            docker-compose down -v --remove-orphans && \
+            docker system prune -af && \
+            docker network prune -f && \
+            docker volume prune -f
+          "
 
-      - name: Stop and remove existing containers
+      - name: Verify cleanup
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && docker-compose down -v && docker system prune -af"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+            echo 'Containers:' && docker ps -a && \
+            echo 'Networks:' && docker network ls && \
+            echo 'Volumes:' && docker volume ls
+          "
 
       - name: Check server time
         run: |
