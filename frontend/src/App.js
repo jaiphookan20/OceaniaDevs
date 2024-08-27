@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -25,6 +25,7 @@ import PostJobWithAI from "./recruiter/PostJobWithAI";
 import RecruiterDashboard from "./components/RecruiterDashboard";
 import EditJob from "./components/EditJob";
 import HashLoader from "react-spinners/HashLoader";
+import { debounce } from 'lodash';  // Make sure to install and import lodash
 
 const App = () => {
   const [homePageJobs, setHomePageJobs] = useState([]);
@@ -47,6 +48,8 @@ const App = () => {
     tech_stack: [],
     salary_range: "",
   });
+
+  const prevFilters = useRef(filters);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalJobs, setTotalJobs] = useState(0);
@@ -236,26 +239,68 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
   };
 
   
-  const handleFilterSearch = useCallback(async (page = 1) => {
-    try {
-      const data = await searchService.filteredSearchJobs({...filters, page, page_size: pageSize});
-      setAllJobs(data.jobs);
-      setTotalJobs(data.total_jobs);
-      setCurrentPage(page);
-      if (filters.tech_stack.length > 0) {
-        setSearchTitle(`${filters.tech_stack[0].charAt(0).toUpperCase() + filters.tech_stack[0].slice(1)} Jobs`);
-      } else if (filters.specialization) {
-        setSearchTitle(`${filters.specialization} Jobs`);
-      } else {
-        setSearchTitle("Technology Jobs");
+  // const handleFilterSearch = useCallback(async (page = 1) => {
+  //   try {
+  //     const data = await searchService.filteredSearchJobs({...filters, page, page_size: pageSize});
+  //     setAllJobs(data.jobs);
+  //     setTotalJobs(data.total_jobs);
+  //     setCurrentPage(page);
+  //     if (filters.tech_stack.length > 0) {
+  //       setSearchTitle(`${filters.tech_stack[0].charAt(0).toUpperCase() + filters.tech_stack[0].slice(1)} Jobs`);
+  //     } else if (filters.specialization) {
+  //       setSearchTitle(`${filters.specialization} Jobs`);
+  //     } else {
+  //       setSearchTitle("Technology Jobs");
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching filtered jobs:', error);
+  //     setAllJobs([]);
+  //     setTotalJobs(0);
+  //     toast.error("Failed to fetch jobs. Please try again later.");
+  //   }
+  // }, [filters, pageSize, currentPage, allJobs.length]);
+
+  const handleFilterSearch = useCallback(
+    debounce(async (page = 1) => {
+      try {
+        // Check if filters or page have changed since last call
+        if (
+          JSON.stringify(filters) === JSON.stringify(prevFilters.current) &&
+          page === currentPage &&
+          allJobs.length > 0
+        ) {
+          return; // No need to fetch if nothing has changed
+        }
+  
+        // Perform the API call with current filters and page
+        const data = await searchService.filteredSearchJobs({...filters, page, page_size: pageSize});
+        
+        // Update state with fetched data
+        setAllJobs(data.jobs);
+        setTotalJobs(data.total_jobs);
+        setCurrentPage(page);
+  
+        // Update search title based on active filters
+        if (filters.tech_stack.length > 0) {
+          setSearchTitle(`${filters.tech_stack[0].charAt(0).toUpperCase() + filters.tech_stack[0].slice(1)} Jobs`);
+        } else if (filters.specialization) {
+          setSearchTitle(`${filters.specialization} Jobs`);
+        } else {
+          setSearchTitle("Technology Jobs");
+        }
+  
+        // Update prevFilters ref to current filters for future comparison
+        prevFilters.current = {...filters};
+  
+      } catch (error) {
+        console.error('Error fetching filtered jobs:', error);
+        setAllJobs([]);
+        setTotalJobs(0);
+        toast.error("Failed to fetch jobs. Please try again later.");
       }
-    } catch (error) {
-      console.error('Error fetching filtered jobs:', error);
-      setAllJobs([]);
-      setTotalJobs(0);
-      toast.error("Failed to fetch jobs. Please try again later.");
-    }
-  }, [filters, pageSize]);
+    }, 300),  // 300ms debounce to prevent rapid successive calls
+    [filters, pageSize, currentPage, allJobs.length]
+  );
 
   const fetchSavedJobs = async () => {
     try {

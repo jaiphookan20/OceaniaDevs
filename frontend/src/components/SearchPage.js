@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import SearchBar from "./SearchBar";
 import SearchPageHeader from "./SearchPageHeader";
 import SearchPageJobSection from "./SearchPageJobSection";
@@ -25,31 +25,34 @@ const SearchPage = ({
   onClearAll,
   onTechFilter
 }) => {
-  
   const location = useLocation();
+  // Create a ref to track if the initial fetch has been done
+  const initialFetchDone = useRef(false);
 
   useEffect(() => {
-    console.log('jobs:', jobs);
-    if (!jobs || jobs.length === 0) {
-      console.log('Calling onFilterSearch');
-      onFilterSearch(1);
-    }
-  }, [jobs, onFilterSearch]);
-
-
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const tech = searchParams.get('tech');
-    if (tech) {
-      onTechFilter(tech);
-    } else if (specialization) {
-      onFilterChange({ target: { name: "specialization", value: specialization } });
-      onFilterSearch(1);
-    } else if (!jobs || jobs.length === 0) {
-      onFilterSearch(1);
+    // Only run this effect if the initial fetch hasn't been done
+    if (!initialFetchDone.current) {
+      const searchParams = new URLSearchParams(location.search);
+      const tech = searchParams.get('tech');
+      
+      // Check for tech parameter in URL
+      if (tech) {
+        onTechFilter(tech);
+      } 
+      // Check for specialization prop
+      else if (specialization) {
+        onFilterChange({ target: { name: "specialization", value: specialization } });
+        onFilterSearch(1);
+      } 
+      // If no tech or specialization, and no jobs, fetch all jobs
+      else if (!jobs || jobs.length === 0) {
+        onFilterSearch(1);
+      }
+      
+      // Mark initial fetch as done
+      initialFetchDone.current = true;
     }
   }, [location, specialization, jobs, onTechFilter, onFilterChange, onFilterSearch]);
-
 
   return (
     <div className="max-w-6xl mx-auto">
