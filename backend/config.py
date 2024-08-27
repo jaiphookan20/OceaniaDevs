@@ -1,19 +1,18 @@
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
 load_dotenv()
 
 print("Current working directory:", os.getcwd())
 print("Contents of current directory:", os.listdir())
 print("Contents of /app directory:", os.listdir('/app'))
-print("Environment variables:", os.environ)
+print("Environment variables:", {k: v for k, v in os.environ.items() if not k.lower().contains('password')})
 
 DB_HOST = os.environ.get('DB_HOST', 'postgres')
-DB_NAME = os.environ.get('DB_NAME', 'job_board')
-DB_USER = os.environ.get('DB_USER', 'jai')
-DB_PASSWORD = os.environ.get('DB_PASSWORD', 'techboard')
-SECRET_KEY = os.environ.get('SECRET_KEY', '1234567890')
+DB_NAME = os.environ.get('DB_NAME')
+DB_USER = os.environ.get('DB_USER')
+DB_PASSWORD = os.environ.get('DB_PASSWORD')
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 AUTH0_CLIENT_ID = os.environ.get('AUTH0_CLIENT_ID')
 AUTH0_CLIENT_SECRET = os.environ.get('AUTH0_CLIENT_SECRET')
