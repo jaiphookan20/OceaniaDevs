@@ -78,6 +78,8 @@ const SearchPage = ({
             pageSize={pageSize}
             onPageChange={onPageChange}
             isInSession={isInSession}
+            filters={filters}
+            searchQuery={searchQuery}
           />
         </div>
       </div>
