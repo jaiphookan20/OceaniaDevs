@@ -82,9 +82,11 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} echo "SSH connection successful" || exit 1
 
-      - name: Create .env file on server
+      - name: Create .env files on server
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && cat << EOF > .env
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+          cd ~/OceaniaDevs && 
+          cat << EOF > .env
           AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }}
           AUTH0_CLIENT_SECRET=${{ secrets.AUTH0_CLIENT_SECRET }}
           AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}
@@ -97,11 +99,13 @@ jobs:
           REDIS_PORT=6379
           FLASK_APP=app.py
           FLASK_ENV=production
-          EOF"
+          EOF
+          cp .env backend/.env
+          "
 
-      - name: Verify .env file
+      - name: Verify .env files
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cat ~/OceaniaDevs/.env"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cat ~/OceaniaDevs/.env && echo '\n---\n' && cat ~/OceaniaDevs/backend/.env"
 
       - name: Deploy backend code
         run: |
@@ -122,9 +126,18 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs/backend && rm -rf migrations"
 
+      # - name: Reset migrations
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && docker-compose exec -T backend flask db init && docker-compose exec -T backend flask db migrate -m 'initial migration' && docker-compose exec -T backend flask db upgrade"
       - name: Reset migrations
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && docker-compose exec -T backend flask db init && docker-compose exec -T backend flask db migrate -m 'initial migration' && docker-compose exec -T backend flask db upgrade"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && \
+          docker-compose exec -T backend flask db init && \
+          docker-compose exec -T backend flask db migrate -m 'initial migration' && \
+          docker-compose exec -T backend flask db upgrade || \
+          (echo 'Migration failed. Checking logs:' && \
+          docker-compose logs backend && \
+          exit 1)"
 
       - name: Verify environment variables
         run: |
