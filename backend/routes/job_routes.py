@@ -9,7 +9,7 @@ from extensions import db
 from flask_caching import Cache
 from utils.time import get_relative_time
 from flask_caching import Cache
-from sqlalchemy import and_, func, or_
+from sqlalchemy import and_, func, or_, desc
 from extensions import cache
 from utils.technologies import icons
 from models import Bookmark;
@@ -266,6 +266,9 @@ def filtered_search_jobs():
         jobs_query = jobs_query.filter(Job.city.ilike(f"%{city}%"))
     if tech_stack:
         jobs_query = jobs_query.filter(Job.tech_stack.cast(db.String).ilike(f"%{tech_stack}%"))
+
+    # Order the jobs from newest to oldest
+    jobs_query = jobs_query.order_by(Job.created_at.desc())
 
     # Execute the query and format the results
     jobs = jobs_query.add_columns(
