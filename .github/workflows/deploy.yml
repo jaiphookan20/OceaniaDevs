@@ -82,22 +82,22 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} echo "SSH connection successful" || exit 1
 
-      - name: Copy .env file
-        run: |
-          scp -o StrictHostKeyChecking=no .env ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/.env
-
       - name: Create .env file on server
         run: |
-            ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && cat << EOF > .env
-            AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }}
-            AUTH0_CLIENT_SECRET=${{ secrets.AUTH0_CLIENT_SECRET }}
-            AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}
-            APP_SECRET_KEY=${{ secrets.APP_SECRET_KEY }}
-            DB_NAME=${{ secrets.DB_NAME }}
-            DB_USER=${{ secrets.DB_USER }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            SECRET_KEY=${{ secrets.SECRET_KEY }}
-            EOF"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && cat << EOF > .env
+          AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }}
+          AUTH0_CLIENT_SECRET=${{ secrets.AUTH0_CLIENT_SECRET }}
+          AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}
+          APP_SECRET_KEY=${{ secrets.APP_SECRET_KEY }}
+          DB_NAME=${{ secrets.DB_NAME }}
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          SECRET_KEY=${{ secrets.SECRET_KEY }}
+          REDIS_HOST=redis
+          REDIS_PORT=6379
+          FLASK_APP=app.py
+          FLASK_ENV=production
+          EOF"
 
       - name: Verify .env file
         run: |
