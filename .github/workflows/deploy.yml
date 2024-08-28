@@ -162,20 +162,24 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
             cd ~/OceaniaDevs && \
             docker-compose exec -T backend python -c \"
-            import psycopg2
-            from config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST
-            try:
-                conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST)
-                print('Database connection successful')
-                conn.close()
-            except Exception as e:
-                print(f'Database connection failed: {str(e)}')
+from config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST
+import psycopg2
+try:
+    conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST)
+    print('Database connection successful')
+    conn.close()
+except Exception as e:
+    print(f'Database connection failed: {str(e)}')
             \"
           "
 
       - name: Remove existing migrations
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs/backend && rm -rf migrations"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+            cd ~/OceaniaDevs/backend && \
+            rm -rf migrations && \
+            echo 'Existing migrations removed'
+          "
 
       - name: Run migrations
         run: |
@@ -187,11 +191,10 @@ jobs:
           "
 
       - name: Check migration status
-        if: failure()
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
             cd ~/OceaniaDevs && \
-            docker-compose logs backend
+            docker-compose exec -T backend flask db current
           "
 
       - name: Restart Docker containers
@@ -206,6 +209,12 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
             cd ~/OceaniaDevs && \
+            echo '--- Container Status ---' && \
             docker-compose ps && \
-            docker-compose logs --tail=100 backend
+            echo '--- Backend Logs ---' && \
+            docker-compose logs --tail=100 backend && \
+            echo '--- Postgres Logs ---' && \
+            docker-compose logs --tail=50 postgres && \
+            echo '--- Nginx Logs ---' && \
+            docker-compose logs --tail=50 nginx
           "
