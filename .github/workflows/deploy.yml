@@ -156,23 +156,6 @@ jobs:
             cd ~/OceaniaDevs && \
             docker-compose exec -T backend env
           "
-
-      - name: Check database connection
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
-            cd ~/OceaniaDevs && \
-            docker-compose exec -T backend python -c \"
-from config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST
-import psycopg2
-try:
-    conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST)
-    print('Database connection successful')
-    conn.close()
-except Exception as e:
-    print(f'Database connection failed: {str(e)}')
-            \"
-          "
-
       - name: Remove existing migrations
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
@@ -189,7 +172,7 @@ except Exception as e:
             docker-compose exec -T backend flask db migrate -m 'initial migration' && \
             docker-compose exec -T backend flask db upgrade
           "
-
+          
       - name: Check migration status
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
