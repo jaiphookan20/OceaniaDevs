@@ -115,6 +115,22 @@ jobs:
             cat .env | sed 's/^\(AUTH0_CLIENT_SECRET=\).*/\1********/' | sed 's/^\(DB_PASSWORD=\).*/\1********/'
           "
 
+      - name: Verify .env file location
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+            cd ~/OceaniaDevs && \
+            ls -la .env && \
+            echo 'Contents of .env:' && \
+            cat .env | sed 's/^\(AUTH0_CLIENT_SECRET=\).*/\1********/' | sed 's/^\(DB_PASSWORD=\).*/\1********/'
+          "
+
+      - name: Check backend container environment
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+            cd ~/OceaniaDevs && \
+            docker-compose exec -T backend env
+          "
+
       - name: Restart Docker containers
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
@@ -135,6 +151,13 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
             cd ~/OceaniaDevs && 
             docker-compose logs backend"
+
+      - name: Check Docker volumes
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+            docker volume ls && \
+            docker volume inspect oceaniadevs_postgres_data
+          "
 
       # - name: Deploy backend code
       #   run: |
