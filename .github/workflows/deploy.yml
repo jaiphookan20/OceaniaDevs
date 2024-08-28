@@ -74,23 +74,23 @@ jobs:
           known_hosts: ${{ secrets.KNOWN_HOSTS }}
           if_key_exists: replace
 
-      - name: Stop and remove existing containers and networks
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
-            cd ~/OceaniaDevs && \
-            docker-compose down -v --remove-orphans && \
-            docker system prune -af && \
-            docker network prune -f && \
-            docker volume prune -f
-          "
+      # - name: Stop and remove existing containers and networks
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+      #       cd ~/OceaniaDevs && \
+      #       docker-compose down -v --remove-orphans && \
+      #       docker system prune -af && \
+      #       docker network prune -f && \
+      #       docker volume prune -f
+      #     "
 
-      - name: Verify cleanup
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
-            echo 'Containers:' && docker ps -a && \
-            echo 'Networks:' && docker network ls && \
-            echo 'Volumes:' && docker volume ls
-          "
+      # - name: Verify cleanup
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+      #       echo 'Containers:' && docker ps -a && \
+      #       echo 'Networks:' && docker network ls && \
+      #       echo 'Volumes:' && docker volume ls
+      #     "
 
       - name: Check server time
         run: |
@@ -142,50 +142,50 @@ jobs:
       #       cd ~/OceaniaDevs && \
       #       docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml up -d
       #     "
-      - name: Restart Docker containers
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
-            cd ~/OceaniaDevs && \
-            docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml down && \
-            docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml up -d --build
-          "
+      # - name: Restart Docker containers
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+      #       cd ~/OceaniaDevs && \
+      #       docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml down && \
+      #       docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+      #     "
 
-      - name: Check container status
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
-            cd ~/OceaniaDevs && \
-            docker-compose ps
-          "
+      # - name: Check container status
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+      #       cd ~/OceaniaDevs && \
+      #       docker-compose ps
+      #     "
 
-      - name: Check backend environment variables
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
-            cd ~/OceaniaDevs && \
-            docker-compose exec -T backend env
+      # - name: Check backend environment variables
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+      #       cd ~/OceaniaDevs && \
+      #       docker-compose exec -T backend env
           "
-      - name: Remove existing migrations
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
-            cd ~/OceaniaDevs/backend && \
-            rm -rf migrations && \
-            echo 'Existing migrations removed'
-          "
+      # - name: Remove existing migrations
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+      #       cd ~/OceaniaDevs/backend && \
+      #       rm -rf migrations && \
+      #       echo 'Existing migrations removed'
+      #     "
 
-      - name: Run migrations
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
-            cd ~/OceaniaDevs && \
-            docker-compose exec -T backend flask db init && \
-            docker-compose exec -T backend flask db migrate -m 'initial migration' && \
-            docker-compose exec -T backend flask db upgrade
-          "
+      # - name: Run migrations
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+      #       cd ~/OceaniaDevs && \
+      #       docker-compose exec -T backend flask db init && \
+      #       docker-compose exec -T backend flask db migrate -m 'initial migration' && \
+      #       docker-compose exec -T backend flask db upgrade
+      #     "
 
-      - name: Check migration status
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
-            cd ~/OceaniaDevs && \
-            docker-compose exec -T backend flask db current
-          "
+      # - name: Check migration status
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+      #       cd ~/OceaniaDevs && \
+      #       docker-compose exec -T backend flask db current
+      #     "
 
       - name: Restart Docker containers
         run: |
