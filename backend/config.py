@@ -6,7 +6,7 @@ load_dotenv()
 print("Current working directory:", os.getcwd())
 print("Contents of current directory:", os.listdir())
 print("Contents of /app directory:", os.listdir('/app'))
-print("Environment variables:", {k: v for k, v in os.environ.items() if not k.lower().contains('password')})
+# print("Environment variables:", {k: v for k, v in os.environ.items() if not k.lower().contains('password')})
 
 DB_HOST = os.environ.get('DB_HOST', 'postgres')
 DB_NAME = os.environ.get('DB_NAME')
