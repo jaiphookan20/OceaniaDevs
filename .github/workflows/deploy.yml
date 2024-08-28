@@ -108,31 +108,55 @@ jobs:
           cp .env backend/.env
           "
 
-      - name: Verify .env files
+      - name: Verify .env file contents
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cat ~/OceaniaDevs/.env && echo '\n---\n' && cat ~/OceaniaDevs/backend/.env"
-
-      - name: Deploy backend code
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "sudo rm -rf ~/OceaniaDevs/backend && sudo mkdir -p ~/OceaniaDevs/backend && sudo chown -R ${{ secrets.LIGHTSAIL_USER }}:${{ secrets.LIGHTSAIL_USER }} ~/OceaniaDevs/backend"
-          scp -r -o StrictHostKeyChecking=no ./backend/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/backend/
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "sudo chmod +x ~/OceaniaDevs/backend/entrypoint.sh"
-
-      - name: Verify deployment
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "ls -R ~/OceaniaDevs/frontend/build/ && ls -R ~/OceaniaDevs/backend/" 
-
-      # Uncomment the following step when SSH connection is successful #
-      # - name: Restart Docker containers
-      #   run: |
-      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && docker-compose -f docker-compose.yml -f docker-compose.prod.yml down && docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+            cd ~/OceaniaDevs && 
+            cat .env | sed 's/^\(AUTH0_CLIENT_SECRET=\).*/\1********/' | sed 's/^\(DB_PASSWORD=\).*/\1********/'
+          "
 
       - name: Restart Docker containers
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
             cd ~/OceaniaDevs && \
             docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml down && \
-            docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml up -d --build"
+            docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+          "
+
+      - name: Check container environment variables
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+            cd ~/OceaniaDevs && 
+            docker-compose exec -T backend env | grep -E 'AUTH0_|DB_'
+          "
+
+      - name: Check backend logs
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+            cd ~/OceaniaDevs && 
+            docker-compose logs backend"
+
+      # - name: Deploy backend code
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "sudo rm -rf ~/OceaniaDevs/backend && sudo mkdir -p ~/OceaniaDevs/backend && sudo chown -R ${{ secrets.LIGHTSAIL_USER }}:${{ secrets.LIGHTSAIL_USER }} ~/OceaniaDevs/backend"
+      #     scp -r -o StrictHostKeyChecking=no ./backend/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/backend/
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "sudo chmod +x ~/OceaniaDevs/backend/entrypoint.sh"
+
+      # - name: Verify deployment
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "ls -R ~/OceaniaDevs/frontend/build/ && ls -R ~/OceaniaDevs/backend/" 
+
+      # # Uncomment the following step when SSH connection is successful #
+      # # - name: Restart Docker containers
+      # #   run: |
+      # #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && docker-compose -f docker-compose.yml -f docker-compose.prod.yml down && docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build"
+
+      # - name: Restart Docker containers
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+      #       cd ~/OceaniaDevs && \
+      #       docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml down && \
+      #       docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml up -d --build"
 
 
 # name: CI/CD Pipeline
