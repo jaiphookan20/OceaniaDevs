@@ -162,7 +162,7 @@ jobs:
       #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
       #       cd ~/OceaniaDevs && \
       #       docker-compose exec -T backend env
-          "
+      
       # - name: Remove existing migrations
       #   run: |
       #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
