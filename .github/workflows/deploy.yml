@@ -136,12 +136,12 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "ls -R ~/OceaniaDevs/frontend/build/ && ls -R ~/OceaniaDevs/backend/"
 
-      - name: Start containers
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
-            cd ~/OceaniaDevs && \
-            docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml up -d
-          "
+      # - name: Start containers
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+      #       cd ~/OceaniaDevs && \
+      #       docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml up -d
+      #     "
 
       - name: Check container status
         run: |
@@ -172,7 +172,7 @@ jobs:
             docker-compose exec -T backend flask db migrate -m 'initial migration' && \
             docker-compose exec -T backend flask db upgrade
           "
-          
+
       - name: Check migration status
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
