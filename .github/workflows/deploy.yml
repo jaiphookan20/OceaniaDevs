@@ -92,9 +92,9 @@ jobs:
       #       echo 'Volumes:' && docker volume ls
       #     "
 
-      - name: Check server time
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "date"
+      # - name: Check server time
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "date"
 
       - name: Create .env files on server
         run: |
