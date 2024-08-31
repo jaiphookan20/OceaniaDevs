@@ -97,7 +97,7 @@ const TrendingTechStackGrid = () => {
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 py-8" style={{fontFamily: "Avenir, san-serif"}}>
-      <h1 className="text-3xl font-semibold text-slate-700 mb-8 text-center" style={{fontFamily: "Roobert-Regular, san-serif"}}>
+      <h1 className="text-3xl font-medium text-slate-700 mb-8 text-center" style={{fontFamily: "Avenir, san-serif"}}>
         Search by Technology
       </h1>
       

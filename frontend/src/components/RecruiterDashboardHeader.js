@@ -8,10 +8,6 @@ import mailboxIcon from "../assets/mailbox.svg"
 const RecruiterDashboardHeader = ({ title }) => {
   return (
     <header className="mb-4">
-    {/* <Link  to="/applied-jobs" className="text-teal-700 flex items-center mb-6 text-sm" role="menuitem">
-        <img src={leftArrowIcon} className="max-h-4 mr-1"/>
-        Applied Jobs
-    </Link> */}
     <div className="flex justify-between items-center p-3 space-x-4 border-t border-b border-teal-200">
       <div className="ml-2 rounded-full">
         <div className="sm:flex sm:items-center sm:justify-between p-2">

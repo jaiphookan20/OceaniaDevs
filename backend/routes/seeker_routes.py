@@ -12,49 +12,6 @@ from datetime import datetime
 seeker_blueprint = Blueprint('seeker', __name__)
 CORS(seeker_blueprint, supports_credentials=True, resources={r'/*': {'origins': 'http://localhost:3000'}})
 
-# Get Bookmarked Jobs Route
-# @seeker_blueprint.route('/api/bookmarked_jobs')
-# def get_all_bookmarked_jobs_by_seeker():
-#     if session['user']['type'] != "seeker":
-#         return jsonify({"error": "Unauthorized access"}), 401
-#     else:
-#         seeker_id = session['user']['uid']
-#         print(f"seeker_id: {seeker_id}")
-#         seeker_service = SeekerService()
-#         jobs_service = JobsService()
-#         bookmarked_jobs = seeker_service.get_all_bookmarked_jobs_by_seeker(seeker_id)
-
-#         for bookmarked_job in bookmarked_jobs:
-#             company = jobs_service.get_company_by_jobid(bookmarked_job.jobid)
-#             job = jobs_service.get_job_by_id(bookmarked_job.jobid)
-#             bookmarked_job.company_name = company.name if company else "N/A"
-#             bookmarked_job.title = job.title if job else "N/A"
-#             bookmarked_job.city = job.city if job else "N/A"
-#             bookmarked_job.state = job.state if job else "N/A"
-#             bookmarked_job.country = job.country if job else "N/A"
-#             bookmarked_job.salary_range = job.salary_range if job else "N/A"
-#             bookmarked_job.specialization = job.specialization if job else "N/A"
-#             bookmarked_job.experience_level = job.experience_level if job else "N/A"
-#             bookmarked_job.created_at = job.created_at if job else "N/A"
-#             bookmarked_job.min_experience_years = job.min_experience_years if job else "N/A"
-
-#             bookmarked_job.logo = company.logo_url;            
-
-#         return jsonify(bookmarked_jobs=[{
-#             'job_id': job.jobid,
-#             'title': job.title,
-#             'company': job.company_name,
-#             'city': job.city,
-#             'state': job.state,
-#             'country': job.country,
-#             'experience_level': job.experience_level,
-#             'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo)}",
-#             'created_at': job.created_at.strftime('%Y-%m-%d'),
-#             'specialization': job.specialization,
-#             'salary_range': job.salary_range,
-#             'min_experience_years': job.min_experience_years,
-#         } for job in bookmarked_jobs])
-
 @seeker_blueprint.route('/api/bookmarked_jobs')
 def get_all_bookmarked_jobs_by_seeker():
     if session['user']['type'] != "seeker":

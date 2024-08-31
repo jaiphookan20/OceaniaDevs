@@ -9,7 +9,7 @@ from extensions import db
 from flask_caching import Cache
 from utils.time import get_relative_time
 from flask_caching import Cache
-from sqlalchemy import and_, func, or_
+from sqlalchemy import and_, func, or_, desc
 from extensions import cache
 from utils.technologies import icons
 from models import Bookmark;
@@ -46,6 +46,7 @@ def get_job_post_page(job_id):
         'job_id': job.job_id,
         'title': job.title,
         'company': company.name,
+        'company_id': company.company_id,
         'overview': job.overview,
         'responsibilities': parse_text_to_list(job.responsibilities),
         'requirements': parse_text_to_list(job.requirements),
@@ -71,6 +72,7 @@ def get_job_post_page(job_id):
         'contract_duration':job.contract_duration,
         'job_arrangement': job.job_arrangement,
         'jobpost_url': job.jobpost_url,
+        'created_at': job.created_at,
     }
 
     return jsonify(job_data)
@@ -267,6 +269,9 @@ def filtered_search_jobs():
     if tech_stack:
         jobs_query = jobs_query.filter(Job.tech_stack.cast(db.String).ilike(f"%{tech_stack}%"))
 
+    # Order the jobs from newest to oldest
+    jobs_query = jobs_query.order_by(Job.created_at.desc())
+
     # Execute the query and format the results
     jobs = jobs_query.add_columns(
         Job.job_id, Job.title, Job.description, Job.specialization, Job.salary_range,
@@ -398,7 +403,7 @@ def unsave_job(job_id):
 def get_home_page_jobs():
     jobs_service = JobsService()
     
-    specializations = ['Frontend', 'Backend', 'Full-Stack', 'DevOps & IT', 'Cloud & Infrastructure', 'Business Intelligence & Data', 'Machine Learning & AI', 'Mobile', 'Cybersecurity', 'Business Application Development', 'Project Management', 'QA & Testing']
+    specializations = ['Frontend', 'Backend', 'Full-Stack', 'Mobile', 'Data & ML', 'QA & Testing', 'Cloud & Infra', 'DevOps', 'Project Management', 'IT Consulting', 'Cybersecurity'];
     
     all_jobs = {}
     for specialization in specializations:
@@ -427,6 +432,4 @@ def get_home_page_jobs():
         'jobs': all_jobs,
         'total_jobs': sum(len(jobs) for jobs in all_jobs.values())
     })
-    
-
     

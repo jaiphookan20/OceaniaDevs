@@ -1,9 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import SearchBar from "./SearchBar";
 import SearchPageHeader from "./SearchPageHeader";
 import SearchPageJobSection from "./SearchPageJobSection";
 import Header from "./Header";
 import { useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
 
 const SearchPage = ({
   title,
@@ -25,34 +27,42 @@ const SearchPage = ({
   onClearAll,
   onTechFilter
 }) => {
-  
   const location = useLocation();
+  // Create a ref to track if the initial fetch has been done
+  const initialFetchDone = useRef(false);
 
   useEffect(() => {
-    console.log('jobs:', jobs);
-    if (!jobs || jobs.length === 0) {
-      console.log('Calling onFilterSearch');
-      onFilterSearch(1);
-    }
-  }, [jobs, onFilterSearch]);
-
-
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const tech = searchParams.get('tech');
-    if (tech) {
-      onTechFilter(tech);
-    } else if (specialization) {
-      onFilterChange({ target: { name: "specialization", value: specialization } });
-      onFilterSearch(1);
-    } else if (!jobs || jobs.length === 0) {
-      onFilterSearch(1);
+    // Only run this effect if the initial fetch hasn't been done
+    if (!initialFetchDone.current) {
+      const searchParams = new URLSearchParams(location.search);
+      const tech = searchParams.get('tech');
+      
+      // Check for tech parameter in URL
+      if (tech) {
+        onTechFilter(tech);
+      } 
+      // Check for specialization prop
+      else if (specialization) {
+        onFilterChange({ target: { name: "specialization", value: specialization } });
+        onFilterSearch(1);
+      } 
+      // If no tech or specialization, and no jobs, fetch all jobs
+      else if (!jobs || jobs.length === 0) {
+        onFilterSearch(1);
+      }
+      
+      // Mark initial fetch as done
+      initialFetchDone.current = true;
     }
   }, [location, specialization, jobs, onTechFilter, onFilterChange, onFilterSearch]);
 
-
   return (
     <div className="max-w-6xl mx-auto">
+      <nav className="flex items-center text-sm text-gray-500 mb-4 space-x-1">
+        <Link to="/" className="hover:text-gray-700">OceaniaDevs</Link>
+        <ChevronRight size={16} className="mx-2" />
+        <span className="text-gray-700">Search Jobs</span>
+      </nav>
       <SearchPageHeader title={title} totalJobs={totalJobs} />
       <SearchBar
         searchQuery={searchQuery}
@@ -75,6 +85,8 @@ const SearchPage = ({
             pageSize={pageSize}
             onPageChange={onPageChange}
             isInSession={isInSession}
+            filters={filters}
+            searchQuery={searchQuery}
           />
         </div>
       </div>

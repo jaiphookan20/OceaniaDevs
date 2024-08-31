@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
-import { ChevronDownIcon, BriefcaseIcon, CalendarIcon, CheckCircleIcon, XCircleIcon, ClockIcon, SearchIcon, FilterIcon, PlusIcon } from 'lucide-react';
+import { ChevronDownIcon, BriefcaseIcon, CalendarIcon, CheckCircleIcon, XCircleIcon, ClockIcon, SearchIcon, FilterIcon, PlusIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getRelativeTimeString } from '../utils/time';
 const applicationStatuses = [
   'All',
@@ -117,23 +117,19 @@ const ApplicationTrackingDashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
         <div className="bg-white overflow-hidden shadow-2xl">
           <div className="px-12 py-10 py-20 sm:p-6">
-            {/* <div className='flex font-medium text-sm text-teal-600 mb-10'>
-              <Link
-                to="applied-jobs"
-                className="block px- py-2 text-sm hover:bg-gray-100"
-                role="menuitem"
-              >
-                Applied Jobs
-              </Link>
-              <p className='text-bold text-lg'>.</p>
-              <Link
-                to="applied-jobs"
-                className="block px-4 py-2 text-sm hover:bg-gray-100"
-                role="menuitem"
-              >
-                Jobs
-              </Link>
-            </div> */}
+          <div className="flex justify-between">
+            <nav className="flex items-center text-sm text-gray-500 mb-4 space-x-1">
+              <Link to="/" className="hover:text-gray-700">OceaniaDevs</Link>
+              <ChevronRight size={16} className="mx-2" />
+              <Link to="/search-page" className="hover:text-gray-700">Search Jobs</Link>
+              <ChevronRight size={16} className="mx-2" />
+              <span className="text-gray-700">Application Dashboard</span>            
+            </nav>
+            <nav className="flex items-center text-sm text-gray-500 mb-4 space-x-1">
+              <Link to="/applied-jobs" className="hover:text-gray-700">Applied Jobs</Link>
+              <ChevronRight size={16} className="mx-2" />
+            </nav>
+          </div>
             <div className="sm:flex sm:items-center sm:justify-between border-t border-b border-slate-200 p-8">
               <div>
                 <h1 className="text-6xl font-bold text-slate-600 sm:text-5xl bg-clip-text" style={{fontFamily:"Roobert-Regular, san-serif"}}>Application Dashboard</h1>
