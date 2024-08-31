@@ -46,6 +46,7 @@ def get_job_post_page(job_id):
         'job_id': job.job_id,
         'title': job.title,
         'company': company.name,
+        'company_id': company.company_id,
         'overview': job.overview,
         'responsibilities': parse_text_to_list(job.responsibilities),
         'requirements': parse_text_to_list(job.requirements),
@@ -71,6 +72,7 @@ def get_job_post_page(job_id):
         'contract_duration':job.contract_duration,
         'job_arrangement': job.job_arrangement,
         'jobpost_url': job.jobpost_url,
+        'created_at': job.created_at,
     }
 
     return jsonify(job_data)
@@ -401,7 +403,7 @@ def unsave_job(job_id):
 def get_home_page_jobs():
     jobs_service = JobsService()
     
-    specializations = ['Frontend', 'Backend', 'Full-Stack', 'DevOps & IT', 'Cloud & Infrastructure', 'Business Intelligence & Data', 'Machine Learning & AI', 'Mobile', 'Cybersecurity', 'Business Application Development', 'Project Management', 'QA & Testing']
+    specializations = ['Frontend', 'Backend', 'Full-Stack', 'Mobile', 'Data & ML', 'QA & Testing', 'Cloud & Infra', 'DevOps', 'Project Management', 'IT Consulting', 'Cybersecurity'];
     
     all_jobs = {}
     for specialization in specializations:
@@ -430,6 +432,4 @@ def get_home_page_jobs():
         'jobs': all_jobs,
         'total_jobs': sum(len(jobs) for jobs in all_jobs.values())
     })
-    
-
     
