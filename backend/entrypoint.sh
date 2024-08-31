@@ -1,6 +1,9 @@
 #!/bin/sh
 
-# Print environment variables for debugging
+echo "Printing all environment variables:"
+env
+
+echo "Specific checks for Auth0 variables:"
 echo "AUTH0_DOMAIN: $AUTH0_DOMAIN"
 echo "AUTH0_CLIENT_ID: $AUTH0_CLIENT_ID"
 echo "AUTH0_CLIENT_SECRET is set: $(if [ -n "$AUTH0_CLIENT_SECRET" ]; then echo "Yes"; else echo "No"; fi)"
