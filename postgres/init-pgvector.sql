@@ -41,12 +41,41 @@ BEGIN
         );
     END IF;
 
-    -- salary_range_enum
+    -- Updated salary_range_enum
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'salary_range_type') THEN
         CREATE TYPE salary_range_type AS ENUM (
-            '20000 - 40000', '40000 - 60000', '60000 - 80000', '80000 - 100000',
+            'Not Listed', '20000 - 40000', '40000 - 60000', '60000 - 80000', '80000 - 100000',
             '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000',
             '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+'
+        );
+    END IF;
+
+    -- New specialization_enum
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'specialization_enum') THEN
+        CREATE TYPE specialization_enum AS ENUM (
+            'Frontend', 'Backend', 'Full-Stack', 'Mobile', 'Data & ML', 'QA & Testing',
+            'Cloud & Infra', 'DevOps', 'Project Management', 'IT Consulting', 'Cybersecurity'
+        );
+    END IF;
+
+    -- New experience_level_enum
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'experience_level_enum') THEN
+        CREATE TYPE experience_level_enum AS ENUM (
+            'Junior', 'Mid-Level', 'Senior', 'Executive'
+        );
+    END IF;
+
+    -- New work_location_enum
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'work_location_enum') THEN
+        CREATE TYPE work_location_enum AS ENUM (
+            'Remote', 'Hybrid', 'Office'
+        );
+    END IF;
+
+    -- New job_arrangement_enum
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'job_arrangement_enum') THEN
+        CREATE TYPE job_arrangement_enum AS ENUM (
+            'Permanent', 'Contract/Temp', 'Internship', 'Part-Time'
         );
     END IF;
 END$$;
