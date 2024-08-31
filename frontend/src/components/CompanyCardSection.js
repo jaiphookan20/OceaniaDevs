@@ -33,7 +33,7 @@ const CompanyCardSection = ({
         <button
           disabled={currentPage === 1}
           onClick={() => onPageChange(currentPage - 1)}
-          className="px-4 py-2 bgblack text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 bg-black text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Previous
         </button>

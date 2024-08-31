@@ -4,6 +4,8 @@ import SearchPageHeader from "./SearchPageHeader";
 import SearchPageJobSection from "./SearchPageJobSection";
 import Header from "./Header";
 import { useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
 
 const SearchPage = ({
   title,
@@ -56,6 +58,11 @@ const SearchPage = ({
 
   return (
     <div className="max-w-6xl mx-auto">
+      <nav className="flex items-center text-sm text-gray-500 mb-4 space-x-1">
+        <Link to="/" className="hover:text-gray-700">OceaniaDevs</Link>
+        <ChevronRight size={16} className="mx-2" />
+        <span className="text-gray-700">Search Jobs</span>
+      </nav>
       <SearchPageHeader title={title} totalJobs={totalJobs} />
       <SearchBar
         searchQuery={searchQuery}

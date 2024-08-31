@@ -4,6 +4,8 @@ import { icons } from "../data/tech-icons";
 import JobPostSideBar from "./JobPostSideBar";
 import RecommendedJobs from "./RecommendedJobs";
 import HashLoader from "react-spinners/HashLoader";
+import { useNavigate } from "react-router-dom";
+import { getRelativeTimeString } from '../utils/time';
 
 const JobPost = ({ onSave, onApply, isInSession }) => {
   const { jobId } = useParams();
@@ -12,6 +14,8 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
   const [error, setError] = useState(null);
   const technologiesRef = useRef(null);
   const [recommendedJobs, setRecommendedJobs] = useState([]);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchRecommendedJobs = async () => {
@@ -116,9 +120,12 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
         </header>
         <div className="ml-4">
           <h1 className="text-5xl font-bold">{job.title}</h1>
-          <h3 className="text-3xl pt-2 text-slate-500 font-semibold">
-            {job.company}
-          </h3>
+          <div className="flex justify-between">
+            <h3 className="text-3xl pt-2 text-slate-500 font-semibold hover:text-slate-700 hover:cursor-pointer" onClick={()=> navigate(`/company/${job.company_id}`)}>
+              {job.company}
+            </h3>
+            <p className="items-bottom p-2 text-xl text-slate-600 font-semibold">{getRelativeTimeString(job.created_at)}</p>
+          </div>
           <p className="text-gray-500 mt-2 text-xl">
             {job.company_description}
           </p>

@@ -1,8 +1,17 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
 
-const CompanyPageHeader = ({ heading, subheading, logoSrc, websiteUrl="www.google.com", company}) => {
+const CompanyPageHeader = ({ heading, subheading, logoSrc, company}) => {
   return (
     <div>
+      <nav className="flex items-center text-sm text-gray-500 mb-4 space-x-1">
+        <Link to="/" className="hover:text-gray-700">OceaniaDevs</Link>
+        <ChevronRight size={16} className="mx-2" />
+        <Link to="/companies" className="hover:text-gray-700">Companies</Link>
+        <ChevronRight size={16} className="mx-2" />
+        <span className="text-gray-700">{company.name}</span>
+      </nav>
       <div className="mx-auto border-t border-b border-gray-200">
         <div className="">
           <div className="flex items-center">
