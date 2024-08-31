@@ -26,6 +26,12 @@ import RecruiterDashboard from "./components/RecruiterDashboard";
 import EditJob from "./components/EditJob";
 import HashLoader from "react-spinners/HashLoader";
 import { debounce } from 'lodash';  // Make sure to install and import lodash
+import CustomSVGLoader from "./assets/CustomSVGLoader";
+import SignupForm from "./components/SignupForm";
+import SignupPopup from "./components/SignupPopup";
+import JobAlertSignupModal from "./components/JobAlertPopup";
+import JobAlertPopup from "./components/JobAlertPopup";
+import JobBoardProfile from "./components/JobBoardProfile";
 
 const App = () => {
   const [homePageJobs, setHomePageJobs] = useState([]);
@@ -40,13 +46,21 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState([]);
 
+  // const [filters, setFilters] = useState({
+  //   specialization: "",
+  //   experience_level: "",
+  //   city: "",
+  //   industry: "",
+  //   tech_stack: [],
+  //   salary_range: "",
+  // });
   const [filters, setFilters] = useState({
     specialization: "",
     experience_level: "",
-    city: "",
-    industry: "",
+    location: "",
+    work_location: "",
+    job_arrangement: "",
     tech_stack: [],
-    salary_range: "",
   });
 
   const prevFilters = useRef(filters);
@@ -125,6 +139,7 @@ const App = () => {
       }
       const data = await response.json();
       setHomePageJobs(data.jobs);
+      console.log(`homePageJobs: ${homePageJobs}`);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching home page jobs:", error);
@@ -481,6 +496,7 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
               <Header />
               {/* <TrendingCompanies /> */}
               <TrendingTechStackGrid />
+              {/* <JobAlertPopup /> */}
               <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-1 gap-7">
                 <div className="col-span-2">
                   {Object.entries(homePageJobs).map(([specialization, jobsList]) => (
@@ -574,7 +590,8 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
           path="/job_post/:jobId"
           element={<JobPost onSave={handleSave} onApply={handleApply} isInSession={isInSession} />}
         />
-        <Route path="/profile" element={<DeveloperProfile />} />
+        {/* <Route path="/profile" element={<DeveloperProfile />} /> */}
+        <Route path="/profile" element={<JobBoardProfile />} />
         <Route
           path="/saved-jobs"
           element={
