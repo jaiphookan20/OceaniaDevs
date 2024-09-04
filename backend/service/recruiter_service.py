@@ -1,6 +1,6 @@
 from database import PostgresDB
 from extensions import db, bcrypt
-from models import Job, Recruiter, Company, TechnologyAlias, Technology, JobTechnology
+from models import Job, Recruiter, Company, TechnologyAlias, Technology, JobTechnology, Application, Bookmark
 from flask import session, jsonify, current_app, request
 from utils.categorize import categorize_words
 import requests
@@ -12,6 +12,7 @@ from utils.openai import OpenAI
 from utils.time import get_relative_time
 import concurrent.futures
 from concurrent.futures import TimeoutError
+from sqlalchemy.exc import SQLAlchemyError
 import time
 import config
 class RecruiterService:
@@ -289,7 +290,7 @@ class RecruiterService:
                 3. 'industry': Identify the industry of the client that the role serves. Use one of the following: ['Government', 'Banking & Financial Services', 'Fashion', 'Mining', 'Healthcare', 'IT - Software Development', 'IT - Data Analytics', 'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 'Marketing & Advertising', 'Media & Communications', 'Non-Profit & NGO', 'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 'Telecommunications', 'Transportation & Logistics'].
                 4. 'responsibilities': List main job duties and expectations. Provide detailed information.
                 5. 'requirements': Enumerate essential qualifications and skills needed. Provide detailed information.
-                6. 'specialization': Classify the job into ONLY ONE of these categories: ['Frontend', 'Backend', 'Full-Stack', 'Mobile', 'Data & ML', 'QA & Testing', 'Cloud & Infra', 'DevOps', 'Project Management', 'IT Consulting', 'Cybersecurity'].
+                6. 'specialization': Classify the job into ONLY ONE of these categories: ['Frontend', 'Backend', 'Full-Stack', 'Mobile', 'Data & ML', 'QA & Testing', 'Cloud & Infra', 'DevOps', 'Project Management', 'IT Consulting', 'Cybersecurity']. You strictly cannot choose any other category but from the ones provided.
                 7. 'technologies': List specific software technologies mentioned (e.g., Java, TypeScript, React, AWS). Exclude general terms like 'LLM services', 'Containers', 'CI/CD' or 'REST APIs'.
                 8. 'experience_level': If 'min_experience_years' value is available, classify on basis of the 'min_experience_years' value: if value is between '0-2': 'Junior'; '3-5': 'Mid-Level', '6-10': 'Senior', '10+':'Executive'. If min_experience_years value not available, classify as you deem fit into one of: 'Junior', 'Mid-Level', 'Senior', or 'Executive'.                
                 9. 'salary_type': If only available, specify the type of salary or payment arrangement (e.g., 'Annual', 'Hourly', 'Daily').
@@ -301,7 +302,7 @@ class RecruiterService:
                 15. 'state': Extract the state where the job is located. Use one of the following: ['VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA']. Strictly only do so if mentioned, otherwise empty.
                 16. 'country': Extract the country where the job is located. Use one of the following: ['Australia', 'New Zealand'].
                 17. 'work_rights': List any work rights or visa requirements. Strictly only do so if mentioned, otherwise empty.
-                18. 'job_arrangement': Specify the job arrangement as one of: ['Permanent', 'Contract/Temp', 'Internship', 'Part-Time'].
+                18. 'job_arrangement': Specify the job arrangement as one of: ['Permanent', 'Contract/Temp', 'Internship', 'Part-Time']. Choose specifically and only from these options.
                 19. 'contract_duration': If only the 'job_arrangement' is 'Contract/Temp', and if the duration of the contract is provided and available, classify it as belonging to one of the following buckets: ['3-6 Months', '6-9 Months', '9-12 Months', '12 Months+']. Otherwise leave empty.
 
                 Important:
@@ -478,7 +479,7 @@ class RecruiterService:
                     overview=processed_data.get('overview') or processed_data.get('overview'),
                     responsibilities=job_data.get('responsibilities', '') or processed_data.get('responsibilities'),
                     requirements=job_data.get('requirements', '') or processed_data.get('requirements'),
-                    job_arrangement=job_data.get('job_arrangement') or processed_data.get('job_arrangement'),
+                    job_arrangement=processed_data.get('job_arrangement') or job_data.get('job_arrangement'),
                     contract_duration=job_data.get('contract_duration') or processed_data.get('contract_duration'),
                     hourly_range=job_data.get('hourly_range') or processed_data.get('hourly_range'),
                     daily_range=job_data.get('daily_range') or processed_data.get('daily_range'),
@@ -537,13 +538,38 @@ class RecruiterService:
         db.session.commit()
         return job
     
+    # def remove_job(self, job_id, recruiter_id):
+    #     job = Job.query.filter_by(job_id=job_id, recruiter_id=recruiter_id).first()
+    #     if job:
+    #         db.session.delete(job)
+    #         db.session.commit()
+    #         return True
+    #     return False
+    
     def remove_job(self, job_id, recruiter_id):
-        job = Job.query.filter_by(job_id=job_id, recruiter_id=recruiter_id).first()
-        if job:
+        try:
+            job = Job.query.filter_by(job_id=job_id, recruiter_id=recruiter_id).first()
+            if not job:
+                return {'success': False, 'error': 'not_found'}
+
+            # Delete related records
+            JobTechnology.query.filter_by(job_id=job_id).delete()
+            Application.query.filter_by(jobid=job_id).delete()
+            Bookmark.query.filter_by(jobid=job_id).delete()
+
+            # Delete the job
             db.session.delete(job)
             db.session.commit()
-            return True
-        return False
+            return {'success': True}
+
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            print(f"Database error in remove_job: {str(e)}")
+            return {'success': False, 'error': 'database_error'}
+        except Exception as e:
+            db.session.rollback()
+            print(f"Unexpected error in remove_job: {str(e)}")
+            return {'success': False, 'error': 'unexpected_error'}
     
     def get_all_companies(self):
         companies = Company.query.all()
@@ -637,8 +663,8 @@ class RecruiterService:
         # Collect and de-duplicate tech stack
         tech_stack = []
         for job in jobs:
-            if job.tech_stack:  # Check if tech_stack is not None
-                tech_stack.extend(job.tech_stack)
+            technologies = db.session.query(Technology.name).join(JobTechnology, Technology.id == JobTechnology.technology_id).filter(JobTechnology.job_id == job.job_id).all()
+            tech_stack = [tech.name for tech in technologies]
 
         # Remove duplicates and sort
         unique_tech_stack = sorted(set(tech_stack))
@@ -756,7 +782,7 @@ class RecruiterService:
                 
     def process_jobs_from_json(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        input_file_path = os.path.join(current_dir, 'jobs.json')
+        input_file_path = os.path.join(current_dir, 'jdp_jobs.json')
         output_file_path = os.path.join(current_dir, 'processing_results.json')
 
         try:

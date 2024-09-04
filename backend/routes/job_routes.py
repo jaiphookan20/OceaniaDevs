@@ -364,7 +364,6 @@ def filtered_search_jobs():
         # Fetch normalized technologies for each job
         technologies = db.session.query(Technology.name).join(JobTechnology, Technology.id == JobTechnology.technology_id).filter(JobTechnology.job_id == job.job_id).all()
         tech_stack = [tech.name for tech in technologies]
-        current_app.logger.info(f"tech_stack inside filtered_search_jobs(): {tech_stack}");
 
         results.append({
             'job_id': job.job_id,
