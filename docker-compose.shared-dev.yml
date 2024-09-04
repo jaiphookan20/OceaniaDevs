@@ -1,0 +1,14 @@
+version: '3'
+services:
+  backend:
+    image: jayphookan/aus-job-board-backend:v1
+  frontend:
+    image: jayphookan/aus-job-board-frontend:v1
+  postgres:
+    image: jayphookan/aus-job-board-postgres:v1
+    volumes:
+    - ./db_dump.sql:/docker-entrypoint-initdb.d/db_dump.sql
+    - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+  nginx:
+    image: jayphookan/aus-job-board-nginx:v1
+  # redis remains unchanged as it uses the official image
