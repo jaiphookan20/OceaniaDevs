@@ -105,7 +105,7 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
                 <img
                   src={icons[tech.toLowerCase()]}
                   alt={tech}
-                  className="w-24 h-24"
+                  className="w-20 h-20"
                 />
               </div>
             ))}

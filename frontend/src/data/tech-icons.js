@@ -77,7 +77,7 @@ export const icons = {
   cplusplus: require('../assets/tech-logos/cplusplus.svg').default,
   'c++': require('../assets/tech-logos/cplusplus.svg').default,
   php: require('../assets/tech-logos/php.svg').default,
-  // laravel: require('../assets/tech-logos/laravel-icon.png').default,
+  laravel: require('../assets/tech-logos/laravel.svg').default,
   symfony: require('../assets/tech-logos/symfony.svg').default,
   codeigniter: require('../assets/tech-logos/codeigniter.svg').default,
   ionic: require('../assets/tech-logos/ionic.svg').default,
