@@ -13,10 +13,10 @@ export const getRelativeTimeString = (date) => {
     } else if (diffDays <= 14) {
       return '1w ago';
     } else if (diffDays <= 30) {
-      return `${Math.floor(diffDays / 7)}w`;
+      return `${Math.floor(diffDays / 7)}w ago`;
     } else if (diffDays <= 60) {
       return '1mo ago';
     } else {
-      return `${Math.floor(diffDays / 30)}m`;
+      return `${Math.floor(diffDays / 30)}m ago`;
     }
   };

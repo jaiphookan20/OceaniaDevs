@@ -26,7 +26,6 @@ import RecruiterDashboard from "./components/RecruiterDashboard";
 import EditJob from "./components/EditJob";
 import HashLoader from "react-spinners/HashLoader";
 import { debounce } from 'lodash';  // Make sure to install and import lodash
-import CustomSVGLoader from "./assets/CustomSVGLoader";
 import SignupForm from "./components/SignupForm";
 import SignupPopup from "./components/SignupPopup";
 import JobAlertSignupModal from "./components/JobAlertPopup";
