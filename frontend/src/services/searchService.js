@@ -25,8 +25,13 @@ const searchService = {
       return response.json();
     },
   
-    instantSearchJobs: async (query) => {
-      const response = await fetch(`/api/instant_search_jobs?query=${query}`);
+    // instantSearchJobs: async (query) => {
+    //   const response = await fetch(`/api/instant_search_jobs?query=${query}`);
+    //   return response.json();
+    // }
+
+    instantSearchJobs: async (query, page = 1, pageSize = 10) => {
+      const response = await fetch(`/api/instant_search_jobs?query=${query}&page=${page}&page_size=${pageSize}`);
       return response.json();
     }
   };

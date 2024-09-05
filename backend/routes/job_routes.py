@@ -539,11 +539,70 @@ def filtered_search_jobs():
 #             'results': []
 #         })
 
+# @job_blueprint.route('/api/instant_search_jobs', methods=['GET'])
+# @cache.cached(timeout=60, query_string=True)
+# def instant_search_jobs():
+#     query = request.args.get('query', '')
+#     current_app.logger.info(f"Received query: {query}")
+
+#     if query:
+#         search_terms = query.split()
+#         search_query = ' | '.join(search_terms)  # Use OR for more flexible matching
+#         tsquery = func.to_tsquery('english', search_query)
+        
+#         jobs_query = Job.query.join(Company).filter(
+#             or_(
+#                 Job.search_vector.op('@@')(tsquery),
+#                 Company.name.ilike(f'%{query}%')  # Keep this for company name search
+#             )
+#         ).add_columns(
+#             Job.job_id, Job.title, Job.description, Job.specialization, Job.city, Job.state, Job.country,
+#             Job.salary_range, Job.created_at, Job.experience_level,
+#             Company.name.label('company_name'), Company.logo_url.label('logo_url'), Job.min_experience_years,Company.company_id
+#         ).order_by(func.ts_rank(Job.search_vector, tsquery).desc())
+
+#         jobs = jobs_query.all()
+
+#         results = []
+#         for job in jobs:
+#             # Fetch normalized technologies for each job
+#             technologies = db.session.query(Technology.name).join(JobTechnology, Technology.id == JobTechnology.technology_id).filter(JobTechnology.job_id == job.job_id).all()
+#             tech_stack = [tech.name for tech in technologies]
+
+#             results.append({
+#                 'job_id': job.job_id,
+#                 'company_id': job.company_id,
+#                 'title': job.title,
+#                 'company': job.company_name,
+#                 'city': job.city,
+#                 'specialization': job.specialization,
+#                 'country': job.country,
+#                 'salary_range': job.salary_range,
+#                 'created_at': get_relative_time(job.created_at.strftime('%Y-%m-%d')),
+#                 'experience_level': job.experience_level,
+#                 'min_experience_years': job.min_experience_years,
+#                 'tech_stack': tech_stack,  # Use normalized tech stack
+#                 'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo_url)}",
+#             })
+        
+#         return jsonify({
+#             'total': len(results),
+#             'results': results
+#         })
+#     else:
+#         return jsonify({
+#             'total': 0,
+#             'results': []
+#         })
+
+
 @job_blueprint.route('/api/instant_search_jobs', methods=['GET'])
 @cache.cached(timeout=60, query_string=True)
 def instant_search_jobs():
     query = request.args.get('query', '')
-    current_app.logger.info(f"Received query: {query}")
+    page = request.args.get('page', 1, type=int)
+    page_size = request.args.get('page_size', 10, type=int)
+    current_app.logger.info(f"Received query: {query}, page: {page}, page_size: {page_size}")
 
     if query:
         search_terms = query.split()
@@ -561,11 +620,11 @@ def instant_search_jobs():
             Company.name.label('company_name'), Company.logo_url.label('logo_url'), Job.min_experience_years,Company.company_id
         ).order_by(func.ts_rank(Job.search_vector, tsquery).desc())
 
-        jobs = jobs_query.all()
+        total_jobs = jobs_query.count()
+        jobs = jobs_query.offset((page - 1) * page_size).limit(page_size).all()
 
         results = []
         for job in jobs:
-            # Fetch normalized technologies for each job
             technologies = db.session.query(Technology.name).join(JobTechnology, Technology.id == JobTechnology.technology_id).filter(JobTechnology.job_id == job.job_id).all()
             tech_stack = [tech.name for tech in technologies]
 
@@ -581,20 +640,23 @@ def instant_search_jobs():
                 'created_at': get_relative_time(job.created_at.strftime('%Y-%m-%d')),
                 'experience_level': job.experience_level,
                 'min_experience_years': job.min_experience_years,
-                'tech_stack': tech_stack,  # Use normalized tech stack
+                'tech_stack': tech_stack,
                 'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo_url)}",
             })
         
         return jsonify({
-            'total': len(results),
-            'results': results
+            'total': total_jobs,
+            'results': results,
+            'page': page,
+            'page_size': page_size
         })
     else:
         return jsonify({
             'total': 0,
-            'results': []
+            'results': [],
+            'page': page,
+            'page_size': page_size
         })
-
 
 @job_blueprint.route('/api/is_job_applied/<int:job_id>', methods=['GET'])
 @requires_auth
