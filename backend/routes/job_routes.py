@@ -306,6 +306,87 @@ def bookmark_job():
 #         'results': results
 #     })
 
+# @job_blueprint.route('/api/filtered_search_jobs', methods=['GET'])
+# @cache.cached(timeout=60, query_string=True)
+# def filtered_search_jobs():
+#     """
+#     Performs a filtered search for jobs based on various criteria.
+#     The results are cached for 60 seconds.
+#     """
+#     # Get the filter criteria from the request arguments
+#     specialization = request.args.get('specialization')
+#     experience_level = request.args.get('experience_level')
+#     min_experience_years = request.args.get('min_experience_years')
+#     work_location = request.args.get('work_location')
+#     industry = request.args.get('industry')
+#     salary_range = request.args.get('salary_range')
+#     city = request.args.get('city')
+#     tech_stack = request.args.get('tech_stack')  # This will now be a single normalized value
+
+#     # Initialize the jobs query
+#     jobs_query = Job.query.join(Company, Job.company_id == Company.company_id)
+
+#     # Apply filters based on the provided criteria
+#     if specialization:
+#         jobs_query = jobs_query.filter(Job.specialization == specialization)
+#     if experience_level:
+#         jobs_query = jobs_query.filter(Job.experience_level == experience_level)
+#     if min_experience_years:
+#         jobs_query = jobs_query.filter(Job.min_experience_years >= int(min_experience_years))
+#     if work_location:
+#         jobs_query = jobs_query.filter(or_(Job.city.ilike(f"%{work_location}%"),
+#                                            Job.state.ilike(f"%{work_location}%"),
+#                                            Job.country.ilike(f"%{work_location}%")))
+#     if industry:
+#         jobs_query = jobs_query.filter(Job.industry == industry)
+#     if salary_range:
+#         jobs_query = jobs_query.filter(Job.salary_range == salary_range)
+#     if city:
+#         jobs_query = jobs_query.filter(Job.city.ilike(f"%{city}%"))
+#     if tech_stack:
+#         # Join with job_technologies and technologies to filter by normalized tech stack
+#         jobs_query = jobs_query.join(JobTechnology, Job.job_id == JobTechnology.job_id) \
+#                                .join(Technology, JobTechnology.technology_id == Technology.id) \
+#                                .filter(Technology.name.ilike(f"%{tech_stack}%"))
+
+#     # Order the jobs from newest to oldest
+#     jobs_query = jobs_query.order_by(Job.created_at.desc())
+
+#     # Execute the query and format the results
+#     jobs = jobs_query.add_columns(
+#         Job.job_id, Job.title, Job.description, Job.specialization, Job.salary_range,
+#         Job.city, Job.state, Job.country, Job.created_at, Job.experience_level,
+#         Company.name.label('company_name'), Company.logo_url.label('logo_url'), Job.min_experience_years, Company.company_id
+#     ).all()
+
+#     results = []
+#     for job in jobs:
+#         # Fetch normalized technologies for each job
+#         technologies = db.session.query(Technology.name).join(JobTechnology, Technology.id == JobTechnology.technology_id).filter(JobTechnology.job_id == job.job_id).all()
+#         tech_stack = [tech.name for tech in technologies]
+
+#         results.append({
+#             'job_id': job.job_id,
+#             'company_id': job.company_id,
+#             'title': job.title,
+#             'company': job.company_name,
+#             'city': job.city,
+#             'location': f"{job.city}, {job.state}",
+#             'country': job.country,
+#             'salary_range': job.salary_range,
+#             'created_at': get_relative_time(job.created_at.strftime('%Y-%m-%d')),
+#             'experience_level': job.experience_level,
+#             'specialization': job.specialization,
+#             'min_experience_years': job.min_experience_years,
+#             'tech_stack': tech_stack,  # Use normalized tech stack
+#             'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.logo_url)}",
+#         })
+
+#     return jsonify({
+#         'total': len(results),
+#         'results': results
+#     })
+
 @job_blueprint.route('/api/filtered_search_jobs', methods=['GET'])
 @cache.cached(timeout=60, query_string=True)
 def filtered_search_jobs():
@@ -322,6 +403,11 @@ def filtered_search_jobs():
     salary_range = request.args.get('salary_range')
     city = request.args.get('city')
     tech_stack = request.args.get('tech_stack')  # This will now be a single normalized value
+
+    # Get pagination parameters
+    page = request.args.get('page', default=1, type=int)
+    page_size = request.args.get('page_size', default=10, type=int)
+    offset = (page - 1) * page_size
 
     # Initialize the jobs query
     jobs_query = Job.query.join(Company, Job.company_id == Company.company_id)
@@ -348,9 +434,15 @@ def filtered_search_jobs():
         jobs_query = jobs_query.join(JobTechnology, Job.job_id == JobTechnology.job_id) \
                                .join(Technology, JobTechnology.technology_id == Technology.id) \
                                .filter(Technology.name.ilike(f"%{tech_stack}%"))
+        
+    # Get the total number of jobs after applying filters but before pagination
+    total_jobs = jobs_query.count()
 
     # Order the jobs from newest to oldest
     jobs_query = jobs_query.order_by(Job.created_at.desc())
+
+    # Apply pagination
+    jobs_query = jobs_query.limit(page_size).offset(offset)
 
     # Execute the query and format the results
     jobs = jobs_query.add_columns(
@@ -383,7 +475,7 @@ def filtered_search_jobs():
         })
 
     return jsonify({
-        'total': len(results),
+        'total': total_jobs,
         'results': results
     })
 

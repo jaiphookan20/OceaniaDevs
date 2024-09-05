@@ -354,7 +354,8 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
-    fetchAllJobs(newPage);
+    // fetchAllJobs(newPage);
+    handleFilterSearch(newPage);
   };
 
 
