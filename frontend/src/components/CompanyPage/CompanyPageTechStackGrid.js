@@ -1,5 +1,5 @@
 import React from 'react';
-import { icons } from '../data/tech-icons';
+import { icons } from '../../data/tech-icons';
 
 const CompanyPageTechStackGrid = ({ company }) => {
   /* Filter the tech stack to only include technologies with matching icons */

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, Upload } from 'lucide-react';
-import settingsIcon from "../assets/settings-icon.svg";
+import settingsIcon from "../../assets/settings-icon.svg";
 import { toast } from 'react-hot-toast';
 
 const australianCities = [

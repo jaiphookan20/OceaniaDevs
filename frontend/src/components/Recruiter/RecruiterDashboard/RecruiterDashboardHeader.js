@@ -1,9 +1,6 @@
 import React from "react";
-import bookmarkIcon from "../assets/bookmark.svg"
-import appliedJobsIcon from "../assets/appliedjobs.svg"
 import { Link } from "react-router-dom";
-import leftArrowIcon from "../assets/left-arrow.svg"
-import mailboxIcon from "../assets/mailbox.svg"
+import mailboxIcon from "../../../assets/mailbox.svg"
 
 const RecruiterDashboardHeader = ({ title }) => {
   return (

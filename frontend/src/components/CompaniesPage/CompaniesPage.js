@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
-import CompanyCardSection from "./CompanyCardSection";
-import CompaniesSearchBar from "./CompaniesSearchBar";
+// import CompanyCardSection from ".CompanyCardSection";
+import CompanyCardSection from "../CompanyPage/CompanyCardSection";
+// import CompaniesSearchBar from "./CompaniesSearchBar";
+import CompaniesSearchBar from "../CompaniesPage/CompaniesSearchBar";
 import HashLoader from "react-spinners/HashLoader";
-import CompaniesSideBar from "./CompaniesSideBar";
+import CompaniesSideBar from "../CompaniesPage/CompaniesSideBar";
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 

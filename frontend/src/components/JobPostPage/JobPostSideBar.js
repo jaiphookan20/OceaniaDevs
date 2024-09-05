@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import LoginModal from '../LoginModal';
+import LoginModal from '../HomePage/LoginModal';
 import JobPostCompanySideProfile from './JobPostCompanySideProfile';
 
 const JobPostSideBar = ({ job, onSave, onApply, isInSession }) => {

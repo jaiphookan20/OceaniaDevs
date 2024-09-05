@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import JobSection from "../JobSection";
 import CompanyPageHeader from "./CompanyPageHeader";
-import SignupForm from "../Misc/SignupForm";
 import CompanyPageTechStackGrid from "./CompanyPageTechStackGrid";
 import CompanyJobSection from "./CompanyJobSection";
 import HashLoader from "react-spinners/HashLoader";

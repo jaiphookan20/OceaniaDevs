@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import LoginModal from "./LoginModal";
-import NotificationPopup from "../Misc/NotificationPopup";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, ChevronLeft, Hourglass } from "lucide-react";
-import newTooltipGif from "../assets/new-tooltip.gif"
+import newTooltipGif from "../../assets/new-tooltip.gif"
 import { icons } from "../../data/tech-icons";
 
 

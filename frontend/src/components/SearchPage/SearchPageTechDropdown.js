@@ -1,6 +1,6 @@
 //TechnologyDropdown.jsx
 import React, { useState, useEffect } from "react";
-import { icons } from "../data/tech-icons";
+import { icons } from "../../data/tech-icons";
 
 const SearchPageTechDropdown = ({ selectedTechnologies, setSelectedTechnologies }) => {
   const [searchTerm, setSearchTerm] = useState("");

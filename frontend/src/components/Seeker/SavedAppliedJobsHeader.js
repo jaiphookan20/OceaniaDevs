@@ -1,8 +1,7 @@
 import React from "react";
-import bookmarkIcon from "../assets/bookmark.svg"
-import appliedJobsIcon from "../assets/appliedjobs.svg"
+import bookmarkIcon from "../../assets/bookmark.svg"
+import appliedJobsIcon from "../../assets/appliedjobs.svg"
 import { Link } from "react-router-dom";
-import leftArrowIcon from "../assets/left-arrow.svg"
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const SavedAndAppliedJobsHeader = ({ title }) => {

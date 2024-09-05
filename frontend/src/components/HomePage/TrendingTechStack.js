@@ -1,14 +1,14 @@
 import React from 'react';
-import java from "../assets/tech-logos/java.svg";
-import python from "../assets/tech-logos/python.svg";
-import aws from "../assets/tech-logos/aws.svg";
-import react from "../assets/tech-logos/react.svg";
-import csharp from "../assets/tech-logos/csharp.svg";
-import javascript from "../assets/tech-logos/javascript.svg";
-import django from "../assets/tech-logos/django.svg";
-import typescript from "../assets/tech-logos/typescript.svg";
-import nodejs from "../assets/tech-logos/nodejs.svg";
-import dotnet from "../assets/tech-logos/dotnet.svg";
+import java from "../../assets/tech-logos/java.svg";
+import python from "../../assets/tech-logos/python.svg";
+import aws from "../../assets/tech-logos/aws.svg";
+import react from "../../assets/tech-logos/react.svg";
+import csharp from "../../assets/tech-logos/csharp.svg";
+import javascript from "../../assets/tech-logos/javascript.svg";
+import django from "../../assets/tech-logos/django.svg";
+import typescript from "../../assets/tech-logos/typescript.svg";
+import nodejs from "../../assets/tech-logos/nodejs.svg";
+import dotnet from "../../assets/tech-logos/dotnet.svg";
 
 import { useNavigate } from "react-router-dom";
 

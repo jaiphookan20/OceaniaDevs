@@ -1,36 +1,31 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import Header from "./components/Header";
-import JobSection from "./components/JobSection";
-import JobPost from "./components/JobPost";
+import Navbar from "./components/HomePage/Navbar";
+import Footer from "./components/HomePage/Footer";
+import Header from "./components/HomePage/Header";
+import JobSection from "./components/JobPostPage/JobSection";
+import JobPost from "./components/JobPostPage/JobPost";
 import { toast, Toaster } from "react-hot-toast";
-import SavedAppliedJobSection from "./components/SavedAppliedJobSection";
-import TrendingCompanies from "./components/TrendingCompanies";
-import SearchPage from "./components/SearchPage";
-import CompaniesPage from "./components/CompaniesPage";
+import SavedAppliedJobSection from "./components/Seeker/SavedAppliedJobSection";
+// import TrendingCompanies from "./components/TrendingCompanies";
+import SearchPage from "./components/SearchPage/SearchPage";
+import CompaniesPage from "./components/CompaniesPage/CompaniesPage";
 import searchService from "./services/searchService";
-import ApplicationTrackingDashboard from "./components/ApplicationTrackingDashboard";
-import DeveloperProfile from "./components/DeveloperProfile";
-import RecruiterSettings from "./components/RecruiterSettings";
+import ApplicationTrackingDashboard from "./components/Seeker/ApplicationTrackingDashboard";
+import RecruiterSettings from "./components/Recruiter/RecruiterSettings";
 import RecruiterOnboarding from "./components/Recruiter/RecruiterOnboarding/RecruiterOnboarding";
-import SignupFormRetro from "./components/SignupFormRetro";
-import SeekerSettings from "./components/SeekerSettings";
-import TrendingTechStackGrid from "./components/TrendingTechStack";
-import CompanyPage from "./components/CompanyPage";
-import PostJob from "./recruiter/PostJob";
-import PostJobWithAI from "./recruiter/PostJobWithAI";
-import RecruiterDashboard from "./components/RecruiterDashboard";
-import EditJob from "./components/EditJob";
+import SignupFormRetro from "./components/HomePage/SignupFormRetro";
+import SeekerSettings from "./components/Seeker/SeekerSettings";
+import TrendingTechStackGrid from "./components/HomePage/TrendingTechStack";
+import CompanyPage from "./components/CompanyPage/CompanyPage";
+import PostJob from "./components/Recruiter/PostJob";
+import PostJobWithAI from "./components/Recruiter/PostJobWithAI";
+import RecruiterDashboard from "./components/Recruiter/RecruiterDashboard/RecruiterDashboard";
+import EditJob from "./components/Seeker/EditJob";
 import HashLoader from "react-spinners/HashLoader";
 import { debounce } from 'lodash';  // Make sure to install and import lodash
-import SignupForm from "./components/SignupForm";
-import SignupPopup from "./components/SignupPopup";
-import JobAlertSignupModal from "./components/JobAlertPopup";
-import JobAlertPopup from "./components/JobAlertPopup";
-import JobBoardProfile from "./components/JobBoardProfile";
+import JobBoardProfile from "./components/Misc/JobBoardProfile";
 
 const App = () => {
   const [homePageJobs, setHomePageJobs] = useState([]);

@@ -1,18 +1,18 @@
 import React from "react";
-import blueSpikesIcon from "../assets/header-blue-spikes-icon.png";
-import blueVaseIcon from "../assets/header-blue-vase-icon.png";
-import greenSpikesHollowIcon from "../assets/header-green-spikes-hollow-icon.png";
-import greenSpikesIcon from "../assets/header-green-spikes-icon.png";
-import orangeSpikesIcon from "../assets/header-orange-spikes-icon.png";
-import fuchsiaSpikesIcon from "../assets/header-orange-spikes-icon.png";
-import orangeSpikesIrregularIcon from "../assets/header-orange-spikes-irregular-icon.png";
-import orangeSunHollowIcon from "../assets/header-orange-sun-hollow-icon.png";
-import pinkStreamIcon from "../assets/header-pink-stream-icon.png";
-import purpleFlowerIcon from "../assets/header-purple-flower-icon.png";
-import yellowDaisyIcon from "../assets/header-yellow-daisy-icon.png";
-import yellowStreamIcon from "../assets/header-yellow-stream-icon.png";
-import yellowSunIcon from "../assets/header-yellow-sun-icon.png";
-import blankImage from "../assets/header-blank-image-slate.png";
+import blueSpikesIcon from "../../assets/header-blue-spikes-icon.png";
+import blueVaseIcon from "../../assets/header-blue-vase-icon.png";
+import greenSpikesHollowIcon from "../../assets/header-green-spikes-hollow-icon.png";
+import greenSpikesIcon from "../../assets/header-green-spikes-icon.png";
+import orangeSpikesIcon from "../../assets/header-orange-spikes-icon.png";
+import fuchsiaSpikesIcon from "../../assets/header-orange-spikes-icon.png";
+import orangeSpikesIrregularIcon from "../../assets/header-orange-spikes-irregular-icon.png";
+import orangeSunHollowIcon from "../../assets/header-orange-sun-hollow-icon.png";
+import pinkStreamIcon from "../../assets/header-pink-stream-icon.png";
+import purpleFlowerIcon from "../../assets/header-purple-flower-icon.png";
+import yellowDaisyIcon from "../../assets/header-yellow-daisy-icon.png";
+import yellowStreamIcon from "../../assets/header-yellow-stream-icon.png";
+import yellowSunIcon from "../../assets/header-yellow-sun-icon.png";
+import blankImage from "../../assets/header-blank-image-slate.png";
 
 const Header = () => {
   return (

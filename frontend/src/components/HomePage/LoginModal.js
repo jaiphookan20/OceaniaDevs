@@ -1,7 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Logo from './Logo';
 
 const LoginModal = ({ isOpen, onClose }) => {
   const navigate = useNavigate();

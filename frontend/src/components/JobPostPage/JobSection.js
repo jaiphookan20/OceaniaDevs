@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import JobCard from "../JobCard";
+import JobCard from "../HomePage/JobCard";
 
 const JobSection = ({ title, jobs, onSave, onApply, onView, company, isInSession, onViewAll, userData }) => {
   const navigate = useNavigate();

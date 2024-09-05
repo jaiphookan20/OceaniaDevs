@@ -1,5 +1,4 @@
 import React from "react";
-import SearchPageBar from "./SearchPage";
 
 
 const CompaniesPageHeader = ( {title}) => {
