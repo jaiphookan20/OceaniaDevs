@@ -15,7 +15,7 @@ import searchService from "./services/searchService";
 import ApplicationTrackingDashboard from "./components/ApplicationTrackingDashboard";
 import DeveloperProfile from "./components/DeveloperProfile";
 import RecruiterSettings from "./components/RecruiterSettings";
-import RecruiterOnboarding from "./recruiter/RecruiterOnboarding";
+import RecruiterOnboarding from "./components/Recruiter/RecruiterOnboarding/RecruiterOnboarding";
 import SignupFormRetro from "./components/SignupFormRetro";
 import SeekerSettings from "./components/SeekerSettings";
 import TrendingTechStackGrid from "./components/TrendingTechStack";
@@ -26,7 +26,6 @@ import RecruiterDashboard from "./components/RecruiterDashboard";
 import EditJob from "./components/EditJob";
 import HashLoader from "react-spinners/HashLoader";
 import { debounce } from 'lodash';  // Make sure to install and import lodash
-import CustomSVGLoader from "./assets/CustomSVGLoader";
 import SignupForm from "./components/SignupForm";
 import SignupPopup from "./components/SignupPopup";
 import JobAlertSignupModal from "./components/JobAlertPopup";
@@ -219,7 +218,8 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
       setAllJobs(allJobsData.jobs);
       setTotalJobs(allJobsData.total_jobs);
     } else {
-      const data = await searchService.instantSearchJobs(searchValue);
+      // const data = await searchService.instantSearchJobs(searchValue);
+      const data = await searchService.instantSearchJobs(searchValue, 1, pageSize);
       setAllJobs(data.results);
       setTotalJobs(data.total);
     }
@@ -353,9 +353,24 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
     }
   };
 
+  // const handlePageChange = (newPage) => {
+  //   setCurrentPage(newPage);
+  //   // fetchAllJobs(newPage);
+  //   handleFilterSearch(newPage);
+  // };
+
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
-    fetchAllJobs(newPage);
+    if (searchQuery.trim() !== "") {
+      // If there's a search query, use instant search pagination
+      searchService.instantSearchJobs(searchQuery, newPage, pageSize).then(data => {
+        setAllJobs(data.results);
+        setTotalJobs(data.total);
+      });
+    } else {
+      // Otherwise, use filtered search pagination
+      handleFilterSearch(newPage);
+    }
   };
 
 

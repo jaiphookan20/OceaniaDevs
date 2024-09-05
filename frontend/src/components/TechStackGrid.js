@@ -22,7 +22,7 @@ const TechStackGrid = ({ company }) => {
             return icons[iconKey] ? (
               <div key={index} className="flex items-center space-x-2 bg-white p-2 rounded-lg shadow-sm">
                 <img src={icons[iconKey]} alt={tech} height={50} width={50} />
-                <span className="text-md text-slate-600 font-semibold text-center pl-4">{tech}</span>
+                <span className="text-md text-slate-600 font-semibold text-center pl-4">{tech.charAt(0).toUpperCase() + tech.slice(1).toLowerCase()}</span>
               </div>
             ) : null;
           })}

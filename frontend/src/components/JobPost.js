@@ -42,6 +42,7 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
         const data = await response.json();
         if (response.ok) {
           setJob(data);
+          console.log(job);
         } else {
           setError(data.error);
         }
@@ -104,7 +105,7 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
                 <img
                   src={icons[tech.toLowerCase()]}
                   alt={tech}
-                  className="w-16 h-16"
+                  className="w-20 h-20"
                 />
               </div>
             ))}
@@ -154,33 +155,6 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
     </div>
   ))}
 </div>
-        {/* <div className="flex justify-between items-between pxb-20" 
-        >
-          <div className="w-3/4 pl-8 pr-2">
-            <section className="mt-6">
-              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800" style={{ fontFamily: "Avenir, sans-serif" }}>
-                About the role
-              </h2>
-              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Avenir, sans-serif" }}>
-                {job.overview}
-              </p>
-            </section>
-            <section className="mt-6">
-              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800" style={{ fontFamily: "Avenir, sans-serif" }}>
-                Responsibilities
-              </h2>
-              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Avenir, sans-serif" }}>
-                {job.responsibilities}
-              </p>
-            </section>
-            <section className="mt-6">
-              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800"  style={{ fontFamily: "Avenir, sans-serif" }}>
-                Requirements
-              </h2>
-              <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Avenir, sans-serif" }}>
-                {job.requirements}
-              </p>
-            </section> */}
             <div className="flex justify-between items-between pxb-20">
           <div className="w-3/4 pl-8 pr-2">
             <section className="mt-6">
@@ -226,7 +200,7 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
                       alt={tech}
                       className="w-16 h-16"
                     />
-                    <span className="mt-2 text-md text-slate-700 font-semibold text-center">{tech}</span>
+                    <span className="mt-2 text-md text-slate-700 font-semibold text-center">{tech.charAt(0).toUpperCase() + tech.slice(1).toLowerCase()}</span>
                   </div>
                 ))}
               </div>

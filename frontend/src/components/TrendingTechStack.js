@@ -81,7 +81,7 @@ const colleges = [
   },
   {
     name: "NodeJS",
-    title: "nodejs",
+    title: "node.js",
     logo: nodejs,
     interviews: 1210
   },

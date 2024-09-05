@@ -115,6 +115,23 @@ class Job(db.Model):
     hourly_range=db.Column(db.String(255))  # New field
     daily_range=db.Column(db.String(255))  # New field
 
+class Technology(db.Model):
+    __tablename__ = 'technologies'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, unique=True, nullable=False)
+
+class TechnologyAlias(db.Model):
+    __tablename__ = 'technology_aliases'
+    alias = db.Column(db.String, primary_key=True)
+    technology_id = db.Column(db.Integer, db.ForeignKey('technologies.id'), nullable=False)
+    
+    technology = db.relationship('Technology', backref=db.backref('aliases', lazy=True))
+
+class JobTechnology(db.Model):
+    __tablename__ = 'job_technologies'
+    job_id = db.Column(db.Integer, db.ForeignKey('jobs.job_id'), primary_key=True)  # Updated foreign key reference
+    technology_id = db.Column(db.Integer, db.ForeignKey('technologies.id'), primary_key=True)
+
 class Candidate(db.Model):
     __tablename__ = 'candidates'
     candidate_id = db.Column(db.Integer, primary_key=True)

@@ -1,9 +1,12 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify
 from service.seeker_service import SeekerService
 from service.jobs_service import JobsService
-from models import Seeker, Job
+from models import Seeker, Job, Technology, TechnologyAlias, JobTechnology
+from extensions import db
 from flask_cors import CORS
 from utils.time import get_relative_time
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import text  # Import text from SQLAlchemy
 import os
 import config
 from datetime import datetime
@@ -219,3 +222,85 @@ def update_seeker():
         return jsonify({"message": "Seeker info updated successfully"}), 200
     else:
         return jsonify({"error": "Failed to update seeker info"}), 400
+
+@seeker_blueprint.route('/api/job_technologies_summary', methods=['GET'])
+def get_job_technologies_summary():
+    try:
+        result = db.session.execute(text('SELECT * FROM job_technologies_view'))
+        # Use row._mapping to convert each row to a dictionary
+        job_technologies = [dict(row._mapping) for row in result]
+        return jsonify(job_technologies)
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+@seeker_blueprint.route('/api/job_technologies', methods=['POST'])
+def add_job_technology():
+    data = request.json
+    try:
+        job_id = data['job_id']
+        technology_id = data['technology_id']
+        new_job_technology = JobTechnology(job_id=job_id, technology_id=technology_id)
+        db.session.add(new_job_technology)
+        db.session.commit()
+        return jsonify({"message": "Technology associated with job successfully"}), 201
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@seeker_blueprint.route('/api/job_technologies', methods=['DELETE'])
+def remove_job_technology():
+    data = request.json
+    try:
+        job_id = data['job_id']
+        technology_id = data['technology_id']
+        job_technology = JobTechnology.query.filter_by(job_id=job_id, technology_id=technology_id).first()
+        if job_technology:
+            db.session.delete(job_technology)
+            db.session.commit()
+            return jsonify({"message": "Technology removed from job successfully"}), 200
+        else:
+            return jsonify({"error": "Job technology association not found"}), 404
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@seeker_blueprint.route('/api/technologies', methods=['GET'])
+def get_technologies():
+    try:
+        technologies = Technology.query.all()
+        return jsonify([{"id": tech.id, "name": tech.name} for tech in technologies])
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
+
+@seeker_blueprint.route('/api/technology_aliases', methods=['GET'])
+def get_technology_aliases():
+    try:
+        aliases = TechnologyAlias.query.all()
+        return jsonify([{ "alias": alias.alias, "technology_id": alias.technology_id } for alias in aliases])
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
+
+@seeker_blueprint.route('/api/technologies', methods=['POST'])
+def add_technology():
+    data = request.json
+    try:
+        new_technology = Technology(name=data['name'])
+        db.session.add(new_technology)
+        db.session.commit()
+        return jsonify({"message": "Technology added", "technology_id": new_technology.id}), 201
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@seeker_blueprint.route('/api/technology_aliases', methods=['POST'])
+def add_technology_alias():
+    data = request.json
+    try:
+        new_alias = TechnologyAlias(alias=data['alias'], technology_id=data['technology_id'])
+        db.session.add(new_alias)
+        db.session.commit()
+        return jsonify({"message": "Technology alias added"}), 201
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500

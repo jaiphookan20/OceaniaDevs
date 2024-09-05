@@ -557,3 +557,14 @@ def process_jobs():
             yield result
 
     return Response(stream_with_context(generate()), content_type='application/json')
+
+@recruiter_blueprint.route('/api/update-existing-jobs', methods=['POST'])
+def update_existing_jobs_technologies():
+    recruiter_service = RecruiterService()
+    
+    try:
+        updated_jobs = recruiter_service.update_existing_jobs_technologies()
+        return jsonify({"success": True, "updated_jobs": updated_jobs}), 200
+    except Exception as e:
+        current_app.logger.error(f"Error updating jobs: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
