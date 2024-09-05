@@ -1,5 +1,5 @@
 import React from "react";
-import JobCard from "./JobCard";
+import JobCard from "../JobCard";
 
 const SearchPageJobSection = ({
   jobs,

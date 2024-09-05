@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { ChevronDownIcon, BriefcaseIcon, CalendarIcon, CheckCircleIcon, XCircleIcon, ClockIcon, SearchIcon, FilterIcon, PlusIcon, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getRelativeTimeString } from '../utils/time';
+import { getRelativeTimeString } from '../../utils/time';
 const applicationStatuses = [
   'All',
   'Applied',

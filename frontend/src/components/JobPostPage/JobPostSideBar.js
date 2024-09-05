@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import LoginModal from './LoginModal';
-import CompanySideProfile from './CompanySideProfile';
+import LoginModal from '../LoginModal';
+import JobPostCompanySideProfile from './JobPostCompanySideProfile';
 
 const JobPostSideBar = ({ job, onSave, onApply, isInSession }) => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -143,7 +143,7 @@ const JobPostSideBar = ({ job, onSave, onApply, isInSession }) => {
         onClose={() => setIsLoginModalOpen(false)}
       />
     </div>
-    <CompanySideProfile job={job}/>
+    <JobPostCompanySideProfile job={job}/>
     </div>
   );
 };

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { icons } from "../data/tech-icons";
 
-const TechnologyDropdown = ({ selectedTechnologies, setSelectedTechnologies }) => {
+const SearchPageTechDropdown = ({ selectedTechnologies, setSelectedTechnologies }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [technologies, setTechnologies] = useState([]);
@@ -93,4 +93,4 @@ const TechnologyDropdown = ({ selectedTechnologies, setSelectedTechnologies }) =
   );
 };
 
-export default TechnologyDropdown;
+export default SearchPageTechDropdown;

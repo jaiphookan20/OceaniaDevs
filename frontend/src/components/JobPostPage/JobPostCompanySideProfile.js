@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from "react-router-dom";
 
-const CompanySideProfile = ({ job }) => {
+const JobPostCompanySideProfile = ({ job }) => {
 
     const navigate = useNavigate();
 
@@ -43,4 +43,4 @@ const CompanySideProfile = ({ job }) => {
   );
 };
 
-export default CompanySideProfile;
+export default JobPostCompanySideProfile;

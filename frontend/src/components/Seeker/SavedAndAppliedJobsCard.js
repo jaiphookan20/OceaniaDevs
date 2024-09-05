@@ -1,4 +1,4 @@
-import { getRelativeTimeString } from "../utils/time.js";
+import { getRelativeTimeString } from "../../utils/time.js";
 import { toast } from 'react-hot-toast';
 const SavedAndAppliedJobsCard = ({ job, onApply, onSave, onRemove, onView }) => {
   

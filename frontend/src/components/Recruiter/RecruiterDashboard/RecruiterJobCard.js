@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { toast } from "react-hot-toast";
-import LoginModal from "./LoginModal"; // Make sure to import the LoginModal component
 
-const JobsPostedByRecruiterCard = ({ job, onEdit, onView, onRemove }) => {
+const RecruiterJobCard = ({ job, onEdit, onView, onRemove }) => {
   
   return (
     <>
@@ -71,4 +69,4 @@ const JobsPostedByRecruiterCard = ({ job, onEdit, onView, onRemove }) => {
   );
 };
 
-export default JobsPostedByRecruiterCard;
+export default RecruiterJobCard;

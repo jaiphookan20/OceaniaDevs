@@ -1,7 +1,7 @@
 import React from "react";
-import TechnologyDropdown from "./TechnologyDropdown";
+import SearchPageTechDropdown from "./SearchPageTechDropdown";
 
-const SearchBar = ({
+const SearchPageBar = ({
   searchQuery,
   onSearchChange,
   filters,
@@ -116,7 +116,7 @@ const SearchBar = ({
             <option value="Part-Time">Part-Time</option>
           </select>
           <div className="flex-grow">
-            <TechnologyDropdown
+            <SearchPageTechDropdown
               selectedTechnologies={filters.tech_stack || []}
               setSelectedTechnologies={(techs) =>
                 onFilterChange({ target: { name: "tech_stack", value: techs } })
@@ -129,4 +129,4 @@ const SearchBar = ({
   );
 };
 
-export default SearchBar;
+export default SearchPageBar;

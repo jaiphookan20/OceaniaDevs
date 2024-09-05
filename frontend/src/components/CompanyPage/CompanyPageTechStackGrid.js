@@ -1,7 +1,7 @@
 import React from 'react';
 import { icons } from '../data/tech-icons';
 
-const TechStackGrid = ({ company }) => {
+const CompanyPageTechStackGrid = ({ company }) => {
   /* Filter the tech stack to only include technologies with matching icons */
   const filteredTechStack = company.total_tech_stack.filter(tech => 
     icons.hasOwnProperty(tech.toLowerCase())
@@ -32,4 +32,4 @@ const TechStackGrid = ({ company }) => {
   );
 };
 
-export default TechStackGrid;
+export default CompanyPageTechStackGrid;

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import JobsPostedByRecruiterCard from './JobsPostedByRecruiterCard';
+import RecruiterJobCard from './RecruiterJobCard';
 import RecruiterDashboardHeader from './RecruiterDashboardHeader';
 
-const JobsPostedByRecruiterSection = ({ title, activeJobs, expiredJobs, onEdit, onView, onRemove }) => {
+const RecruiterJobSection = ({ title, activeJobs, expiredJobs, onEdit, onView, onRemove }) => {
   const [activeTab, setActiveTab] = useState('active');
 
   return (
@@ -39,7 +39,7 @@ const JobsPostedByRecruiterSection = ({ title, activeJobs, expiredJobs, onEdit, 
           ))}
         {activeTab === 'expired' &&
           expiredJobs.map((job, index) => (
-            <JobsPostedByRecruiterCard
+            <RecruiterJobCard
               key={index}
               job={job}
               onEdit={onEdit}
@@ -52,39 +52,4 @@ const JobsPostedByRecruiterSection = ({ title, activeJobs, expiredJobs, onEdit, 
   );
 };
 
-export default JobsPostedByRecruiterSection;
-
-// import React from "react";
-// import JobsPostedByRecruiterCard from "../components/JobsPostedByRecruiterCard";
-// import SavedAndAppliedJobsHeader from "../components/SavedAppliedJobsHeader";
-// import RecruiterDashboardHeader from "./RecruiterDashboardHeader";
-
-// const JobsPostedByRecruiterSection = ({
-//   title,
-//   jobs,
-//   onEdit,
-//   onView,
-//   onRemove,
-// }) => {
-//   return (
-//     <div className="mb-10">
-//       <RecruiterDashboardHeader title={title} />
-//       <div className="flex justify-between items-center mb-2">
-//         <h2 className="text-5xl font-bold"></h2>
-//       </div>
-//       <div className="bg-white rounded-lg shadow-md">
-//         {jobs.map((job, index) => (
-//           <JobsPostedByRecruiterCard
-//             key={index}
-//             job={job}
-//             onEdit={onEdit}
-//             onView={onView}
-//             onRemove={onRemove}
-//           />
-//         ))}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default JobsPostedByRecruiterSection;
+export default RecruiterJobSection;

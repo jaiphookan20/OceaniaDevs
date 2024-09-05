@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { icons } from "../data/tech-icons";
+import { icons } from "../../data/tech-icons";
 import JobPostSideBar from "./JobPostSideBar";
 import RecommendedJobs from "./RecommendedJobs";
 import HashLoader from "react-spinners/HashLoader";
 import { useNavigate } from "react-router-dom";
-import { getRelativeTimeString } from '../utils/time';
+import { getRelativeTimeString } from '../../utils/time';
 
 const JobPost = ({ onSave, onApply, isInSession }) => {
   const { jobId } = useParams();

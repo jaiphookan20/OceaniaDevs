@@ -1,7 +1,7 @@
 import React from 'react';
-import Logo from './Logo';
+import Logo from '../../Logo';
 
-const NavbarOnboarding = ({ onNavigateAway }) => {
+const RecruiterNavbarOnboarding = ({ onNavigateAway }) => {
   return (
     <nav className="bg-white shadow-md py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,4 +19,4 @@ const NavbarOnboarding = ({ onNavigateAway }) => {
   );
 };
 
-export default NavbarOnboarding;
+export default RecruiterNavbarOnboarding;

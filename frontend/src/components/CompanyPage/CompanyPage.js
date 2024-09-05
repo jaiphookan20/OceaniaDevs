@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import JobSection from "./JobSection";
+import JobSection from "../JobSection";
 import CompanyPageHeader from "./CompanyPageHeader";
-import SignupForm from "./SignupForm";
-import TechStackGrid from "./TechStackGrid";
+import SignupForm from "../Misc/SignupForm";
+import CompanyPageTechStackGrid from "./CompanyPageTechStackGrid";
 import CompanyJobSection from "./CompanyJobSection";
 import HashLoader from "react-spinners/HashLoader";
 
@@ -52,7 +52,7 @@ const CompanyPage = ({ onSave, onApply, onView }) => {
           logoSrc={company.logo_url}
           company={company}
         />
-        <TechStackGrid company={company} />
+        <CompanyPageTechStackGrid company={company} />
         <div className="gap-12 mt-4">
         <div className="col-span-2">
           <CompanyJobSection

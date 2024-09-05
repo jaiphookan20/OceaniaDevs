@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import JobsPostedByRecruiterSection from "./JobsPostedByRecruiterSection";
+import RecruiterJobSection from "./RecruiterJobSection";
 import { useNavigate } from "react-router-dom";
 
 const RecruiterDashboard = () => {
@@ -52,7 +52,7 @@ const RecruiterDashboard = () => {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <JobsPostedByRecruiterSection
+      <RecruiterJobSection
         title="Recruiter Dashboard"
         activeJobs={activeJobs}
         expiredJobs={expiredJobs}

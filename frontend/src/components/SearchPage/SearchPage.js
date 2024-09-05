@@ -1,8 +1,7 @@
 import React, { useEffect, useRef } from "react";
-import SearchBar from "./SearchBar";
+import SearchPageBar from "./SearchPageBar";
 import SearchPageHeader from "./SearchPageHeader";
 import SearchPageJobSection from "./SearchPageJobSection";
-import Header from "./Header";
 import { useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
@@ -64,7 +63,7 @@ const SearchPage = ({
         <span className="text-gray-700">Search Jobs</span>
       </nav>
       <SearchPageHeader title={title} totalJobs={totalJobs} />
-      <SearchBar
+      <SearchPageBar
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}
         filters={filters}

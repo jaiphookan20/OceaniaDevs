@@ -3,7 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import RecruiterPersonalDetails from './RecruiterPersonalDetails';
 import FindEmployerForm from './FindEmployerForm';
 import RegisterNewEmployer from './RegisterNewEmployer';
-import NavbarOnboarding from '../components/NavbarOnboarding';
+import RecruiterNavbarOnboarding from './RecruiterNavbarOnboarding';
 
 const RecruiterOnboarding = () => {
   const [step, setStep] = useState(1);
@@ -62,7 +62,7 @@ const RecruiterOnboarding = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      <NavbarOnboarding onNavigateAway={handleNavigateAway} />
+      <RecruiterNavbarOnboarding onNavigateAway={handleNavigateAway} />
       <div className="flex-grow flex flex-col items-center justify-start pt-10" >
         <div className="w-full max-w-4xl px-4">
           <h1 className="text-4xl font-semibold text-slate-600 mb-8 text-center">Recruiter Onboarding</h1>
@@ -104,79 +104,3 @@ const RecruiterOnboarding = () => {
 };
 
 export default RecruiterOnboarding;
-
-// import React, { useState } from 'react';
-// import { Navigate } from 'react-router-dom';
-// import RecruiterPersonalDetails from './RecruiterPersonalDetails';
-// import FindEmployerForm from './FindEmployerForm';
-// import RegisterNewEmployer from './RegisterNewEmployer';
-// import NavbarOnboarding from '../components/NavbarOnboarding';
-
-// const RecruiterOnboarding = () => {
-//   const [step, setStep] = useState(1);
-//   const [completedSteps, setCompletedSteps] = useState([]);
-
-//   const nextStep = () => {
-//     setStep(step + 1);
-//     setCompletedSteps([...completedSteps, step]);
-//   };
-
-//   const goToCreateEmployer = () => {
-//     setStep(3);
-//   };
-
-//   const renderStep = () => {
-//     switch (step) {
-//       case 1:
-//         return <RecruiterPersonalDetails onComplete={nextStep} />;
-//       case 2:
-//         return <FindEmployerForm onComplete={nextStep} onCreateNew={goToCreateEmployer} />;
-//       case 3:
-//         return <RegisterNewEmployer onComplete={() => setStep(4)} />;
-//       case 4:
-//         return <Navigate to="/employer/post-job" />;
-//       default:
-//         return <Navigate to="/" />;
-//     }
-//   };
-
-//   return (
-//     <div className="flex flex-col min-h-screen bg-gray-100">
-//       <NavbarOnboarding />
-//       <div className="flex-grow flex flex-col items-center justify-center">
-//         <div className="w-full max-w-md">
-//           <div className="mb-8">
-//             <div className="flex justify-between mb-2">
-//               {[1, 2, 3].map((stepNumber) => (
-//                 <div
-//                   key={stepNumber}
-//                   className={`w-8 h-8 rounded-full flex items-center justify-center ${
-//                     completedSteps.includes(stepNumber) || step === stepNumber
-//                       ? 'bg-green-500 text-white'
-//                       : 'bg-gray-300 text-gray-600'
-//                   }`}
-//                 >
-//                   {stepNumber}
-//                 </div>
-//               ))}
-//             </div>
-//             <div className="relative pt-1">
-//               <div className="flex mb-2 items-center justify-between">
-//                 <div className="w-full bg-gray-200 rounded-full h-2.5">
-//                   <div
-//                     className="bg-green-500 h-2.5 rounded-full transition-all duration-500 ease-out"
-//                     style={{ width: `${((step - 1) / 3) * 100}%` }}
-//                   ></div>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//           {renderStep()}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default RecruiterOnboarding;
-

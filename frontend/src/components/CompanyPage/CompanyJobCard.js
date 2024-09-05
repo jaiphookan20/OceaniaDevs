@@ -1,4 +1,4 @@
-import { getRelativeTimeString } from "../utils/time";
+import { getRelativeTimeString } from "../../utils/time";
 
 const CompanyJobCard = ({ job, onSave, onApply, onView, company }) => {
     return (
