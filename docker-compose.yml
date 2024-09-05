@@ -1,9 +1,9 @@
 services:
   backend:
-    # build:
-    #   context: ./backend
-    #   dockerfile: Dockerfile
-    image: jayphookan/aus-job-board-backend:v1
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    # image: jayphookan/aus-job-board-backend:v1
     env_file:
       - .env
     volumes:
@@ -25,10 +25,10 @@ services:
         condition: service_started
 
   postgres:
-    # build:
-    #   context: ./postgres
-    #   dockerfile: Dockerfile
-    image: jayphookan/aus-job-board-postgres:v1
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+    # image: jayphookan/aus-job-board-postgres:v1
     env_file:
       - .env
     environment:
