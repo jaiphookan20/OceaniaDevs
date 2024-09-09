@@ -9,6 +9,7 @@ from utils.time import get_relative_time
 from sqlalchemy import or_, func
 import json
 from app import current_app
+from extensions import cache
 
 class JobsService:
 
@@ -22,6 +23,7 @@ class JobsService:
         except json.JSONDecodeError:
             return [item.strip() for item in text.split('\n') if item.strip()]
 
+    @cache.memoize(timeout=3600) 
     def get_job_post_data(self, job_id):
         """Retrieve detailed information for a specific job post."""
         try:
@@ -69,6 +71,7 @@ class JobsService:
             current_app.logger.error(f"Error in get_job_post_data: {str(e)}")
             raise
     
+    @cache.memoize(timeout=300)
     def filtered_search_jobs(self, filter_params, page, page_size):
         """Search and filter jobs based on various criteria."""
         try:
@@ -95,6 +98,7 @@ class JobsService:
             current_app.logger.error(f"Error in filtered_search_jobs: {str(e)}")
             raise
     
+    @cache.memoize(timeout=300)
     def instant_search_jobs(self, query, page, page_size):
         """Perform an instant search on jobs based on a query string."""
         try:
@@ -119,7 +123,8 @@ class JobsService:
         except Exception as e:
             current_app.logger.error(f"Error in instant_search_jobs: {str(e)}")
             raise
-        
+    
+    @cache.memoize(timeout=3600)
     def get_home_page_jobs(self):
         """Retrieve jobs for the home page, grouped by specialization."""
         try:
@@ -165,6 +170,7 @@ class JobsService:
             current_app.logger.error(f"Error in _format_job_results: {str(e)}")
             raise
     
+    @cache.memoize(timeout=86400)
     def get_technologies(self):
         """Retrieve a list of all available technologies."""
         try:

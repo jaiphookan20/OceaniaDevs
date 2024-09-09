@@ -22,7 +22,6 @@ job_blueprint = Blueprint('job', __name__)
 jobs_service = JobsService()
 CORS(job_blueprint, supports_credentials=True, resources={r'/*': {'origins': 'http://localhost:3000'}})
 
-# Get Job Post Page by Job ID:
 @job_blueprint.route('/api/job_post/<int:job_id>', methods=['GET'])
 def get_job_post_page(job_id):
     """Retrieve All Job Details for a specific job post."""
@@ -35,9 +34,7 @@ def get_job_post_page(job_id):
         current_app.logger.error(f"Error in get_job_post_page: {str(e)}")
         return jsonify({"error": "An unexpected error occurred"}), 500
 
-# Search and filter jobs based on various criteria
 @job_blueprint.route('/api/filtered_search_jobs', methods=['GET'])
-@cache.cached(timeout=60, query_string=True)
 def filtered_search_jobs():
     """Search and filter jobs based on various criteria."""
     try:
@@ -64,9 +61,8 @@ def filtered_search_jobs():
         current_app.logger.error(f"Error in filtered_search_jobs: {str(e)}")
         return jsonify({"error": "An error occurred while searching jobs"}), 500
 
-# Perform an instant search on jobs based on a query string
+
 @job_blueprint.route('/api/instant_search_jobs', methods=['GET'])
-@cache.cached(timeout=60, query_string=True)
 def instant_search_jobs():
     """Perform an instant search on jobs based on a query string."""
     try:
@@ -86,8 +82,7 @@ def instant_search_jobs():
         current_app.logger.error(f"Error in instant_search_jobs: {str(e)}")
         return jsonify({"error": "An error occurred while searching jobs"}), 500
 
-# Retrieve jobs for the home page, grouped by specialization
-@cache.memoize(timeout=300)
+
 @job_blueprint.route('/api/home_page_jobs', methods=['GET'])
 def get_home_page_jobs():
     """Retrieve jobs for the home page, grouped by specialization."""
@@ -103,8 +98,7 @@ def get_home_page_jobs():
         current_app.logger.error(f"Error in get_home_page_jobs: {str(e)}")
         return jsonify({"error": "An error occurred while retrieving jobs"}), 500
 
-# Retrieve a list of all available technologies
-@cache.cached(timeout=3600*8, key_prefix='all_technologies')
+
 @job_blueprint.route('/api/technologies', methods=['GET'])
 def get_technologies():
     """Retrieve a list of all available technologies."""
@@ -115,7 +109,6 @@ def get_technologies():
         current_app.logger.error(f"Error in get_technologies: {str(e)}")
         return jsonify({"error": "An error occurred while retrieving technologies"}), 500
 
-# Allow a seeker to apply for a job
 @job_blueprint.route('/api/apply_to_job', methods=['POST'])
 @requires_auth
 def apply_to_job():
@@ -140,7 +133,7 @@ def apply_to_job():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-# Allow a seeker to bookmark a job
+
 @job_blueprint.route('/api/bookmark_job', methods=['POST'])
 @requires_auth
 def bookmark_job():
@@ -165,7 +158,7 @@ def bookmark_job():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-# Check if a seeker has applied to a specific job
+
 @job_blueprint.route('/api/is_job_applied/<int:job_id>', methods=['GET'])
 @requires_auth
 def is_job_applied(job_id):
@@ -182,7 +175,7 @@ def is_job_applied(job_id):
         current_app.logger.error(f"Error in is_job_applied: {str(e)}")
         return jsonify({"error": "An error occurred while checking job application status"}), 500
     
-# Check if a seeker has bookmarked a specific job
+
 @job_blueprint.route('/api/is_job_saved/<int:job_id>', methods=['GET'])
 @requires_auth
 def is_job_saved(job_id):
@@ -199,7 +192,7 @@ def is_job_saved(job_id):
         current_app.logger.error(f"Error in is_job_saved: {str(e)}")
         return jsonify({"error": "An error occurred while checking job saved status"}), 500
 
-# Remove a job from the current user's bookmarks
+
 @job_blueprint.route('/api/unsave_job/<int:job_id>', methods=['DELETE'])
 @requires_auth
 def unsave_job(job_id):
