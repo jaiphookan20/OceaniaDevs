@@ -72,8 +72,8 @@ const App = () => {
   }, [location]);
 
   useEffect(() => {
-    fetchHomePageJobs();
-    fetchAllJobs();
+    fetchHomePageJobs(); /* Should be called only when we're in the home page? */
+    fetchAllJobs(); 
     checkSession();
   }, []);
 
@@ -90,13 +90,7 @@ const App = () => {
       if (data.userinfo) {
         setUserData(data);
       }
-      // if (data.userinfo && data.type === "seeker") {
-      //   console.log(`${data.userinfo.name} is in session`);
-      //   setIsInSession(true);
-      // } else {
-      //   setIsInSession(false);
-      // }
-
+     
       if (data.userinfo) {
         console.log(`${data.userinfo.name} is in session`);
         setIsInSession(true);

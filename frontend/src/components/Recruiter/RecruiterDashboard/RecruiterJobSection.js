@@ -29,7 +29,7 @@ const RecruiterJobSection = ({ title, activeJobs, expiredJobs, onEdit, onView, o
       <div className="bg-white rounded-lg shadow-md">
         {activeTab === 'active' &&
           activeJobs.map((job, index) => (
-            <JobsPostedByRecruiterCard
+            <RecruiterJobCard
               key={index}
               job={job}
               onEdit={onEdit}

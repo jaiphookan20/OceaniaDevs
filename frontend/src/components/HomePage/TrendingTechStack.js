@@ -51,7 +51,7 @@ const colleges = [
   },
   {
     name: "C#",
-    title: "csharp",
+    title: "c#",
     logo: csharp,
     interviews: 1210
   },

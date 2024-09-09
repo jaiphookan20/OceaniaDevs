@@ -1,4 +1,7 @@
 from datetime import datetime, timedelta
+import time
+from functools import wraps
+from flask import current_app
 
 def get_relative_time(date_str):
     today = datetime.now().date()
@@ -23,3 +26,13 @@ def get_relative_time(date_str):
         return '1 month ago'
     else:
         return f'{delta.days // 30} months ago'
+    
+def timing_decorator(f):
+    @wraps(f)
+    def wrap(*args, **kw):
+        ts = time.time()
+        result = f(*args, **kw)
+        te = time.time()
+        current_app.logger.info(f'func:{f.__name__} took: {te-ts:2.4f} sec')
+        return result
+    return wrap
