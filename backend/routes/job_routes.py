@@ -25,16 +25,23 @@ CORS(job_blueprint, supports_credentials=True, resources={r'/*': {'origins': 'ht
 # Get Job Post Page by Job ID:
 @job_blueprint.route('/api/job_post/<int:job_id>', methods=['GET'])
 def get_job_post_page(job_id):
-    job_data = jobs_service.get_job_post_data(job_id)
-    if not job_data:
-        return jsonify({"error": "Job or company not found"}), 404
-    return jsonify(job_data)
+    """Retrieve All Job Details for a specific job post."""
+    try:        
+        job_data = jobs_service.get_job_post_data(job_id)
+        if not job_data:
+            return jsonify({"error": "Job or company not found"}), 404
+        return jsonify(job_data)
+    except Exception as e:
+        current_app.logger.error(f"Error in get_job_post_page: {str(e)}")
+        return jsonify({"error": "An unexpected error occurred"}), 500
 
+# Search and filter jobs based on various criteria
 @job_blueprint.route('/api/filtered_search_jobs', methods=['GET'])
 @cache.cached(timeout=60, query_string=True)
 def filtered_search_jobs():
-    # Get filter criteria and pagination parameters from request
-    filter_params = {
+    """Search and filter jobs based on various criteria."""
+    try:
+        filter_params = {
         'specialization': request.args.get('specialization'),
         'experience_level': request.args.get('experience_level'),
         'min_experience_years': request.args.get('min_experience_years'),
@@ -44,49 +51,75 @@ def filtered_search_jobs():
         'city': request.args.get('city'),
         'tech_stack': request.args.get('tech_stack')
     }
-    page = request.args.get('page', default=1, type=int)
-    page_size = request.args.get('page_size', default=10, type=int)
+        page = request.args.get('page', default=1, type=int)
+        page_size = request.args.get('page_size', default=10, type=int)
 
-    results, total_jobs = jobs_service.filtered_search_jobs(filter_params, page, page_size)
+        results, total_jobs = jobs_service.filtered_search_jobs(filter_params, page, page_size)
 
-    return jsonify({
-        'total': total_jobs,
-        'results': results
-    })
+        return jsonify({
+            'total': total_jobs,
+            'results': results
+        })
+    except Exception as e:
+        current_app.logger.error(f"Error in filtered_search_jobs: {str(e)}")
+        return jsonify({"error": "An error occurred while searching jobs"}), 500
 
+# Perform an instant search on jobs based on a query string
 @job_blueprint.route('/api/instant_search_jobs', methods=['GET'])
 @cache.cached(timeout=60, query_string=True)
 def instant_search_jobs():
-    query = request.args.get('query', '')
-    page = request.args.get('page', 1, type=int)
-    page_size = request.args.get('page_size', 10, type=int)
+    """Perform an instant search on jobs based on a query string."""
+    try:
+        query = request.args.get('query', '')
+        page = request.args.get('page', 1, type=int)
+        page_size = request.args.get('page_size', 10, type=int)
 
-    results, total_jobs = jobs_service.instant_search_jobs(query, page, page_size)
+        results, total_jobs = jobs_service.instant_search_jobs(query, page, page_size)
 
-    return jsonify({
-        'total': total_jobs,
-        'results': results,
-        'page': page,
-        'page_size': page_size
-    })
+        return jsonify({
+            'total': total_jobs,
+            'results': results,
+            'page': page,
+            'page_size': page_size
+        })
+    except Exception as e:
+        current_app.logger.error(f"Error in instant_search_jobs: {str(e)}")
+        return jsonify({"error": "An error occurred while searching jobs"}), 500
 
+# Retrieve jobs for the home page, grouped by specialization
+@cache.memoize(timeout=300)
 @job_blueprint.route('/api/home_page_jobs', methods=['GET'])
 def get_home_page_jobs():
-    all_jobs = jobs_service.get_home_page_jobs()
+    """Retrieve jobs for the home page, grouped by specialization."""
+    try:
+        
+        all_jobs = jobs_service.get_home_page_jobs()
+        return jsonify({
+            'jobs': all_jobs,
+            'total_jobs': sum(len(jobs) for jobs in all_jobs.values())
+        })
     
-    return jsonify({
-        'jobs': all_jobs,
-        'total_jobs': sum(len(jobs) for jobs in all_jobs.values())
-    })
+    except Exception as e:
+        current_app.logger.error(f"Error in get_home_page_jobs: {str(e)}")
+        return jsonify({"error": "An error occurred while retrieving jobs"}), 500
 
+# Retrieve a list of all available technologies
+@cache.cached(timeout=3600*8, key_prefix='all_technologies')
 @job_blueprint.route('/api/technologies', methods=['GET'])
 def get_technologies():
-    technology_list = jobs_service.get_technologies()
-    return jsonify(technology_list)
+    """Retrieve a list of all available technologies."""
+    try:
+        technology_list = jobs_service.get_technologies()
+        return jsonify(technology_list)
+    except Exception as e:
+        current_app.logger.error(f"Error in get_technologies: {str(e)}")
+        return jsonify({"error": "An error occurred while retrieving technologies"}), 500
 
+# Allow a seeker to apply for a job
 @job_blueprint.route('/api/apply_to_job', methods=['POST'])
 @requires_auth
 def apply_to_job():
+    """Allow a seeker to apply for a job."""
     if 'user' not in session:
         return jsonify({"error": "Unauthorized access"}), 401
     
@@ -107,9 +140,11 @@ def apply_to_job():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+# Allow a seeker to bookmark a job
 @job_blueprint.route('/api/bookmark_job', methods=['POST'])
 @requires_auth
 def bookmark_job():
+    """Allow a seeker to bookmark a job."""
     if 'user' not in session:
         return jsonify({"error": "Unauthorized access"}), 401
     
@@ -130,31 +165,45 @@ def bookmark_job():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+# Check if a seeker has applied to a specific job
 @job_blueprint.route('/api/is_job_applied/<int:job_id>', methods=['GET'])
 @requires_auth
 def is_job_applied(job_id):
-    if 'user' not in session:
-        return jsonify({"error": "Unauthorized access"}), 401
-        
-    user_id = session['user']['uid']
-    is_applied = jobs_service.is_job_applied(user_id, job_id)
-        
-    return jsonify({"is_applied": is_applied})
+    """Check if the current user has applied to a specific job."""
+    try:
+        if 'user' not in session:
+            return jsonify({"error": "Unauthorized access"}), 401
+            
+        user_id = session['user']['uid']
+        is_applied = jobs_service.is_job_applied(user_id, job_id)
+            
+        return jsonify({"is_applied": is_applied})
+    except Exception as e:
+        current_app.logger.error(f"Error in is_job_applied: {str(e)}")
+        return jsonify({"error": "An error occurred while checking job application status"}), 500
     
+# Check if a seeker has bookmarked a specific job
 @job_blueprint.route('/api/is_job_saved/<int:job_id>', methods=['GET'])
 @requires_auth
 def is_job_saved(job_id):
-    if 'user' not in session:
-        return jsonify({"error": "Unauthorized access"}), 401
-        
-    user_id = session['user']['uid']
-    is_saved = jobs_service.is_job_saved(user_id, job_id)
-        
-    return jsonify({"is_saved": is_saved})
+    """Check if the current user has bookmarked a specific job."""
+    try:
+        if 'user' not in session:
+            return jsonify({"error": "Unauthorized access"}), 401
+            
+        user_id = session['user']['uid']
+        is_saved = jobs_service.is_job_saved(user_id, job_id)
+            
+        return jsonify({"is_saved": is_saved})
+    except Exception as e:
+        current_app.logger.error(f"Error in is_job_saved: {str(e)}")
+        return jsonify({"error": "An error occurred while checking job saved status"}), 500
 
+# Remove a job from the current user's bookmarks
 @job_blueprint.route('/api/unsave_job/<int:job_id>', methods=['DELETE'])
 @requires_auth
 def unsave_job(job_id):
+    """Remove a job from the current user's bookmarks."""
     if 'user' not in session:
         return jsonify({"error": "Unauthorized access"}), 401
     
