@@ -111,7 +111,7 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession, userData }) => {
     setCurrentSlide((prev) => (prev === 1 ? 0 : 1));
   };
 
-  const techStackIcons = job.tech_stack.filter(tech => icons[tech.toLowerCase()]);
+  const techStackIcons = (job.tech_stack || []).filter(tech => icons[tech.toLowerCase()]);
   const displayedTechStack = techStackIcons.slice(0, 5);
   const remainingTechCount = techStackIcons.length - 5;
 

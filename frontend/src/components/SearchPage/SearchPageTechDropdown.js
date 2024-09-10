@@ -15,7 +15,6 @@ const SearchPageTechDropdown = ({ selectedTechnologies, setSelectedTechnologies 
         if (response.ok) {
           const techNames = data.map(tech => tech.name); // Fixed to use data from response.json()
           setTechnologies(techNames);
-          console.log("Fetched Technologies:", techNames); // Log fetched data directly
         } else {
           console.error('Error fetching technologies:', data.error);
         }
