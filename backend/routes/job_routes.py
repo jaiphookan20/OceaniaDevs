@@ -4,6 +4,7 @@ from service.seeker_service import SeekerService
 from models import Seeker, Job, Company, Application, Technology, JobTechnology
 from service.jobs_service import JobsService
 from auth.decorators import requires_auth
+from utils.time import timing_decorator
 from flask_cors import CORS
 from extensions import db
 from flask_caching import Cache
@@ -23,6 +24,7 @@ jobs_service = JobsService()
 CORS(job_blueprint, supports_credentials=True, resources={r'/*': {'origins': 'http://localhost:3000'}})
 
 @job_blueprint.route('/api/job_post/<int:job_id>', methods=['GET'])
+@timing_decorator
 def get_job_post_page(job_id):
     """Retrieve All Job Details for a specific job post."""
     try:        
@@ -35,6 +37,7 @@ def get_job_post_page(job_id):
         return jsonify({"error": "An unexpected error occurred"}), 500
 
 @job_blueprint.route('/api/filtered_search_jobs', methods=['GET'])
+@timing_decorator
 def filtered_search_jobs():
     """Search and filter jobs based on various criteria."""
     try:
@@ -63,6 +66,7 @@ def filtered_search_jobs():
 
 
 @job_blueprint.route('/api/instant_search_jobs', methods=['GET'])
+@timing_decorator
 def instant_search_jobs():
     """Perform an instant search on jobs based on a query string."""
     try:
@@ -84,6 +88,7 @@ def instant_search_jobs():
 
 
 @job_blueprint.route('/api/home_page_jobs', methods=['GET'])
+@timing_decorator
 def get_home_page_jobs():
     """Retrieve jobs for the home page, grouped by specialization."""
     try:
@@ -100,6 +105,7 @@ def get_home_page_jobs():
 
 
 @job_blueprint.route('/api/technologies', methods=['GET'])
+@timing_decorator
 def get_technologies():
     """Retrieve a list of all available technologies."""
     try:

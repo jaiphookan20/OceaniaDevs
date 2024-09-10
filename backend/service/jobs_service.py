@@ -103,16 +103,20 @@ class JobsService:
         """Perform an instant search on jobs based on a query string."""
         try:
             if query:
+                # Convert search terms to a tsquery
                 search_terms = query.split()
-                search_query = ' | '.join(search_terms)
-                tsquery = func.to_tsquery('english', search_query)
+                search_query = ' & '.join(search_terms)  # Changed from '|' to '&' for more precise matching
+                tsquery = func.plainto_tsquery('english', search_query)  # Using plainto_tsquery for better handling of input
                 
                 jobs_query = Job.query.join(Company).filter(
                     or_(
                         Job.search_vector.op('@@')(tsquery),
                         Company.name.ilike(f'%{query}%')
                     )
-                ).order_by(func.ts_rank(Job.search_vector, tsquery).desc())
+                ).order_by(
+                    # Highlight: Improved ranking using ts_rank_cd
+                    func.ts_rank_cd(Job.search_vector, tsquery, 32).desc()  # 32 is a normalization option
+                )
 
                 total_jobs = jobs_query.count()
                 jobs = jobs_query.offset((page - 1) * page_size).limit(page_size).all()
@@ -140,7 +144,6 @@ class JobsService:
         except Exception as e:
             current_app.logger.error(f"Error in get_home_page_jobs: {str(e)}")
             raise
-
     def _format_job_results(self, jobs):
         """Format job results for API responses."""
         try:
@@ -169,7 +172,7 @@ class JobsService:
         except Exception as e:
             current_app.logger.error(f"Error in _format_job_results: {str(e)}")
             raise
-    
+        
     @cache.memoize(timeout=86400)
     def get_technologies(self):
         """Retrieve a list of all available technologies."""
