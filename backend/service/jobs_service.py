@@ -6,10 +6,11 @@ from datetime import datetime, timedelta
 import config
 import os
 from utils.time import get_relative_time
-from sqlalchemy import or_, func
+from sqlalchemy import or_, func, select
 import json
-from app import current_app
+from sqlalchemy.sql import text
 from extensions import cache
+from flask import current_app
 
 class JobsService:
 
@@ -100,22 +101,23 @@ class JobsService:
     
     @cache.memoize(timeout=300)
     def instant_search_jobs(self, query, page, page_size):
-        """Perform an instant search on jobs based on a query string."""
+        """Perform an instant search on jobs based on a query string, allowing partial matches."""
         try:
             if query:
-                # Convert search terms to a tsquery
+                # Prepare the search query for partial matching
                 search_terms = query.split()
-                search_query = ' & '.join(search_terms)  # Changed from '|' to '&' for more precise matching
-                tsquery = func.plainto_tsquery('english', search_query)  # Using plainto_tsquery for better handling of input
+                search_query = ' & '.join(term + ':*' for term in search_terms)
+                tsquery = func.websearch_to_tsquery('english', search_query)
                 
                 jobs_query = Job.query.join(Company).filter(
                     or_(
                         Job.search_vector.op('@@')(tsquery),
+                        Job.title.ilike(f'%{query}%'),
                         Company.name.ilike(f'%{query}%')
                     )
                 ).order_by(
-                    # Highlight: Improved ranking using ts_rank_cd
-                    func.ts_rank_cd(Job.search_vector, tsquery, 32).desc()  # 32 is a normalization option
+                    # Highlight: Using ts_rank_cd for ranking without similarity function
+                    func.ts_rank_cd(Job.search_vector, tsquery, 32).desc()
                 )
 
                 total_jobs = jobs_query.count()
@@ -144,6 +146,7 @@ class JobsService:
         except Exception as e:
             current_app.logger.error(f"Error in get_home_page_jobs: {str(e)}")
             raise
+
     def _format_job_results(self, jobs):
         """Format job results for API responses."""
         try:
@@ -172,7 +175,7 @@ class JobsService:
         except Exception as e:
             current_app.logger.error(f"Error in _format_job_results: {str(e)}")
             raise
-        
+    
     @cache.memoize(timeout=86400)
     def get_technologies(self):
         """Retrieve a list of all available technologies."""
