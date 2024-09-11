@@ -39,15 +39,7 @@ const App = () => {
   const [specialization, setSpecialization] = useState("");
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState([]);
-
-  // const [filters, setFilters] = useState({
-  //   specialization: "",
-  //   experience_level: "",
-  //   city: "",
-  //   industry: "",
-  //   tech_stack: [],
-  //   salary_range: "",
-  // });
+  
   const [filters, setFilters] = useState({
     specialization: "",
     experience_level: "",
@@ -127,7 +119,6 @@ const App = () => {
       }
       const data = await response.json();
       setHomePageJobs(data.jobs);
-      console.log(`homePageJobs: ${homePageJobs}`);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching home page jobs:", error);
@@ -197,21 +188,24 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
     navigate(`/job_post/${jobId}`);
   };
 
-  const handleSearch = async (event) => {
-    const searchValue = event.target.value;
-    setSearchQuery(searchValue);
-    setSearchTitle(searchValue || "Technology"); 
+  const debouncedSearch = debounce(async (searchValue, fetchAllJobs, setSearchTitle, setAllJobs, setTotalJobs, pageSize) => {
+    setSearchTitle(searchValue || "Technology");
     if (searchValue.trim() === "") {
-      // When clearing the search, fetch all jobs again
       const allJobsData = await fetchAllJobs();
       setAllJobs(allJobsData.jobs);
       setTotalJobs(allJobsData.total_jobs);
     } else {
-      // const data = await searchService.instantSearchJobs(searchValue);
       const data = await searchService.instantSearchJobs(searchValue, 1, pageSize);
       setAllJobs(data.results);
       setTotalJobs(data.total);
     }
+  }, 600);
+  
+  const handleSearch = (event) => {
+    const searchValue = event.target.value;
+    console.log('Input changed:', searchValue);
+    setSearchQuery(searchValue);
+    debouncedSearch(searchValue, fetchAllJobs, setSearchTitle, setAllJobs, setTotalJobs, pageSize);
   };
   
 
@@ -243,26 +237,6 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
   };
 
   
-  // const handleFilterSearch = useCallback(async (page = 1) => {
-  //   try {
-  //     const data = await searchService.filteredSearchJobs({...filters, page, page_size: pageSize});
-  //     setAllJobs(data.jobs);
-  //     setTotalJobs(data.total_jobs);
-  //     setCurrentPage(page);
-  //     if (filters.tech_stack.length > 0) {
-  //       setSearchTitle(`${filters.tech_stack[0].charAt(0).toUpperCase() + filters.tech_stack[0].slice(1)} Jobs`);
-  //     } else if (filters.specialization) {
-  //       setSearchTitle(`${filters.specialization} Jobs`);
-  //     } else {
-  //       setSearchTitle("Technology Jobs");
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching filtered jobs:', error);
-  //     setAllJobs([]);
-  //     setTotalJobs(0);
-  //     toast.error("Failed to fetch jobs. Please try again later.");
-  //   }
-  // }, [filters, pageSize, currentPage, allJobs.length]);
 
   const handleFilterSearch = useCallback(
     debounce(async (page = 1) => {
