@@ -91,7 +91,7 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
   
   return (
     <div className="flex flex-col max-w-6xl mx-auto min-h-screen justify-center">
-      <div className="flex-grow container mx-auto bg-white shadow-md rounded-lg border-t">
+      <div className="flex-grow container mx-auto bg-white shadow-lg rounded-lg border border-slate-400 ">
       <header className="flex justify-between pb-1 mb-4">
           <div className="flex items-center">
             <img src={job.logo} alt={job.company} className="p-6 max-w-32" />
