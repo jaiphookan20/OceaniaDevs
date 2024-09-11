@@ -1,5 +1,6 @@
 import React from "react";
 import JobCard from "../HomePage/JobCard";
+import HashLoader from "react-spinners/HashLoader";
 
 const SearchPageJobSection = ({
   jobs,
@@ -12,12 +13,21 @@ const SearchPageJobSection = ({
   onPageChange,
   isInSession,
   filters,
-  searchQuery
+  searchQuery,
+  isSearchPerformed // New prop to indicate if search has been performed
 }) => {
-  if (!jobs || jobs.length === 0) {
+  if (!jobs) {
     return (
-      <div className="mx-auto max-w-6xl">
-        <h2 className="text-3xl font-bold mb-4">No Jobs Found</h2>
+      <div className="flex justify-center items-center h-64">
+        <HashLoader color="#8823cf" size={50} />
+      </div>
+    );
+  }
+
+  else if (jobs.length === 0) {
+    return (
+      <div className="mx-auto max-w-6xl" style={{fontFamily: "Avenir"}}>
+        <h2 className="text-3xl font-bold text-slate-600 mb-4">Whoops, No Jobs Found for your search</h2>
         <p>Try adjusting your search criteria or clearing filters.</p>
       </div>
     );
@@ -28,22 +38,41 @@ const SearchPageJobSection = ({
   /* Title Slug */
   const getFilterSummary = () => {
     if (searchQuery && searchQuery.trim() !== "") {
-      return `Displaying jobs matching "${searchQuery}"`;
+      return (
+        <span>
+          Displaying jobs matching "
+          <span className="text-purple-600 font-medium">{searchQuery}</span>"
+        </span>
+      );
     }
 
     const parts = [];
     if (filters.specialization) parts.push(filters.specialization);
-    if (filters.salary_range) parts.push(`$${filters.salary_range}`);
+    if (filters.experience_level) parts.push(filters.experience_level);
+    if (filters.work_location) parts.push(filters.work_location);
+    if (filters.job_arrangement) parts.push(filters.job_arrangement);
+    if (filters.city) parts.push(filters.city);
     if (filters.tech_stack && filters.tech_stack.length > 0) {
-      parts.push(filters.tech_stack.join(', '));
+      parts.push(filters.tech_stack[0]);
     }
     
-    // if (parts.length === 0) return `${totalJobs} Jobs Found`;
-    if (parts.length === 0) return `Displaying All Jobs`;
+    if (parts.length === 0) return "Displaying All Jobs";
     
-    let summary = parts.join(' • ');
-    summary = "Displaying Jobs: " + summary;
-    return summary.length > 60 ? summary.substring(0, 47) + '...' : summary;
+    const highlightedParts = parts.map((part, index) => (
+      <React.Fragment key={index}>
+        {index > 0 && " • "}
+        <span className="text-teal-600 font-medium">{part}</span>
+      </React.Fragment>
+    ));
+
+    let summary;
+    if (isSearchPerformed) {
+      summary = <span>Displaying Jobs: {highlightedParts}</span>;
+    } else {
+      summary = <span>Selected: {highlightedParts}</span>;
+    }
+
+    return summary;
   };
 
   return (

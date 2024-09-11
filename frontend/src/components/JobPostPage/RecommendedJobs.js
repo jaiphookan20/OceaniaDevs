@@ -33,16 +33,16 @@ const RecommendedJobCard = ({ job }) => {
       <span className="ml-2 bg-rose-100 text-rose-800 text-xs font-medium px-2.5 py-0.5 rounded">
         {job.specialization}
       </span>
-        {job.min_experience_years && job.min_experience_years !== ''  && (
+        {/* {job.min_experience_years && job.min_experience_years !== '' || job.min_experience_years == 0 && (
          <span className="ml-2 bg-lime-100 text-lime-800 text-xs font-medium px-2.5 py-0.5 rounded">
          {job.min_experience_years}+ Years
        </span>
-        )}
-        {job.salary_range && job.salary_range !== 'Not Listed' && (
+        )} */}
+        {/* {job.salary_range && job.salary_range !== 'Not Listed' && (
          <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
          ${job.salary_range}
        </span>
-        )}
+        )} */}
 
     </div>
   </div>

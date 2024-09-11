@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import SearchPageBar from "./SearchPageBar";
 import SearchPageHeader from "./SearchPageHeader";
 import SearchPageJobSection from "./SearchPageJobSection";
@@ -29,6 +29,7 @@ const SearchPage = ({
   const location = useLocation();
   // Create a ref to track if the initial fetch has been done
   const initialFetchDone = useRef(false);
+  const [isSearchPerformed, setIsSearchPerformed] = useState(false);
 
   useEffect(() => {
     // Only run this effect if the initial fetch hasn't been done
@@ -55,6 +56,11 @@ const SearchPage = ({
     }
   }, [location, specialization, jobs, onTechFilter, onFilterChange, onFilterSearch]);
 
+  const handleFilterSearch = (page) => {
+    setIsSearchPerformed(true);
+    onFilterSearch(page);
+  };
+
   return (
     <div className="max-w-6xl mx-auto">
       <nav className="flex items-center text-sm text-gray-500 mb-4 space-x-1">
@@ -67,14 +73,19 @@ const SearchPage = ({
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}
         filters={filters}
-        onFilterChange={onFilterChange}
-        onFilterSearch={() => onFilterSearch(1)}
-        onClearAll={onClearAll}
+        onFilterChange={(e) => {
+          onFilterChange(e);
+          setIsSearchPerformed(false);
+        }}
+        onFilterSearch={() => handleFilterSearch(1)}
+        onClearAll={() => {
+          onClearAll();
+          setIsSearchPerformed(false);
+        }}
       />
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-7">
         <div className="col-span-2">
           <SearchPageJobSection
-            title={`${filters.specialization || 'All'} Roles`}
             jobs={jobs}
             onSave={onSave}
             onApply={onApply}
@@ -82,10 +93,11 @@ const SearchPage = ({
             currentPage={currentPage}
             totalJobs={totalJobs}
             pageSize={pageSize}
-            onPageChange={onPageChange}
+            onPageChange={handleFilterSearch}
             isInSession={isInSession}
             filters={filters}
             searchQuery={searchQuery}
+            isSearchPerformed={isSearchPerformed}
           />
         </div>
       </div>
