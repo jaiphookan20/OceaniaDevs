@@ -131,7 +131,7 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
             {job.company_description}
           </p>
         </div>
-        <div className="grid grid-cols-4 gap-6 mt-6 p-4 bg-violet-100 rounded-md shadow-sm">
+        <div className="grid grid-cols-4 gap-6 mt-6 p-4 bg-[#f5f5ec] border border-slate-300 rounded-md shadow-sm">
   {[
     { icon: "https://img.icons8.com/?size=100&id=Z3STIRU4hxMn&format=png&color=000000", label: "Industry", value: job.industry },
     { icon: "https://img.icons8.com/?size=100&id=3BUZy0U5CdQL&format=png&color=000000", label: "Experience", value: job.experience_level },
@@ -142,7 +142,7 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
     { icon: "https://img.icons8.com/?size=100&id=aUSV1wxr8mk2&format=png&color=000000", label: "Work Location", value: job.work_location },
     { icon: "https://img.icons8.com/?size=100&id=8Y1SrtCBXvmA&format=png&color=000000", label: "Job Arrangement", value: job.job_arrangement }
   ].map((item, index) => (
-    <div key={index} className="flex flex-col items-center p-2 bg-slate-50 rounded-md shadow-sm transition-all duration-300 hover:shadow-md">
+    <div key={index} className="flex flex-col items-center p-2 bg-white rounded-md shadow-sm border border-slate-400 transition-all duration-300 hover:shadow-md">
       <img
         width="40"
         height="40"
@@ -150,8 +150,8 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
         alt={item.label}
         className="mb-2"
       />
-      <p className="text-sm text-slate-600 mb-1">{item.label}</p>
-      <p className="text-md font-semibold text-gray-700 text-center" style={{ fontFamily: "Avenir, sans-serif" }}>{item.value}</p>
+      <p className="text-sm text-slate-600 mb-1 font-medium" style={{fontFamily: "HeyWow, sans-serif"}}>{item.label}</p>
+      <p className="text-md font-bold text-gray-700 text-center" style={{ fontFamily: "Avenir, sans-serif" }}>{item.value}</p>
     </div>
   ))}
 </div>
