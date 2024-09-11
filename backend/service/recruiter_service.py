@@ -476,14 +476,15 @@ class RecruiterService:
             jobs = Job.query.filter_by(company_id=company_id).all()
             job_count = len(jobs)
             
-            # Collect and de-duplicate tech stack
-            tech_stack = []
+           # Collect all unique technologies for all jobs of this company
+            unique_tech_stack = set()
             for job in jobs:
+                # Fetch technologies for each job using JobTechnology
                 technologies = db.session.query(Technology.name).join(JobTechnology, Technology.id == JobTechnology.technology_id).filter(JobTechnology.job_id == job.job_id).all()
-                tech_stack = [tech.name for tech in technologies]
+                unique_tech_stack.update(tech[0] for tech in technologies)
             
-            # Remove duplicates and sort
-            unique_tech_stack = sorted(set(tech_stack))
+            # Convert set to sorted list
+            unique_tech_stack = sorted(unique_tech_stack)
             
             company_data = {
                 "company_id": company.company_id,
