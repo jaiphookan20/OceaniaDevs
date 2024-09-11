@@ -5,14 +5,6 @@ import JobCard from "../HomePage/JobCard";
 const JobSection = ({ title, jobs, onSave, onApply, onView, company, isInSession, onViewAll, userData }) => {
   const navigate = useNavigate();
 
-/* We added a handleViewAll function that extracts the specialization from the title and navigates to the search page with the specialization as a query parameter.
-   We changed the "View all" link to a button that calls this function when clicked.
-   We updated the route to /search-page to match your existing route structure. */
-  const handleViewAll = () => {
-    const specialization = title.replace(" Roles", "");
-    navigate(`/search-page?specialization=${encodeURIComponent(specialization)}`);
-  };
-
   return (
     <div className="mx-auto max-w-6xl mb-8">
       <div className="flex justify-between items-center mb-4">

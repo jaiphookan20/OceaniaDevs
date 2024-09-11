@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import SearchPageTechDropdown from "./SearchPageTechDropdown";
 import searchIcon from "../../assets/search-icon.svg";
 
@@ -10,13 +10,6 @@ const SearchPageBar = ({
   onFilterSearch,
   onClearAll,
 }) => {
-  // Add refs for each select element
-  const cityRef = useRef(null);
-  const specializationRef = useRef(null);
-  const experienceLevelRef = useRef(null);
-  const workLocationRef = useRef(null);
-  const jobArrangementRef = useRef(null);
-
   const handleSearch = (e) => {
     e.preventDefault();
     onFilterSearch();
@@ -29,25 +22,6 @@ const SearchPageBar = ({
     const selectedClass = `${baseClass} border-lime-500 bg-lime-100 text-lime-700 border-2 font-semibold`;
     
     return filters[filterName] ? selectedClass : defaultClass;
-  };
-
-  // Add this useEffect to reset select elements when filters change
-  useEffect(() => {
-    cityRef.current.value = filters.city || "";
-    specializationRef.current.value = filters.specialization || "";
-    experienceLevelRef.current.value = filters.experience_level || "";
-    workLocationRef.current.value = filters.work_location || "";
-    jobArrangementRef.current.value = filters.job_arrangement || "";
-  }, [filters]);
-
-  // Modify the onClearAll function to reset select elements
-  const handleClearAll = () => {
-    onClearAll();
-    cityRef.current.value = "";
-    specializationRef.current.value = "";
-    experienceLevelRef.current.value = "";
-    workLocationRef.current.value = "";
-    jobArrangementRef.current.value = "";
   };
 
   return (
@@ -65,7 +39,6 @@ const SearchPageBar = ({
             />
           </div>
           <select
-            ref={cityRef}
             name="city"
             className={`${getSelectClass('city')} w-40`}
             value={filters.city}
@@ -97,7 +70,7 @@ const SearchPageBar = ({
           <button
             type="button"
             className="bg-black text-white rounded-lg px-4 py-2"
-            onClick={handleClearAll}
+            onClick={onClearAll}
           >
             Clear All
           </button>
@@ -113,7 +86,6 @@ const SearchPageBar = ({
         {/* Bottom row: All other filters */}
         <div className="flex space-x-4">
           <select
-            ref={specializationRef}
             name="specialization"
             className={`${getSelectClass('specialization')} flex-grow`}
             value={filters.specialization}
@@ -132,7 +104,6 @@ const SearchPageBar = ({
             <option value="Cybersecurity">Cybersecurity</option>
           </select>
           <select
-            ref={experienceLevelRef}
             name="experience_level"
             className={`${getSelectClass('experience_level')} flex-grow`}
             value={filters.experience_level}
@@ -145,7 +116,6 @@ const SearchPageBar = ({
             <option value="Executive">Executive</option>
           </select>
           <select
-            ref={workLocationRef}
             name="work_location"
             className={`${getSelectClass('work_location')} flex-grow`}
             value={filters.work_location}
@@ -157,7 +127,6 @@ const SearchPageBar = ({
             <option value="Office">Office</option>
           </select>
           <select
-            ref={jobArrangementRef}
             name="job_arrangement"
             className={`${getSelectClass('job_arrangement')} flex-grow`}
             value={filters.job_arrangement}

@@ -75,7 +75,7 @@ const JobPostSideBar = ({ job, onSave, onApply, isInSession }) => {
 
   return (
     <div>
-          <div className="w-64 bg-white rounded-lg shadow-sm border border-slate-200 p-4 font-sans">
+          <div className="w-64 bg-stone-100 rounded-lg shadow-sm border border-slate-400 p-4 font-sans">
       <button 
         onClick={handleApplyClick} 
         className={`w-full py-2 rounded-md mb-2 flex items-center justify-center ${
@@ -98,7 +98,7 @@ const JobPostSideBar = ({ job, onSave, onApply, isInSession }) => {
         className={`w-full py-2 rounded-md mb-2 flex items-center justify-center ${
           isSaved 
             ? "bg-lime-500 text-white hover:bg-lime-600" 
-            : "bg-lime-100 hover:bg-lime-500 hover:text-white hover:font-semibold text-green-500 border border-green-500"
+            : "bg-white hover:bg-lime-500 hover:text-white hover:font-semibold text-green-500 border border-green-500"
         }`}
       >
         <span className="mr-2">
@@ -110,10 +110,10 @@ const JobPostSideBar = ({ job, onSave, onApply, isInSession }) => {
       </button>
       
       {/* New Share button and menu */}
-      <div className="relative mt-4">
+      {/* <div className="relative mt-4">
         <button 
           onClick={handleShareClick}
-          className="w-full bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow flex items-center justify-center"
+          className="w-full bg-yellow-50/50 hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow flex items-center justify-center"
         >
           <span className="mr-2">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f4d50b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-smile"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
@@ -137,7 +137,7 @@ const JobPostSideBar = ({ job, onSave, onApply, isInSession }) => {
             </div>
           </div>
         )}
-      </div>
+      </div> */}
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}

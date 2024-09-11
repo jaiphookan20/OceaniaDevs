@@ -139,7 +139,7 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession, userData }) => {
                       />
                     )}
                   </h3>
-                  <div className="flex flex-wrap gap-2 pt-1">
+                  <div className="flex flex-wrap gap-2 pt-1" style={{fontFamily: "HeyWow, san-serif"}}>
                     <span className="bg-fuchsia-100 text-fuchsia-600 font-medium px-2 py-1 rounded-lg hover:underline cursor-pointer" onClick={() => navigate(`/company/${job.company_id}`)}>
                       {job.company}
                     </span>
