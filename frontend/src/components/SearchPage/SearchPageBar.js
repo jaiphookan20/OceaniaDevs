@@ -1,5 +1,6 @@
 import React from "react";
 import SearchPageTechDropdown from "./SearchPageTechDropdown";
+import searchIcon from "../../assets/search-icon.svg";
 
 const SearchPageBar = ({
   searchQuery,
@@ -12,6 +13,15 @@ const SearchPageBar = ({
   const handleSearch = (e) => {
     e.preventDefault();
     onFilterSearch();
+  };
+
+  // Update this function to maintain consistent width
+  const getSelectClass = (filterName) => {
+    const baseClass = "border rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200";
+    const defaultClass = `${baseClass} border-green-300 bg-green-50 text-green-700 font-medium`;
+    const selectedClass = `${baseClass} border-lime-500 bg-lime-100 text-lime-700 border-2 font-semibold`;
+    
+    return filters[filterName] ? selectedClass : defaultClass;
   };
 
   return (
@@ -30,7 +40,7 @@ const SearchPageBar = ({
           </div>
           <select
             name="city"
-            className="border border-green-300 bg-green-50 text-green-700 font-medium rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200"
+            className={`${getSelectClass('city')} w-40`}
             value={filters.city}
             onChange={onFilterChange}
           >
@@ -39,8 +49,23 @@ const SearchPageBar = ({
             <option value="Melbourne">Melbourne, VIC</option>
             <option value="Brisbane">Brisbane, QLD</option>
             <option value="Canberra">Canberra, ACT</option>
-            <option value="Canberra">Canberra, ACT</option>
-            {/* Add more cities as needed */}
+            <option value="Perth">Perth, WA</option>
+            <option value="Adelaide">Adelaide, SA</option>
+            <option value="Gold Coast">Gold Coast, QLD</option>
+            <option value="Newcastle">Newcastle, NSW</option>
+            <option value="Wollongong">Wollongong, NSW</option>
+            <option value="Sunshine Coast">Sunshine Coast, QLD</option>
+            <option value="Gold Coast">Gold Coast, QLD</option>
+            <option value="Newcastle">Newcastle, NSW</option>
+            <option value="Cairns">Cairns, QLD</option>
+            <option value="Darwin">Darwin, NT</option>
+            <option value="Hobart">Hobart, TAS</option>
+            <option value="Launceston">Launceston, TAS</option>
+            <option value="Mackay">Mackay, QLD</option>
+            <option value="Rockhampton">Rockhampton, QLD</option>
+            <option value="Townsville">Townsville, QLD</option>
+            <option value="Toowoomba">Toowoomba, QLD</option>
+            <option value="Townsville">Townsville, QLD</option>
           </select>
           <button
             type="button"
@@ -51,9 +76,10 @@ const SearchPageBar = ({
           </button>
           <button
             type="submit"
-            className="bg-purple-600 text-white rounded-lg px-4 py-2"
+            className="flex bg-purple-600 text-white rounded-lg px-4 py-2"
           >
             Search
+            <img src={searchIcon} className="ml-2" />
           </button>
         </div>
 
@@ -61,7 +87,7 @@ const SearchPageBar = ({
         <div className="flex space-x-4">
           <select
             name="specialization"
-            className="flex-grow border border-green-300 bg-green-50 text-green-700 font-medium rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200"
+            className={`${getSelectClass('specialization')} flex-grow`}
             value={filters.specialization}
             onChange={onFilterChange}
           >
@@ -76,12 +102,10 @@ const SearchPageBar = ({
             <option value="Project Management">Project Management</option>
             <option value="IT Consulting">IT Consulting</option>
             <option value="Cybersecurity">Cybersecurity</option>
-            
-
           </select>
           <select
             name="experience_level"
-            className="flex-grow border border-green-300 bg-green-50 text-green-700 font-medium rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200"
+            className={`${getSelectClass('experience_level')} flex-grow`}
             value={filters.experience_level}
             onChange={onFilterChange}
           >
@@ -93,19 +117,18 @@ const SearchPageBar = ({
           </select>
           <select
             name="work_location"
-            className="flex-grow border border-green-300 bg-green-50 text-green-700 font-medium rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200"
+            className={`${getSelectClass('work_location')} flex-grow`}
             value={filters.work_location}
             onChange={onFilterChange}
           >
             <option value="">Flexibility</option>
-            <option value="Remote">Any</option>
             <option value="Remote">Remote</option>
             <option value="Hybrid">Hybrid</option>
             <option value="Office">Office</option>
           </select>
           <select
             name="job_arrangement"
-            className="flex-grow border border-green-300 bg-green-50 text-green-700 font-medium rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200"
+            className={`${getSelectClass('job_arrangement')} flex-grow`}
             value={filters.job_arrangement}
             onChange={onFilterChange}
           >
