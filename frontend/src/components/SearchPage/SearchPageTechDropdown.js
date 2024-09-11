@@ -33,11 +33,15 @@ const SearchPageTechDropdown = ({ selectedTechnologies, setSelectedTechnologies 
     tech.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Highlight: New function to get the selected technology
+  const getSelectedTech = () => selectedTechnologies.length > 0 ? selectedTechnologies[0] : null;
+
   const handleSelect = (tech) => {
+    // Highlight: Update to only allow one selection
     if (selectedTechnologies.includes(tech)) {
-      setSelectedTechnologies(selectedTechnologies.filter(t => t !== tech));
+      setSelectedTechnologies([]);
     } else {
-      setSelectedTechnologies([...selectedTechnologies, tech]);
+      setSelectedTechnologies([tech]);
     }
   };
 
@@ -45,9 +49,21 @@ const SearchPageTechDropdown = ({ selectedTechnologies, setSelectedTechnologies 
     <div className="relative">
       <button
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className="rounded-lg px-16 py-2 border border-green-300 bg-green-50 text-green-700 hover:bg-lime-200"
+        className="rounded-lg px-4 py-2 border border-green-300 bg-green-50 text-green-700 hover:bg-lime-200 flex items-center justify-start w-full"
       >
-        Technologies ({selectedTechnologies.length})
+        {/* Highlight: Updated button content */}
+        {getSelectedTech() ? (
+          <>
+            <img
+              src={icons[getSelectedTech().toLowerCase()] || icons['default']}
+              alt={getSelectedTech()}
+              className="w-6 h-6 mr-2"
+            />
+            <span className="font-semibold">{getSelectedTech().charAt(0).toUpperCase() + getSelectedTech().slice(1)}</span>
+          </>
+        ) : (
+          <span>Technologies</span>
+        )}
       </button>
       {dropdownOpen && (
         <div className="absolute mt-1 w-60 bg-white border rounded-lg shadow-lg z-50">
@@ -77,12 +93,13 @@ const SearchPageTechDropdown = ({ selectedTechnologies, setSelectedTechnologies 
                 }`}
                 onClick={() => handleSelect(tech)}
               >
+                {/* Highlight: Capitalized the first letter of the tech */}
                 <img
                   src={icons[tech.toLowerCase()] || icons['default']} // Default icon if not found
                   alt={tech}
                   className="w-6 h-6 ml-4 mr-6"
                 />
-                <span>{tech}</span>
+                <span>{tech.charAt(0).toUpperCase() + tech.slice(1)}</span>
               </div>
             ))}
           </div>
