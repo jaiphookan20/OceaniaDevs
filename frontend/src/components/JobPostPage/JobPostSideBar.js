@@ -80,7 +80,7 @@ const JobPostSideBar = ({ job, onSave, onApply, isInSession }) => {
         onClick={handleApplyClick} 
         className={`w-full py-2 rounded-md mb-2 flex items-center justify-center ${
           isApplied 
-            ? "bg-green-600 hover:bg-green-700 text-white" 
+            ? "bg-lime-500 hover:bg-green-700 text-white" 
             : "bg-violet-600 hover:bg-violet-900 text-white"
         }`}
         disabled={isApplied}
@@ -97,7 +97,7 @@ const JobPostSideBar = ({ job, onSave, onApply, isInSession }) => {
         onClick={handleSaveClick} 
         className={`w-full py-2 rounded-md mb-2 flex items-center justify-center ${
           isSaved 
-            ? "bg-lime-500 text-white hover:bg-lime-600" 
+            ? "bg-fuchsia-500 text-white hover:bg-lime-600" 
             : "bg-white hover:bg-lime-500 hover:text-white hover:font-semibold text-green-500 border border-green-500"
         }`}
       >

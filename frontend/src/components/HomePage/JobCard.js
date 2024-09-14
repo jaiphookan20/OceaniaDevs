@@ -14,6 +14,7 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession, userData }) => {
   // test
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isInSession) {
@@ -92,16 +93,15 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession, userData }) => {
     }
 
     try {
-      await onApply(job.job_id);
-      setIsApplied(true);
-      toast.success("Application submitted successfully!");
+      navigate(`/job_post/${job.job_id}`);
+      // setIsApplied(true);
+      // toast.success("Application submitted successfully!");
     } catch (error) {
       console.error("Error applying to job:", error);
       toast.error("Failed to apply to job.");
     }
   };
 
-  const navigate = useNavigate();
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev === 0 ? 1 : 0));
@@ -172,7 +172,7 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession, userData }) => {
                 <button
                   className={`px-4 py-2 border border-gray-300 rounded-md ${
                     isSaved
-                      ? "bg-fuchsia-900 hover:bg-fuchsia-700 text-white"
+                      ? "bg-fuchsia-600 hover:bg-fuchsia-700 text-white"
                       : "hover:bg-lime-300"
                   }`}
                   onClick={handleSaveToggle}
@@ -182,7 +182,7 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession, userData }) => {
                 <button
                   className={`px-4 py-2 rounded-md ${
                     isApplied
-                      ? "bg-lime-400 border border-emerald-600 text-black cursor-not-allowed"
+                      ? "bg-lime-500 border border-emerald-600 text-white cursor-not-allowed"
                       : "bg-black hover:bg-violet-700 text-white"
                   }`}
                   
