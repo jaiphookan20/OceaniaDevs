@@ -199,10 +199,11 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
       setAllJobs(data.results);
       setTotalJobs(data.total);
     }
-  }, 600);
+  }, 700);
   
-  const handleSearchChange = (event) => {
+  const handleSearch = (event) => {
     const searchValue = event.target.value;
+    console.log('Input changed:', searchValue);
     setSearchQuery(searchValue);
     debouncedSearch(searchValue, fetchAllJobs, setSearchTitle, setAllJobs, setTotalJobs, pageSize);
   };
@@ -514,7 +515,7 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
               onPageChange={handlePageChange}
               searchQuery={searchQuery}
               filters={filters}
-              onSearchChange={handleSearchChange}
+              onSearchChange={handleSearch}
               onFilterChange={handleChange}
               onFilterSearch={handleFilterSearch}
               isInSession={isInSession}
@@ -540,7 +541,7 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
               onPageChange={handlePageChange}
               searchQuery={searchQuery}
               filters={filters}
-              onSearchChange={handleSearchChange}
+              onSearchChange={handleSearch}
               onFilterChange={handleChange}
               onFilterSearch={handleFilterSearch}
             />
