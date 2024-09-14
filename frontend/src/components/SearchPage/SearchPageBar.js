@@ -10,12 +10,18 @@ const SearchPageBar = ({
   onFilterSearch,
   onClearAll,
 }) => {
+  // Add refs for each select element
+  const cityRef = useRef(null);
+  const specializationRef = useRef(null);
+  const experienceLevelRef = useRef(null);
+  const workLocationRef = useRef(null);
+  const jobArrangementRef = useRef(null);
+
   const handleSearch = (e) => {
     e.preventDefault();
     onFilterSearch();
   };
 
-  // Update this function to maintain consistent width
   const getSelectClass = (filterName) => {
     const baseClass = "border rounded-lg px-4 py-2 text-gray-600 hover:bg-lime-200";
     const defaultClass = `${baseClass} border-green-300 bg-green-50 text-green-700 font-medium`;
@@ -23,13 +29,6 @@ const SearchPageBar = ({
     
     return filters[filterName] ? selectedClass : defaultClass;
   };
-
-  // Add refs for each select element
-  const cityRef = useRef(null);
-  const specializationRef = useRef(null);
-  const experienceLevelRef = useRef(null);
-  const workLocationRef = useRef(null);
-  const jobArrangementRef = useRef(null);
 
   // Add this useEffect to reset select elements when filters change
   useEffect(() => {
