@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import config
 import os
 from utils.time import get_relative_time
-from sqlalchemy import or_, func, select
+from sqlalchemy import or_, func, select, and_
 import json
 from sqlalchemy.sql import text
 from extensions import cache
@@ -80,14 +80,25 @@ class JobsService:
 
             for key, value in filter_params.items():
                 if value:
+                    # Existing filters
                     if key == 'work_location':
-                        jobs_query = jobs_query.filter(or_(Job.city.ilike(f"%{value}%"),
-                                                           Job.state.ilike(f"%{value}%"),
-                                                           Job.country.ilike(f"%{value}%")))
+                        jobs_query = jobs_query.filter(Job.work_location == value)
                     elif key == 'tech_stack':
+                        # jobs_query = jobs_query.join(JobTechnology).join(Technology).filter(Technology.name.in_(value))
                         jobs_query = jobs_query.join(JobTechnology).join(Technology).filter(Technology.name.ilike(f"%{value}%"))
                     elif key == 'min_experience_years':
                         jobs_query = jobs_query.filter(Job.min_experience_years >= int(value))
+                    # New filters
+                    elif key == 'specialization':
+                        jobs_query = jobs_query.filter(Job.specialization == value)
+                    elif key == 'experience_level':
+                        jobs_query = jobs_query.filter(Job.experience_level == value)
+                    elif key == 'city':
+                        jobs_query = jobs_query.filter(Job.city == value)
+                    elif key == 'job_arrangement':
+                        jobs_query = jobs_query.filter(Job.job_arrangement == value)
+                    elif key == 'industry':
+                        jobs_query = jobs_query.filter(Job.industry == value)
                     else:
                         jobs_query = jobs_query.filter(getattr(Job, key) == value)
 

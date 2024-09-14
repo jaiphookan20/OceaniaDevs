@@ -161,7 +161,7 @@ class RecruiterService:
             db.session.rollback()
             return False
 
-    def process_job_description_openai(self, title, description):
+    # def process_job_description_openai(self, title, description):
         messages = [
             {
                 "role": "system",
@@ -221,6 +221,92 @@ class RecruiterService:
             current_app.logger.error(f"OpenAI API request failed: {str(e)}")
             return None
 
+    def process_job_description_openai(self, title, description):
+        # First API call: Extract basic job information
+        basic_info = self._extract_basic_job_info(title, description)
+        
+        # Second API call: Extract detailed job requirements and responsibilities
+        detailed_info = self._extract_detailed_job_info(title, description, basic_info)
+        
+        # Combine the results
+        processed_data = {**basic_info, **detailed_info}
+        return processed_data
+
+    def _extract_basic_job_info(self, title, description):
+        messages = [
+            {
+                "role": "system",
+                "content": "You are an AI assistant specializing in job market analysis. Extract basic job information from the given title and description."
+            },
+            {
+                "role": "user",
+                "content": f"""Analyze the following job description and title. Provide a response in JSON format with these keys: 'specialization', 'industry', 'salary_type', 'salary_range', 'work_location', 'city', 'state', 'country', 'job_arrangement'.
+
+                Title: {title}
+                Job Description: {description}
+
+                Instructions:
+                1. 'specialization': Classify the job into ONLY ONE of these categories: 'Frontend', 'Backend', 'Cloud & Infrastructure', 'Business Intelligence & Data', 'Machine Learning & AI', 'Full-Stack', 'Mobile', 'Cybersecurity', 'Business Application Development', 'DevOps & IT', 'Project Management', 'QA & Testing'.
+                2. 'technologies': List specific software technologies mentioned (e.g., Java, TypeScript, React, AWS). Exclude general terms like 'LLM services', 'Containers', 'CI/CD' or 'REST APIs'.
+                3. 'industry': Identify the end market or industry of the client that the role serves. If client is federal government, industry = 'government'. Use one of the following: ['Government', 'Banking & Financial Services', 'Fashion', 'Mining', 'Healthcare', 'IT - Software Development', 'IT - Data Analytics', 'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 'Marketing & Advertising', 'Media & Communications', 'Non-Profit & NGO', 'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 'Telecommunications', 'Transportation & Logistics'].
+                4. 'work_location': Specify the work location as one of: 'Remote', 'Hybrid', 'Office'. Default option: 'Office'.
+                5. 'min_experience_years': Extract the highest number of years of experience mentioned for any skill. Only if mentioned. Otherwise, leave empty.
+                6. 'experience_level': Classify as you deem fit into one of: 'Junior', 'Mid-Level', 'Senior', or 'Executive' based on the experience requirements defined in the role and/or title.
+                7. 'city': Extract the city where the job is located. Strictly only do so if mentioned, otherwise empty.
+                8. 'state': Extract the state where the job is located. Use one of the following: ['VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA']. Strictly only do so if mentioned, otherwise empty.
+                9. 'job_arrangement': Specify the job arrangement as ONLY one of: 'Permanent', 'Contract/Temp', 'Part-Time' or 'Internship'. Strictly do not include any other value.
+
+                Provide only the JSON object as output, with no additional text.
+                """
+            }
+        ]
+    
+        # Make API call and process response
+        response = self.openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages,
+            response_format={"type": "json_object"}
+        )
+        return json.loads(response.choices[0].message.content)
+
+    def _extract_detailed_job_info(self, title, description, basic_info):
+        messages = [
+            {
+                "role": "system",
+                "content": "You are an AI assistant specializing in detailed job analysis. Extract specific job requirements and responsibilities from the given title and description."
+            },
+            {
+                "role": "user",
+                "content": f"""Analyze the following job description and title. Provide a response in JSON format with these keys: 'overview', 'responsibilities', 'requirements', 'technologies', 'min_experience_years', 'experience_level', 'hourly_range', 'daily_range', 'work_rights', 'contract_duration'.
+
+                Title: {title}
+                Job Description: {description}
+                Basic Info: {json.dumps(basic_info)}
+
+                Instructions:
+                1. 'overview': Summarize the role and company, including all key and salient information relevant to potential candidates. Add any information related to benefits or perks here. Add information verbatim if needed but all of the information is needed.
+                2. 'responsibilities': List main job duties and expectations. Provide detailed information.
+                3. 'requirements': Enumerate essential qualifications and skills needed. Provide detailed information.
+                4. 'salary_type': If only available, specify the type of salary or payment arrangement (e.g., 'Annual', 'Hourly', 'Daily').
+                5. 'salary_range': If only available AND salary_type="Annual", extract the salary information and classify it in the bucket it fits in: '40000 - 60000', '60000 - 80000', '80000 - 100000', '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000', '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+'. Otherwise leave empty.
+                6. 'hourly_range': If only available AND salary_type="Hourly", extract the hourly-rate information and classify it in the bucket it fits in: '0 - 20', '20 - 30', '30 - 40', '40 - 50', '50 - 60', '60 - 70', '70 - 80', '80 - 100', '100+'. Otherwise leave empty.
+                7. 'daily_range': If only available AND salary_type="Daily", extract the daily-rate information and classify it in the bucket it fits in: '300 - 400', '400 - 500', '500 - 600', '600 - 700', '700 - 800', '800 - 900', '900 - 1000', '1000 - 1100', '1200+'. Otherwise leave empty.
+                8. 'work_rights': List any work rights or visa requirements. Strictly only do so if mentioned, otherwise empty.
+                9. contract_duration': If only the 'job_arrangement' is 'Contract', and if the duration of the contract is provided and available, classify it as belonging to one of the following buckets: '3-6 Months', '6-9 Months', '9-12 Months' or '12 Months+'. Otherwise leave empty.
+
+                Provide only the JSON object as output, with no additional text.
+                """
+            }
+        ]
+        
+        # Make API call and process response
+        response = self.openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages,
+            response_format={"type": "json_object"}
+        )
+        return json.loads(response.choices[0].message.content)
+
     def add_job_programmatically(self, job_data):
         try:
             title = job_data.get('title')
@@ -265,8 +351,8 @@ class RecruiterService:
                     daily_range=job_data.get('daily_range') or processed_data.get('daily_range'),
                 )
 
-                db.session.add(new_job)
-                db.session.commit()  # Commit to generate job_id
+                # db.session.add(new_job)
+                # db.session.commit()  # Commit to generate job_id
                 
 
                 # Step 2: Normalize and process technologies from tech_stack
@@ -294,7 +380,6 @@ class RecruiterService:
 
                 # Invalidate caches after adding a new job
                 self.invalidate_job_caches(new_job)
-
                 current_app.logger.info(f"Successfully added job: {title}")
                 return new_job, None
 
@@ -536,7 +621,7 @@ class RecruiterService:
                     "company_id": company.company_id,
                     "company_name": company.name,
                     "logo_url": f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
-                    "location": f"{job.city}, {job.state}, {job.country}",
+                    "location": f"{job.city}",
                     "salary_range": job.salary_range,
                     "experience_level": job.experience_level,
                     'specialization': job.specialization,

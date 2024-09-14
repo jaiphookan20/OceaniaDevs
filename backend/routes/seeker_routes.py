@@ -223,6 +223,49 @@ def update_seeker():
     else:
         return jsonify({"error": "Failed to update seeker info"}), 400
 
+
+#------------------------------------------------------------------------------------------------------ GET RID OF BELOW or USE for Tech Dashboard to add technologies --------------------------------------------------------
+
+@seeker_blueprint.route('/api/technologies', methods=['GET'])
+def get_technologies():
+    try:
+        technologies = Technology.query.all()
+        return jsonify([{"id": tech.id, "name": tech.name} for tech in technologies])
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
+
+@seeker_blueprint.route('/api/technology_aliases', methods=['GET'])
+def get_technology_aliases():
+    try:
+        aliases = TechnologyAlias.query.all()
+        return jsonify([{ "alias": alias.alias, "technology_id": alias.technology_id } for alias in aliases])
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
+
+@seeker_blueprint.route('/api/technologies', methods=['POST'])
+def add_technology():
+    data = request.json
+    try:
+        new_technology = Technology(name=data['name'])
+        db.session.add(new_technology)
+        db.session.commit()
+        return jsonify({"message": "Technology added", "technology_id": new_technology.id}), 201
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@seeker_blueprint.route('/api/technology_aliases', methods=['POST'])
+def add_technology_alias():
+    data = request.json
+    try:
+        new_alias = TechnologyAlias(alias=data['alias'], technology_id=data['technology_id'])
+        db.session.add(new_alias)
+        db.session.commit()
+        return jsonify({"message": "Technology alias added"}), 201
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+    
 @seeker_blueprint.route('/api/job_technologies_summary', methods=['GET'])
 def get_job_technologies_summary():
     try:
@@ -261,46 +304,6 @@ def remove_job_technology():
             return jsonify({"message": "Technology removed from job successfully"}), 200
         else:
             return jsonify({"error": "Job technology association not found"}), 404
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
-
-@seeker_blueprint.route('/api/technologies', methods=['GET'])
-def get_technologies():
-    try:
-        technologies = Technology.query.all()
-        return jsonify([{"id": tech.id, "name": tech.name} for tech in technologies])
-    except SQLAlchemyError as e:
-        return jsonify({"error": str(e)}), 500
-
-@seeker_blueprint.route('/api/technology_aliases', methods=['GET'])
-def get_technology_aliases():
-    try:
-        aliases = TechnologyAlias.query.all()
-        return jsonify([{ "alias": alias.alias, "technology_id": alias.technology_id } for alias in aliases])
-    except SQLAlchemyError as e:
-        return jsonify({"error": str(e)}), 500
-
-@seeker_blueprint.route('/api/technologies', methods=['POST'])
-def add_technology():
-    data = request.json
-    try:
-        new_technology = Technology(name=data['name'])
-        db.session.add(new_technology)
-        db.session.commit()
-        return jsonify({"message": "Technology added", "technology_id": new_technology.id}), 201
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
-
-@seeker_blueprint.route('/api/technology_aliases', methods=['POST'])
-def add_technology_alias():
-    data = request.json
-    try:
-        new_alias = TechnologyAlias(alias=data['alias'], technology_id=data['technology_id'])
-        db.session.add(new_alias)
-        db.session.commit()
-        return jsonify({"message": "Technology alias added"}), 201
     except SQLAlchemyError as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500

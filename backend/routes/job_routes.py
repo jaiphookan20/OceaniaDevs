@@ -49,7 +49,8 @@ def filtered_search_jobs():
         'industry': request.args.get('industry'),
         'salary_range': request.args.get('salary_range'),
         'city': request.args.get('city'),
-        'tech_stack': request.args.get('tech_stack')
+        'tech_stack': request.args.get('tech_stack'),
+        'job_arrangement': request.args.get('job_arrangement')
     }
         page = request.args.get('page', default=1, type=int)
         page_size = request.args.get('page_size', default=10, type=int)
