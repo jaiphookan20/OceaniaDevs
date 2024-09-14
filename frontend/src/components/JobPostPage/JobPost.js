@@ -131,7 +131,7 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
             {job.company_description}
           </p>
         </div>
-        <div className="grid grid-cols-4 gap-6 mt-6 p-4 bg-[#f5f5ec] border border-slate-300 rounded-md shadow-sm">
+        <div className="grid grid-cols-4 gap-6 mt-6 p-4 bg-[#f5f5ec] border-t border-b border-slate-400 rounded-md shadow-sm">
   {[
     { icon: "https://img.icons8.com/?size=100&id=Z3STIRU4hxMn&format=png&color=000000", label: "Industry", value: job.industry },
     { icon: "https://img.icons8.com/?size=100&id=3BUZy0U5CdQL&format=png&color=000000", label: "Experience", value: job.experience_level },
@@ -185,11 +185,11 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
                 ))}
               </ul>
             </section>
-            <section ref={technologiesRef} className="mt-6">
-              <h2 className="text-3xl font-semibold mt-4 mb-1 text-violet-600 bg-violet-50">
+            <section ref={technologiesRef} className="mt-6" style={{ fontFamily: "Avenir, sans-serif" }}>
+              <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800">
                 Tech Stack
               </h2>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 mt-4">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 mt-4 bg-stone-100 border border-slate-400 rounded-lg">
                 {techStackIcons.map((tech) => (
                   <div
                     key={tech}

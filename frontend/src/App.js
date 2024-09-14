@@ -201,9 +201,8 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
     }
   }, 600);
   
-  const handleSearch = (event) => {
+  const handleSearchChange = (event) => {
     const searchValue = event.target.value;
-    console.log('Input changed:', searchValue);
     setSearchQuery(searchValue);
     debouncedSearch(searchValue, fetchAllJobs, setSearchTitle, setAllJobs, setTotalJobs, pageSize);
   };
@@ -504,7 +503,6 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
           path="/search-page"
           element={
             <SearchPage
-              // title={`${filters.specialization || searchTitle}`}
               title={searchTitle}
               jobs={allJobs}
               onSave={handleSave}
@@ -516,7 +514,7 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
               onPageChange={handlePageChange}
               searchQuery={searchQuery}
               filters={filters}
-              onSearchChange={handleSearch}
+              onSearchChange={handleSearchChange}
               onFilterChange={handleChange}
               onFilterSearch={handleFilterSearch}
               isInSession={isInSession}
@@ -542,7 +540,7 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
               onPageChange={handlePageChange}
               searchQuery={searchQuery}
               filters={filters}
-              onSearchChange={handleSearch}
+              onSearchChange={handleSearchChange}
               onFilterChange={handleChange}
               onFilterSearch={handleFilterSearch}
             />

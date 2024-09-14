@@ -9,7 +9,7 @@ const RecommendedJobCard = ({ job }) => {
     <div className="bg-white rounded-lg shadow-md p-4" >
     <div className="flex items-center justify-between mb-2">
       <img src={job.logo_url} alt={job.company_name} className="w-10 h-10 rounded" />
-      <span className="text-xs text-teal-600 bg-teal-100 px-2 py-1 rounded-full">
+      <span className="text-xs text-teal-700 bg-teal-100 border border-teal-300 px-2 py-1 rounded-full">
         {job.location}
       </span>
     </div>

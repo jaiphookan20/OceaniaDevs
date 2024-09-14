@@ -41,7 +41,7 @@ const SearchPageJobSection = ({
       return (
         <span>
           Displaying jobs matching "
-          <span className="text-purple-600 font-medium">{searchQuery}</span>"
+          <span className="text-teal-600 font-medium">{searchQuery}</span>"
         </span>
       );
     }
