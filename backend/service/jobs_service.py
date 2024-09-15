@@ -83,9 +83,8 @@ class JobsService:
                     # Existing filters
                     if key == 'work_location':
                         jobs_query = jobs_query.filter(Job.work_location == value)
-                    elif key == 'tech_stack':
-                        # jobs_query = jobs_query.join(JobTechnology).join(Technology).filter(Technology.name.in_(value))
-                        jobs_query = jobs_query.join(JobTechnology).join(Technology).filter(Technology.name.ilike(f"%{value}%"))
+                    if key == 'tech_stack':
+                        jobs_query = jobs_query.join(JobTechnology).join(Technology).filter(Technology.name == value)
                     elif key == 'min_experience_years':
                         jobs_query = jobs_query.filter(Job.min_experience_years >= int(value))
                     # New filters
