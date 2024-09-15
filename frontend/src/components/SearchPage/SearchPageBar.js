@@ -1,6 +1,8 @@
-import React, { useEffect, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
+import Autosuggest from 'react-autosuggest';
 import SearchPageTechDropdown from "./SearchPageTechDropdown";
 import searchIcon from "../../assets/search-icon.svg";
+import debounce from 'lodash/debounce';
 
 const SearchPageBar = ({
   searchQuery,
@@ -10,12 +12,59 @@ const SearchPageBar = ({
   onFilterSearch,
   onClearAll,
 }) => {
+  const [suggestions, setSuggestions] = useState([]);
+
   // Add refs for each select element
   const cityRef = useRef(null);
   const specializationRef = useRef(null);
   const experienceLevelRef = useRef(null);
   const workLocationRef = useRef(null);
   const jobArrangementRef = useRef(null);
+
+  // Highlight: Updated function to fetch suggestions with company logo
+  const fetchSuggestions = useCallback(
+    debounce(async (value) => {
+      if (value.length < 2) return;
+      try {
+        const response = await fetch(`/api/search_suggestions?query=${value}`);
+        const data = await response.json();
+        setSuggestions(data);
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+      }
+    }, 300),
+    []
+  );
+
+  // Highlight: Autosuggest input props
+  const inputProps = {
+    placeholder: "Search by Title, Company, Technology ....",
+    value: searchQuery,
+    onChange: (_, { newValue }) => onSearchChange({ target: { value: newValue } }),
+    className: "w-full border border-green-400 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-lime-400",
+  };
+
+  // Highlight: Updated Autosuggest theme
+  const theme = {
+    container: 'relative',
+    suggestionsContainerOpen: 'absolute z-10 w-full bg-white shadow-lg rounded-b-lg mt-1 border border-gray-200',
+    suggestionsList: 'list-none m-0 p-0 max-h-60 overflow-y-auto',
+    suggestion: 'px-4 py-3 cursor-pointer hover:bg-gray-50 transition duration-150 ease-in-out',
+    suggestionHighlighted: 'bg-purple-50',
+  };
+
+  // Highlight: New function to render suggestions
+  const renderSuggestion = (suggestion) => (
+    <div className="flex items-center">
+      {suggestion.type === 'Company' && suggestion.logo && (
+        <img src={suggestion.logo} alt={suggestion.name} className="w-6 h-6 mr-3 rounded-full object-cover" />
+      )}
+      <div style={{fontFamily: 'Avenir'}}>
+        <div className="font-medium text-gray-800">{suggestion.name}</div>
+        <div className="text-xs text-gray-500">{suggestion.type}</div>
+      </div>
+    </div>
+  );
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -54,13 +103,15 @@ const SearchPageBar = ({
       <form onSubmit={handleSearch}>
         {/* Top row: Search input, Location filter, and buttons */}
         <div className="flex items-center space-x-4 mb-4">
-          <div className="flex-grow">
-            <input
-              type="text"
-              placeholder="Search by Title, Company, Technology ...."
-              className="w-full border border-green-400 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-lime-400"
-              value={searchQuery}
-              onChange={onSearchChange}
+          <div className="flex-grow relative">
+            <Autosuggest
+              suggestions={suggestions}
+              onSuggestionsFetchRequested={({ value }) => fetchSuggestions(value)}
+              onSuggestionsClearRequested={() => setSuggestions([])}
+              getSuggestionValue={(suggestion) => suggestion.name}
+              renderSuggestion={renderSuggestion}
+              inputProps={inputProps}
+              theme={theme}
             />
           </div>
           <select
@@ -105,7 +156,7 @@ const SearchPageBar = ({
             className="flex bg-purple-600 text-white rounded-lg px-4 py-2"
           >
             Search
-            <img src={searchIcon} className="ml-2" />
+            <img src={searchIcon} className="ml-2" alt="Search" />
           </button>
         </div>
 
