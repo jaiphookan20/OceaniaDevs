@@ -205,7 +205,9 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
     const searchValue = event.target.value;
     console.log('Input changed:', searchValue);
     setSearchQuery(searchValue);
-    debouncedSearch(searchValue, fetchAllJobs, setSearchTitle, setAllJobs, setTotalJobs, pageSize);
+    if (searchQuery.length >= 3) {
+      debouncedSearch(searchValue, fetchAllJobs, setSearchTitle, setAllJobs, setTotalJobs, pageSize);
+    }
   };
   
 
