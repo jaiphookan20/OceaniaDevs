@@ -6,7 +6,7 @@ const RecommendedJobCard = ({ job }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4" >
+    <div className="bg-white rounded-lg shadow-lg border border-slate-300 p-4" >
     <div className="flex items-center justify-between mb-2">
       <img src={job.logo_url} alt={job.company_name} className="w-10 h-10 rounded" />
       <span className="text-xs text-teal-700 bg-teal-100 border border-teal-300 px-2 py-1 rounded-full">
@@ -53,7 +53,7 @@ const RecommendedJobCard = ({ job }) => {
 const RecommendedJobs = ({ jobs }) => {
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-24 mt-10 bg-teal-50/50" style={{fontFamily: "Avenir, san-serif"}}>
+    <div className="max-w-6xl mx-auto px-4 py-24 mt-10 bg-teal-50 border-t" style={{fontFamily: "Avenir, san-serif"}}>
       <div className="flex justify-between items-center mb-4 mb-16">
         <div>
           <h2 className="text-2xl font-bold mb-1">Similar Jobs</h2>

@@ -105,7 +105,7 @@ const TrendingTechStackGrid = () => {
         {colleges.map((college, index) => (
           <Card 
             key={index} 
-            className="hover:shadow-lg transition-shadow duration-300 rounded-xl bg-slate-300 shadow-xl cursor-pointer"
+            className="hover:shadow-lg transition-shadow duration-300 rounded-xl bg-slate-300 border border-slate-300 shadow-xl cursor-pointer"
           >
             <div className="p-3">
               <div className="flex items-center space-x-4" onClick={() => handleTechClick(college.title.toLowerCase())}>
