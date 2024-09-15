@@ -214,3 +214,8 @@ def unsave_job(job_id):
     except ValueError as e:
         return jsonify({"error": str(e)}), 404
     
+@job_blueprint.route('/api/search_suggestions', methods=['GET'])
+def get_search_suggestions():
+    query = request.args.get('query', '')
+    suggestions = jobs_service.get_search_suggestions(query)
+    return jsonify(suggestions)

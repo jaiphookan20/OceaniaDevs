@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import config
 import os
 from utils.time import get_relative_time
+from utils.titles import get_common_job_titles
 from sqlalchemy import or_, func, select, and_
 import json
 from sqlalchemy.sql import text
@@ -305,3 +306,50 @@ class JobsService:
         except Exception as e:
             current_app.logger.error(f"Error in get_company_by_jobid: {str(e)}")
             raise
+
+    def get_search_suggestions(self, query):
+        if len(query) < 2:
+            return []
+
+        # Prepare the search query for partial matching
+        search_terms = query.split()
+        search_query = ' & '.join(term + ':*' for term in search_terms)
+        tsquery = func.to_tsquery('english', search_query)
+
+        # Query for job titles from common tech job titles
+        common_job_suggestions = self._get_common_job_titles(query)
+
+        # Query for job titles from the database
+        db_job_suggestions = db.session.query(Job.title).filter(
+            Job.search_vector.op('@@')(tsquery)
+        ).distinct().limit(3).all()
+
+        # Query for company names
+        company_suggestions = db.session.query(Company).filter(
+            Company.name_vector.op('@@')(tsquery)
+        ).limit(3).all()
+
+        # Query for technologies
+        tech_suggestions = db.session.query(Technology.name).filter(
+            Technology.name_vector.op('@@')(tsquery)
+        ).distinct().limit(3).all()
+
+        suggestions = []
+        for job in common_job_suggestions:
+            suggestions.append({'name': job, 'type': 'Roles'})
+        for job in db_job_suggestions:
+            suggestions.append({'name': job.title, 'type': 'Job Title'})
+        for company in company_suggestions:
+            suggestions.append({
+                'name': company.name, 
+                'type': 'Company',
+                'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}"
+            })
+        for tech in tech_suggestions:
+            suggestions.append({'name': tech.name, 'type': 'Technology'})
+
+        return suggestions[:10]  # Limit to top 10 suggestions
+
+    def _get_common_job_titles(self, query):
+        common_titles = get_common_job_titles();
+        return [title for title in common_titles if query.lower() in title.lower()]
