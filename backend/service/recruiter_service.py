@@ -1,4 +1,3 @@
-from database import PostgresDB
 from extensions import db, bcrypt
 from models import Job, Recruiter, Company, TechnologyAlias, Technology, JobTechnology, Application, Bookmark
 from service.jobs_service import JobsService    
