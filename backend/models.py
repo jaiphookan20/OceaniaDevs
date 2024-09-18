@@ -76,49 +76,56 @@ class Company(db.Model):
     state = db.Column(state_enum);
     city = db.Column(db.String(255));
     type=db.Column(db.String(255));
+    name_vector = db.Column(TSVECTOR)
 
 class Job(db.Model):
     __tablename__ = 'jobs'
     job_id = db.Column(db.Integer, primary_key=True)
     recruiter_id = db.Column(db.Integer, db.ForeignKey('recruiters.recruiter_id'))
     company_id = db.Column(db.Integer, db.ForeignKey('companies.company_id'))
+    company = db.relationship('Company', backref=db.backref('jobs', lazy='dynamic')) # Adding line to create the relationship
     title = db.Column(db.String(255), nullable=False)
-    description = db.Column(db.Text)
-    # specialization = db.Column(db.String(255))
-    specialization = db.Column(specialization_enum) #new
-    job_type = db.Column(job_type_enum, default='normal')
-    industry = db.Column(industry_enum, nullable=False)
-    salary_range = db.Column(salary_range_enum)
-    salary_type = db.Column(db.String(10))
-    # work_location = db.Column(db.String(20))
-    work_location = db.Column(work_location_enum) #new
-    min_experience_years = db.Column(db.Integer)
-    # experience_level = db.Column(db.String(50))
-    experience_level = db.Column(experience_level_enum) #new
-    tech_stack = db.Column(db.ARRAY(db.String))
     city = db.Column(db.String(255))
     state = db.Column(db.String(255))
     country = db.Column(db.String(255))
-    expiry_date = db.Column(db.Date, server_default=db.text("CURRENT_DATE + INTERVAL '30 days'"))
-    jobpost_url = db.Column(db.String(255))
-    work_rights = db.Column(db.ARRAY(db.String))
+
     created_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
-    search_vector = db.Column(TSVECTOR)
-    embedding = db.Column(Vector(1536))
+    expiry_date = db.Column(db.Date, server_default=db.text("CURRENT_DATE + INTERVAL '30 days'"))
+    jobpost_url = db.Column(db.String(255))
+    
+    description = db.Column(db.Text)
     overview = db.Column(db.Text)  # New field
     responsibilities = db.Column(db.Text)  # New field
     requirements = db.Column(db.Text)  # New field
-    # job_arrangement = db.Column(db.String(255))  
+
+    work_location = db.Column(work_location_enum) #new
+    work_rights = db.Column(db.ARRAY(db.String))
     job_arrangement = db.Column(job_arrangement_enum) #new
+
+    specialization = db.Column(specialization_enum) #new
+    job_type = db.Column(job_type_enum, default='normal')
+    industry = db.Column(industry_enum, nullable=False)
+    job_technologies = db.relationship('JobTechnology', backref='job', lazy='joined')
+    
+    min_experience_years = db.Column(db.Integer)
+    experience_level = db.Column(experience_level_enum) #new
+    tech_stack = db.Column(db.ARRAY(db.String))
+    
+    salary_range = db.Column(salary_range_enum)
+    salary_type = db.Column(db.String(10))
     contract_duration =  db.Column(db.String(255))  # New field
     hourly_range=db.Column(db.String(255))  # New field
     daily_range=db.Column(db.String(255))  # New field
+
+    search_vector = db.Column(TSVECTOR)
+    embedding = db.Column(Vector(1536))  
 
 class Technology(db.Model):
     __tablename__ = 'technologies'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True, nullable=False)
+    name_vector = db.Column(TSVECTOR)
 
 class TechnologyAlias(db.Model):
     __tablename__ = 'technology_aliases'

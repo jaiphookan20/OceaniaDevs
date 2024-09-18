@@ -1,215 +1,355 @@
 from extensions import db
-from models import Job, Recruiter, Company,Application, Bookmark
+from models import Job, Recruiter, Company,Application, Bookmark, Technology, JobTechnology
 from flask import jsonify
 from sqlalchemy import desc
 from datetime import datetime, timedelta
+import config
+import os
+from utils.time import get_relative_time
+from utils.titles import get_common_job_titles
+from sqlalchemy import or_, func, select, and_
+import json
+from sqlalchemy.sql import text
+from extensions import cache
+from flask import current_app
 
 class JobsService:
 
-    # Retrieve a job post by its ID
+    @staticmethod
+    def _parse_text_to_list(text):
+        """Parse text to list, handling JSON and plain text formats."""
+        if not text:
+            return []
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            return [item.strip() for item in text.split('\n') if item.strip()]
+
+    @cache.memoize(timeout=3600) 
+    def get_job_post_data(self, job_id):
+        """Retrieve detailed information for a specific job post."""
+        try:
+            job = Job.query.get(job_id)
+            company = Company.query.get(job.company_id)
+            
+            if not job or not company:
+                return None
+            
+            technologies = db.session.query(Technology.name).join(JobTechnology).filter(JobTechnology.job_id == job_id).all()
+            tech_stack = [tech.name for tech in technologies]
+            
+            return {
+                'job_id': job.job_id,
+                'title': job.title,
+                'company': company.name,
+                'company_id': company.company_id,
+                'overview': job.overview,
+                'responsibilities': self._parse_text_to_list(job.responsibilities),
+                'requirements': self._parse_text_to_list(job.requirements),
+                'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
+                'industry': job.industry,
+                'salary_range': job.salary_range,
+                'country': job.country,
+                'specialization': job.specialization,
+                'salary_type': job.salary_type,
+                'work_location': job.work_location,
+                'location': f"{job.city}, {job.state}",
+                'min_experience_years': job.min_experience_years,
+                'experience_level': job.experience_level,
+                'city': job.city,
+                'description': job.description,
+                'company_description': company.description,
+                'state': job.state,
+                'work_rights': job.work_rights,
+                'tech_stack': tech_stack,
+                'daily_range': job.daily_range,
+                'hourly_range': job.hourly_range,
+                'contract_duration': job.contract_duration,
+                'job_arrangement': job.job_arrangement,
+                'jobpost_url': job.jobpost_url,
+                'created_at': job.created_at,
+            }
+        except Exception as e:
+            current_app.logger.error(f"Error in get_job_post_data: {str(e)}")
+            raise
+    
+    @cache.memoize(timeout=300)
+    def filtered_search_jobs(self, filter_params, page, page_size):
+        """Search and filter jobs based on various criteria."""
+        try:
+            jobs_query = Job.query.join(Company)
+
+            for key, value in filter_params.items():
+                if value:
+                    # Existing filters
+                    if key == 'work_location':
+                        jobs_query = jobs_query.filter(Job.work_location == value)
+                    if key == 'tech_stack':
+                        jobs_query = jobs_query.join(JobTechnology).join(Technology).filter(Technology.name == value)
+                    elif key == 'min_experience_years':
+                        jobs_query = jobs_query.filter(Job.min_experience_years >= int(value))
+                    # New filters
+                    elif key == 'specialization':
+                        jobs_query = jobs_query.filter(Job.specialization == value)
+                    elif key == 'experience_level':
+                        jobs_query = jobs_query.filter(Job.experience_level == value)
+                    elif key == 'city':
+                        jobs_query = jobs_query.filter(Job.city == value)
+                    elif key == 'job_arrangement':
+                        jobs_query = jobs_query.filter(Job.job_arrangement == value)
+                    elif key == 'industry':
+                        jobs_query = jobs_query.filter(Job.industry == value)
+                    else:
+                        jobs_query = jobs_query.filter(getattr(Job, key) == value)
+
+            total_jobs = jobs_query.count()
+            jobs = jobs_query.order_by(Job.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+
+            return self._format_job_results(jobs), total_jobs
+        except Exception as e:
+            current_app.logger.error(f"Error in filtered_search_jobs: {str(e)}")
+            raise
+    
+    @cache.memoize(timeout=300)
+    def instant_search_jobs(self, query, page, page_size):
+        """Perform an instant search on jobs based on a query string, allowing partial matches."""
+        try:
+            if query:
+                # Prepare the search query for partial matching
+                search_terms = query.split()
+                search_query = ' & '.join(term + ':*' for term in search_terms)
+                tsquery = func.websearch_to_tsquery('english', search_query)
+                
+                jobs_query = Job.query.join(Company).filter(
+                    or_(
+                        Job.search_vector.op('@@')(tsquery),
+                        Job.title.ilike(f'%{query}%'),
+                        Company.name.ilike(f'%{query}%')
+                    )
+                ).order_by(
+                    # Highlight: Using ts_rank_cd for ranking without similarity function
+                    func.ts_rank_cd(Job.search_vector, tsquery, 32).desc()
+                )
+
+                total_jobs = jobs_query.count()
+                jobs = jobs_query.offset((page - 1) * page_size).limit(page_size).all()
+
+                return self._format_job_results(jobs), total_jobs
+            else:
+                return [], 0
+        except Exception as e:
+            current_app.logger.error(f"Error in instant_search_jobs: {str(e)}")
+            raise
+    
+    @cache.memoize(timeout=3600)
+    def get_home_page_jobs(self):
+        """Retrieve jobs for the home page, grouped by specialization."""
+        try:
+            specializations = ['Frontend', 'Backend', 'Full-Stack', 'Mobile', 'Data & ML', 'QA & Testing', 'Cloud & Infra', 'DevOps', 'Project Management', 'IT Consulting', 'Cybersecurity']
+            
+            all_jobs = {}
+            for specialization in specializations:
+                jobs = Job.query.join(Company).filter(Job.specialization == specialization).order_by(Job.created_at.desc()).limit(5).all()
+                if jobs:
+                    all_jobs[specialization] = self._format_job_results(jobs)
+            
+            return all_jobs
+        except Exception as e:
+            current_app.logger.error(f"Error in get_home_page_jobs: {str(e)}")
+            raise
+
+    def _format_job_results(self, jobs):
+        """Format job results for API responses."""
+        try:
+            results = []
+            for job in jobs:
+                technologies = db.session.query(Technology.name).join(JobTechnology).filter(JobTechnology.job_id == job.job_id).all()
+                tech_stack = [tech.name for tech in technologies]
+
+                results.append({
+                    'job_id': job.job_id,
+                    'company_id': job.company_id,
+                    'title': job.title,
+                    'company': job.company.name,
+                    'city': job.city,
+                    'location': f"{job.city}, {job.state}",
+                    'country': job.country,
+                    'salary_range': job.salary_range,
+                    'created_at': get_relative_time(job.created_at.strftime('%Y-%m-%d')),
+                    'experience_level': job.experience_level,
+                    'specialization': job.specialization,
+                    'min_experience_years': job.min_experience_years,
+                    'tech_stack': tech_stack,
+                    'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.company.logo_url)}",
+                })
+            return results
+        except Exception as e:
+            current_app.logger.error(f"Error in _format_job_results: {str(e)}")
+            raise
+    
+    @cache.memoize(timeout=86400)
+    def get_technologies(self):
+        """Retrieve a list of all available technologies."""
+        try:
+            technologies = Technology.query.all()
+            return [{"name": tech.name} for tech in technologies]
+        except Exception as e:
+            current_app.logger.error(f"Error in get_technologies: {str(e)}")
+            raise
+
+    def apply_to_job(self, seeker_id, job_id):
+        """Allow a seeker to apply for a job."""
+        try:
+            existing_application = Application.query.filter_by(userid=seeker_id, jobid=job_id).first()
+            if existing_application:
+                raise ValueError("You have already applied to this job")
+
+            job = Job.query.get(job_id)
+            if not job:
+                raise ValueError("Job not found")
+            
+            new_application = Application(userid=seeker_id, jobid=job_id)
+            db.session.add(new_application)
+            db.session.commit()
+        
+        except Exception as e:
+            current_app.logger.error(f"Error in apply_to_job: {str(e)}")
+            db.session.rollback()
+            raise
+
+    def bookmark_job(self, seeker_id, job_id):
+        """Allow a seeker to bookmark a job."""
+        try:
+            existing_bookmark = Bookmark.query.filter_by(userid=seeker_id, jobid=job_id).first()
+            if existing_bookmark:
+                raise ValueError("You have already bookmarked this job")
+
+            job = Job.query.get(job_id)
+            if not job:
+                raise ValueError("Job not found")
+
+            new_bookmark = Bookmark(userid=seeker_id, jobid=job_id)
+            db.session.add(new_bookmark)
+            db.session.commit()
+        except Exception as e:
+            current_app.logger.error(f"Error in bookmark_job: {str(e)}")
+            db.session.rollback()
+            raise
+
+    def is_job_applied(self, user_id, job_id):
+        """Check if a user has applied to a specific job."""
+        try:
+            application = Application.query.filter_by(userid=user_id, jobid=job_id).first()
+            return application is not None
+        except Exception as e:
+            current_app.logger.error(f"Error in is_job_applied: {str(e)}")
+            raise
+
+    def is_job_saved(self, user_id, job_id):
+        """Check if a user has bookmarked a specific job."""
+        try:
+            bookmark = Bookmark.query.filter_by(userid=user_id, jobid=job_id).first()
+            return bookmark is not None
+        except Exception as e:
+            current_app.logger.error(f"Error in is_job_saved: {str(e)}")
+            raise
+
+    def unsave_job(self, user_id, job_id):
+        """Remove a job from a user's bookmarks."""
+        try:
+            bookmark = Bookmark.query.filter_by(userid=user_id, jobid=job_id).first()
+            if bookmark:
+                db.session.delete(bookmark)
+                db.session.commit()
+            else:
+                raise ValueError("Job was not saved")
+        except Exception as e:
+            current_app.logger.error(f"Error in unsave_job: {str(e)}")
+            db.session.rollback()
+            raise
+
+    #--------------------------------------------------------------------------------
+    
+    # Retrieve a job post by its ID and return a Job object 
     def get_job_by_id(self, job_id):
         """
-        Retrieve a job post by its ID using SQLAlchemy ORM.
-        :param job_id: int - The ID of the job to fetch.
-        :return: Job object or None if not found
+        Retrieve a job post by its job_id
+        :return: Return a Job object
         """
-        return Job.query.get(job_id)
+        try:
+            return Job.query.get(job_id)
+        except Exception as e:
+            current_app.logger.error(f"Error in get_job_by_id: {str(e)}")
+            raise
     
-    # Return the list of all Recruiters
-    def get_recruiters(self):
-        """
-        Return the list of all recruiters.
-        :return: List of Recruiter objects
-        """
-        return Recruiter.query.with_entities(Recruiter.recruiter_id, Recruiter.first_name, Recruiter.last_name).all()
-
-    # Return the list of all Companies
-    def get_companies(self):
-        """
-        Return the list of all companies.
-        :return: List of Company objects
-        """
-        return Company.query.with_entities(Company.company_id, Company.name).all()
-    
+    # Retrieve a Company object by the company_id
     def get_company_by_id(self, company_id):
         """
-    Return a Company object by the id.
+    Return a Company object by the company_id.
         :return: Return a Company object
         """
-        return Company.query.filter_by(company_id=company_id).first()
+        try:
+            return Company.query.filter_by(company_id=company_id).first()
+        except Exception as e:
+            current_app.logger.error(f"Error in get_company_by_id: {str(e)}")
+            raise
     
+    # Retrieve a Company object by the jobid
     def get_company_by_jobid(self, jobid):
         """
         Return a Company object by the jobid.
         :return: Return a Company object
         """
-        job = Job.query.filter_by(job_id=jobid).first()
-        return Company.query.filter_by(company_id=job.company_id).first()
-    
-    def get_available_jobs(self):
-            """
-            Return the list of all available jobs along with job_id, job title, company name, job city, state, and country.
-
-            The structure of the job tuple is as follows:
-            So, job[0] refers to the Job object instance, and job[0].job_id accesses the job_id attribute of that Job object instance.
-            For example, if the job tuple looks like this:
-            job = (
-                <Job 5>,
-                'Principal Frontend Software Engineer',
-                'Atlassian',
-                'Sydney',
-                'NSW',
-                'Australia'
-            )
-            Then, job[0] would be <Job 5>, which is the Job object instance with job_id 5. Therefore, job[0].job_id would give you the value 5.
-            So, job[0].job_id represents the job_id of the specific Job object instance in that tuple, not the first job in the list.
-            :return: List of tuples with job details
-            """
-            return Job.query.join(Company, Job.company_id == Company.company_id).add_columns(
-            Job.job_id, Job.title, Company.name.label('company_name'), Job.city, Job.state, Job.country, Job.specialization, Job.experience_level, Job.tech_stack, Job.salary_range).all()
-
-    # Get Available Jobs (Pagination)
-    # def get_available_jobs_with_pagination(self, page, page_size):
-    #     """
-    #     Fetch available jobs with pagination, ordered by creation date (newest first).
-    #     Only return non-expired jobs (less than 30 days old).
-        
-    #     Args:
-    #         page (int): The page number to fetch.
-    #         page_size (int): The number of jobs per page.
-        
-    #     Returns:
-    #         tuple: A tuple containing a list of jobs and the total job count.
-    #     """
-    #     try:
-    #         print("Attempting to fetch jobs from database")
-    #         offset = (page - 1) * page_size
-            
-    #         # Calculate the date 30 days ago
-    #         thirty_days_ago = datetime.utcnow() - timedelta(days=30)
-            
-    #         # Join Job and Company tables to get job and company details
-    #         jobs_query = db.session.query(Job, Company).join(Company, Job.company_id == Company.company_id)
-            
-    #         # Filter for non-expired jobs and order by creation date (newest first)
-    #         jobs_query = jobs_query.filter(Job.created_at >= thirty_days_ago).order_by(desc(Job.created_at))
-            
-    #         # Get the total number of non-expired jobs
-    #         total_jobs = jobs_query.count()
-            
-    #         # Fetch jobs with pagination
-    #         jobs = jobs_query.offset(offset).limit(page_size).all()
-            
-    #         return jobs, total_jobs
-    #     except Exception as e:
-    #         print(f"Error fetching jobs: {e}")
-    #         return [], 0
-        
-    def get_available_jobs_with_pagination(self, page, page_size, specialization=None):
         try:
-            offset = (page - 1) * page_size
-            thirty_days_ago = datetime.utcnow() - timedelta(days=30)
-            
-            jobs_query = db.session.query(Job, Company).join(Company, Job.company_id == Company.company_id)
-            jobs_query = jobs_query.filter(Job.created_at >= thirty_days_ago)
-            
-            if specialization:
-                jobs_query = jobs_query.filter(Job.specialization == specialization)
-            
-            # highlight-next-line
-            jobs_query = jobs_query.order_by(desc(Job.created_at))
-            
-            total_jobs = jobs_query.count()
-            jobs = jobs_query.offset(offset).limit(page_size).all()
-            
-            return jobs, total_jobs
+            job = Job.query.filter_by(job_id=jobid).first()
+            return Company.query.filter_by(company_id=job.company_id).first()
         except Exception as e:
-            print(f"Error fetching jobs: {e}")
-            return [], 0
+            current_app.logger.error(f"Error in get_company_by_jobid: {str(e)}")
+            raise
 
-    # Apply to a particular job post
-    def apply_to_job(self, userid, jobid):
-        """
-        Apply to a particular job post.
-        :param userid: int - ID of the user applying for the job.
-        :param jobid: int - ID of the job to apply to.
-        """
-        try:
-            application = Application(userid=userid, jobid=jobid)
-            if application:
-                application.status = "Applied";
-                db.session.add(application)
-                db.session.commit()
-                return True
-            return False
-        except Exception as e:
-            print(f"Error applying to job: {str(e)}")
-            db.session.rollback()
-            return False
+    def get_search_suggestions(self, query):
+        if len(query) < 2:
+            return []
 
-    # Bookmark a particular job post
-    def bookmark_job(self, userid, jobid):
-        """
-        Bookmark a particular job post.
-        :param userid: int - ID of the user bookmarking the job.
-        :param jobid: int - ID of the job to be bookmarked.
-        """
-        bookmark = Bookmark(userid=userid, jobid=jobid)
-        db.session.add(bookmark)
-        db.session.commit()
+        # Prepare the search query for partial matching
+        search_terms = query.split()
+        search_query = ' & '.join(term + ':*' for term in search_terms)
+        tsquery = func.to_tsquery('english', search_query)
 
-    # Filter jobs based on
-    def filter_jobs(self, company_id=None, experience_level=None, industry=None, job_type=None, salary_range=None,
-                work_location=None, min_experience_years=None, tech_stack=None, city=None, state=None,
-                country=None, expiry_date=None, work_rights=None, specialization=None):
-        """
-        Filter jobs based on different criteria.
-        """
-        query = Job.query.join(Company, Job.company_id == Company.company_id).add_columns(
-        Job.job_id, Job.title, Company.name.label('company_name'), Job.city, Job.state, Job.country,
-        Job.work_location, Job.min_experience_years, Job.specialization, Job.experience_level
-    )
+        # Query for job titles from common tech job titles
+        common_job_suggestions = self._get_common_job_titles(query)
 
-        print("Inside filter_jobs service function")
+        # Query for job titles from the database
+        db_job_suggestions = db.session.query(Job.title).filter(
+            Job.search_vector.op('@@')(tsquery)
+        ).distinct().limit(3).all()
 
-        if company_id:
-            query = query.filter(Job.company_id == company_id)
-        if experience_level:
-            query = query.filter(Job.experience_level == experience_level)
-        if industry:
-            query = query.filter(Job.industry == industry)
-        if job_type:
-            query = query.filter(Job.job_type == job_type)
-        if salary_range:
-            query = query.filter(Job.salary_range == salary_range)
-        if work_location:
-            query = query.filter(Job.work_location == work_location)
-        if min_experience_years is not None:
-            query = query.filter(Job.min_experience_years >= min_experience_years)
-        if tech_stack:
-            query = query.filter(Job.tech_stack.contains(tech_stack))
-        if city:
-            query = query.filter(Job.city == city)
-        if state:
-            query = query.filter(Job.state == state)
-        if country:
-            query = query.filter(Job.country == country)
-        if expiry_date:
-            query = query.filter(Job.expiry_date == expiry_date)
-        if work_rights:
-            query = query.filter(Job.work_rights.contains(work_rights))
-        if specialization:
-            query = query.filter(Job.specialization == specialization)
-        
-        return query.all()
-    
+        # Query for company names
+        company_suggestions = db.session.query(Company).filter(
+            Company.name_vector.op('@@')(tsquery)
+        ).limit(3).all()
 
-    def get_latest_jobs_by_specialization(self, specialization, limit=5):
-        return (
-            db.session.query(Job, Company)
-            .join(Company, Job.company_id == Company.company_id)
-            .filter(Job.specialization == specialization)
-            .order_by(Job.created_at.desc())
-            .limit(limit)
-            .all()
-        )
+        # Query for technologies
+        tech_suggestions = db.session.query(Technology.name).filter(
+            Technology.name_vector.op('@@')(tsquery)
+        ).distinct().limit(3).all()
+
+        suggestions = []
+        for job in common_job_suggestions:
+            suggestions.append({'name': job, 'type': 'Roles'})
+        for job in db_job_suggestions:
+            suggestions.append({'name': job.title, 'type': 'Job Title'})
+        for company in company_suggestions:
+            suggestions.append({
+                'name': company.name, 
+                'type': 'Company',
+                'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}"
+            })
+        for tech in tech_suggestions:
+            suggestions.append({'name': tech.name, 'type': 'Technology'})
+
+        return suggestions[:10]  # Limit to top 10 suggestions
+
+    def _get_common_job_titles(self, query):
+        common_titles = get_common_job_titles();
+        return [title for title in common_titles if query.lower() in title.lower()]

@@ -1,36 +1,31 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import Header from "./components/Header";
-import JobSection from "./components/JobSection";
-import JobPost from "./components/JobPost";
+import Navbar from "./components/HomePage/Navbar";
+import Footer from "./components/HomePage/Footer";
+import Header from "./components/HomePage/Header";
+import JobSection from "./components/JobPostPage/JobSection";
+import JobPost from "./components/JobPostPage/JobPost";
 import { toast, Toaster } from "react-hot-toast";
-import SavedAppliedJobSection from "./components/SavedAppliedJobSection";
-import TrendingCompanies from "./components/TrendingCompanies";
-import SearchPage from "./components/SearchPage";
-import CompaniesPage from "./components/CompaniesPage";
+import SavedAppliedJobSection from "./components/Seeker/SavedAppliedJobSection";
+// import TrendingCompanies from "./components/TrendingCompanies";
+import SearchPage from "./components/SearchPage/SearchPage";
+import CompaniesPage from "./components/CompaniesPage/CompaniesPage";
 import searchService from "./services/searchService";
-import ApplicationTrackingDashboard from "./components/ApplicationTrackingDashboard";
-import DeveloperProfile from "./components/DeveloperProfile";
-import RecruiterSettings from "./components/RecruiterSettings";
+import ApplicationTrackingDashboard from "./components/Seeker/ApplicationTrackingDashboard";
+import RecruiterSettings from "./components/Recruiter/RecruiterSettings";
 import RecruiterOnboarding from "./components/Recruiter/RecruiterOnboarding/RecruiterOnboarding";
-import SignupFormRetro from "./components/SignupFormRetro";
-import SeekerSettings from "./components/SeekerSettings";
-import TrendingTechStackGrid from "./components/TrendingTechStack";
-import CompanyPage from "./components/CompanyPage";
-import PostJob from "./recruiter/PostJob";
-import PostJobWithAI from "./recruiter/PostJobWithAI";
-import RecruiterDashboard from "./components/RecruiterDashboard";
-import EditJob from "./components/EditJob";
+import SignupFormRetro from "./components/HomePage/SignupFormRetro";
+import SeekerSettings from "./components/Seeker/SeekerSettings";
+import TrendingTechStackGrid from "./components/HomePage/TrendingTechStack";
+import CompanyPage from "./components/CompanyPage/CompanyPage";
+import PostJob from "./components/Recruiter/PostJob";
+import PostJobWithAI from "./components/Recruiter/PostJobWithAI";
+import RecruiterDashboard from "./components/Recruiter/RecruiterDashboard/RecruiterDashboard";
+import EditJob from "./components/Seeker/EditJob";
 import HashLoader from "react-spinners/HashLoader";
 import { debounce } from 'lodash';  // Make sure to install and import lodash
-import SignupForm from "./components/SignupForm";
-import SignupPopup from "./components/SignupPopup";
-import JobAlertSignupModal from "./components/JobAlertPopup";
-import JobAlertPopup from "./components/JobAlertPopup";
-import JobBoardProfile from "./components/JobBoardProfile";
+import JobBoardProfile from "./components/Misc/JobBoardProfile";
 
 const App = () => {
   const [homePageJobs, setHomePageJobs] = useState([]);
@@ -44,15 +39,7 @@ const App = () => {
   const [specialization, setSpecialization] = useState("");
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState([]);
-
-  // const [filters, setFilters] = useState({
-  //   specialization: "",
-  //   experience_level: "",
-  //   city: "",
-  //   industry: "",
-  //   tech_stack: [],
-  //   salary_range: "",
-  // });
+  
   const [filters, setFilters] = useState({
     specialization: "",
     experience_level: "",
@@ -77,8 +64,8 @@ const App = () => {
   }, [location]);
 
   useEffect(() => {
-    fetchHomePageJobs();
-    fetchAllJobs();
+    fetchHomePageJobs(); /* Should be called only when we're in the home page? */
+    fetchAllJobs(); 
     checkSession();
   }, []);
 
@@ -95,13 +82,7 @@ const App = () => {
       if (data.userinfo) {
         setUserData(data);
       }
-      // if (data.userinfo && data.type === "seeker") {
-      //   console.log(`${data.userinfo.name} is in session`);
-      //   setIsInSession(true);
-      // } else {
-      //   setIsInSession(false);
-      // }
-
+     
       if (data.userinfo) {
         console.log(`${data.userinfo.name} is in session`);
         setIsInSession(true);
@@ -138,7 +119,6 @@ const App = () => {
       }
       const data = await response.json();
       setHomePageJobs(data.jobs);
-      console.log(`homePageJobs: ${homePageJobs}`);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching home page jobs:", error);
@@ -208,20 +188,25 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
     navigate(`/job_post/${jobId}`);
   };
 
-  const handleSearch = async (event) => {
-    const searchValue = event.target.value;
-    setSearchQuery(searchValue);
-    setSearchTitle(searchValue || "Technology"); 
+  const debouncedSearch = debounce(async (searchValue, fetchAllJobs, setSearchTitle, setAllJobs, setTotalJobs, pageSize) => {
+    setSearchTitle(searchValue || "Technology");
     if (searchValue.trim() === "") {
-      // When clearing the search, fetch all jobs again
       const allJobsData = await fetchAllJobs();
       setAllJobs(allJobsData.jobs);
       setTotalJobs(allJobsData.total_jobs);
     } else {
-      // const data = await searchService.instantSearchJobs(searchValue);
       const data = await searchService.instantSearchJobs(searchValue, 1, pageSize);
       setAllJobs(data.results);
       setTotalJobs(data.total);
+    }
+  }, 700);
+  
+  const handleSearch = (event) => {
+    const searchValue = event.target.value;
+    console.log('Input changed:', searchValue);
+    setSearchQuery(searchValue);
+    if (searchQuery.length >= 3) {
+      debouncedSearch(searchValue, fetchAllJobs, setSearchTitle, setAllJobs, setTotalJobs, pageSize);
     }
   };
   
@@ -254,26 +239,6 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
   };
 
   
-  // const handleFilterSearch = useCallback(async (page = 1) => {
-  //   try {
-  //     const data = await searchService.filteredSearchJobs({...filters, page, page_size: pageSize});
-  //     setAllJobs(data.jobs);
-  //     setTotalJobs(data.total_jobs);
-  //     setCurrentPage(page);
-  //     if (filters.tech_stack.length > 0) {
-  //       setSearchTitle(`${filters.tech_stack[0].charAt(0).toUpperCase() + filters.tech_stack[0].slice(1)} Jobs`);
-  //     } else if (filters.specialization) {
-  //       setSearchTitle(`${filters.specialization} Jobs`);
-  //     } else {
-  //       setSearchTitle("Technology Jobs");
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching filtered jobs:', error);
-  //     setAllJobs([]);
-  //     setTotalJobs(0);
-  //     toast.error("Failed to fetch jobs. Please try again later.");
-  //   }
-  // }, [filters, pageSize, currentPage, allJobs.length]);
 
   const handleFilterSearch = useCallback(
     debounce(async (page = 1) => {
@@ -541,7 +506,6 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
           path="/search-page"
           element={
             <SearchPage
-              // title={`${filters.specialization || searchTitle}`}
               title={searchTitle}
               jobs={allJobs}
               onSave={handleSave}

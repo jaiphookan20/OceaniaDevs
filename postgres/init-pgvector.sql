@@ -1,13 +1,10 @@
 -- Connect to the job_board database
 \c job_board;
 
--- Create the vector extension
+-- Create extensions
 CREATE EXTENSION IF NOT EXISTS vector;
-
--- Create the text search configuration
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
--- Log the start of the script execution
 \echo 'Starting init-pgvector.sql execution'
 
 -- Create enum types
@@ -80,68 +77,119 @@ BEGIN
     END IF;
 END$$;
 
--- Create or replace the function to update the search_vector
+-- Create or replace functions for search vector updates
 CREATE OR REPLACE FUNCTION jobs_search_vector_update() RETURNS trigger AS $$
+DECLARE
+    company_name TEXT;
+    company_description TEXT;
 BEGIN
-  NEW.search_vector :=
-    setweight(to_tsvector('english', coalesce(NEW.title,'')), 'A') ||
-    setweight(to_tsvector('english', coalesce(NEW.description,'')), 'C') ||
-    -- setweight(to_tsvector('english', coalesce(NEW.specialization,'')), 'C') ||
-    -- setweight(to_tsvector('english', coalesce(NEW.city,'')), 'D') ||
-    -- setweight(to_tsvector('english', coalesce(NEW.state::text,'')), 'D') ||
-    -- setweight(to_tsvector('english', coalesce(NEW.country::text,'')), 'D') ||
-    setweight(to_tsvector('english', coalesce(array_to_string(NEW.tech_stack, ' '),'')), 'C');
+    -- Get the company name and description
+    SELECT name, description INTO company_name, company_description 
+    FROM companies 
+    WHERE company_id = NEW.company_id;
+    
+    NEW.search_vector :=
+        setweight(to_tsvector('english', coalesce(NEW.title,'')), 'A') ||
+        setweight(to_tsvector('english', coalesce(NEW.description,'')), 'B') ||
+        setweight(to_tsvector('english', coalesce(NEW.overview,'')), 'B') ||
+        setweight(to_tsvector('english', coalesce(NEW.responsibilities,'')), 'B') ||
+        setweight(to_tsvector('english', coalesce(NEW.requirements,'')), 'B') ||
+        setweight(to_tsvector('english', coalesce(company_name,'')), 'C') ||
+        setweight(to_tsvector('english', coalesce(company_description,'')), 'D');
+    RETURN NEW;
+END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION company_name_vector_update() RETURNS trigger AS $$
+BEGIN
+  NEW.name_vector := to_tsvector('english', coalesce(NEW.name,''));
   RETURN NEW;
 END
 $$ LANGUAGE plpgsql;
 
--- Log function creation
-\echo 'Function jobs_search_vector_update created'
+CREATE OR REPLACE FUNCTION technology_name_vector_update() RETURNS trigger AS $$
+BEGIN
+  NEW.name_vector := to_tsvector('english', coalesce(NEW.name,''));
+  RETURN NEW;
+END
+$$ LANGUAGE plpgsql;
 
--- Drop the trigger if it exists and recreate it
+-- Create triggers
 DROP TRIGGER IF EXISTS jobs_search_vector_update ON jobs;
 CREATE TRIGGER jobs_search_vector_update
 BEFORE INSERT OR UPDATE ON jobs
 FOR EACH ROW EXECUTE FUNCTION jobs_search_vector_update();
 
--- Log trigger creation
-\echo 'Trigger jobs_search_vector_update created'
+DROP TRIGGER IF EXISTS company_name_vector_update ON companies;
+CREATE TRIGGER company_name_vector_update
+BEFORE INSERT OR UPDATE ON companies
+FOR EACH ROW EXECUTE FUNCTION company_name_vector_update();
 
--- Add search_vector column if it doesn't exist
+DROP TRIGGER IF EXISTS technology_name_vector_update ON technologies;
+CREATE TRIGGER technology_name_vector_update
+BEFORE INSERT OR UPDATE ON technologies
+FOR EACH ROW EXECUTE FUNCTION technology_name_vector_update();
+
+-- Add vector columns if they don't exist
 DO $$
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1
-    FROM information_schema.columns
-    WHERE table_name = 'jobs' AND column_name = 'search_vector'
-  ) THEN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'search_vector') THEN
     ALTER TABLE jobs ADD COLUMN search_vector tsvector;
-    RAISE NOTICE 'search_vector column added to jobs table';
-  ELSE
-    RAISE NOTICE 'search_vector column already exists in jobs table';
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'companies' AND column_name = 'name_vector') THEN
+    ALTER TABLE companies ADD COLUMN name_vector tsvector;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'technologies' AND column_name = 'name_vector') THEN
+    ALTER TABLE technologies ADD COLUMN name_vector tsvector;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'embedding') THEN
+    ALTER TABLE jobs ADD COLUMN embedding vector(1536);
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'candidates' AND column_name = 'embedding') THEN
+    ALTER TABLE candidates ADD COLUMN embedding vector(1536);
   END IF;
 END$$;
 
--- Create a GIN index on the search_vector for faster searching
+-- Create GIN indexes
 CREATE INDEX IF NOT EXISTS jobs_search_vector_idx ON jobs USING GIN (search_vector);
+CREATE INDEX IF NOT EXISTS companies_name_vector_idx ON companies USING GIN (name_vector);
+CREATE INDEX IF NOT EXISTS technologies_name_vector_idx ON technologies USING GIN (name_vector);
 
--- Log index creation
-\echo 'GIN index jobs_search_vector_idx created or already exists'
+-- Add after the existing CREATE INDEX statements
+
+-- For frequently used filters in filtered_search_jobs
+CREATE INDEX IF NOT EXISTS jobs_specialization_idx ON jobs (specialization);
+CREATE INDEX IF NOT EXISTS jobs_experience_level_idx ON jobs (experience_level);
+CREATE INDEX IF NOT EXISTS jobs_work_location_idx ON jobs (work_location);
+CREATE INDEX IF NOT EXISTS jobs_city_idx ON jobs (city);
+
+-- For tech stack filtering
+CREATE INDEX IF NOT EXISTS job_technologies_job_id_idx ON job_technologies (job_id);
+CREATE INDEX IF NOT EXISTS job_technologies_technology_id_idx ON job_technologies (technology_id);
 
 -- Update existing rows
-UPDATE jobs SET search_vector = NULL;
-UPDATE jobs SET
-  search_vector = 
-    setweight(to_tsvector('english', coalesce(title,'')), 'A') ||
-    setweight(to_tsvector('english', coalesce(description,'')), 'C') ||
-    -- setweight(to_tsvector('english', coalesce(specialization,'')), 'C') ||
-    -- setweight(to_tsvector('english', coalesce(city,'')), 'D') ||
-    -- setweight(to_tsvector('english', coalesce(state::text,'')), 'D') ||
-    -- setweight(to_tsvector('english', coalesce(country::text,'')), 'D') ||
-    setweight(to_tsvector('english', coalesce(array_to_string(tech_stack, ' '),'')), 'B');
+UPDATE companies SET name_vector = to_tsvector('english', coalesce(name,''));
+UPDATE technologies SET name_vector = to_tsvector('english', coalesce(name,''));
 
--- Log completion of updates
-\echo 'Existing rows updated with search_vector'
+-- This is the correct, comprehensive update for jobs:
+UPDATE jobs j
+SET search_vector = subquery.new_search_vector
+FROM (
+    SELECT j.job_id,
+           setweight(to_tsvector('english', coalesce(j.title,'')), 'A') ||
+           setweight(to_tsvector('english', coalesce(j.description,'')), 'B') ||
+           setweight(to_tsvector('english', coalesce(j.overview,'')), 'B') ||
+           setweight(to_tsvector('english', coalesce(j.responsibilities,'')), 'B') ||
+           setweight(to_tsvector('english', coalesce(j.requirements,'')), 'B') ||
+           setweight(to_tsvector('english', coalesce(c.name,'')), 'C') ||
+           setweight(to_tsvector('english', coalesce(c.description,'')), 'D') AS new_search_vector
+    FROM jobs j
+    JOIN companies c ON j.company_id = c.company_id
+) AS subquery
+WHERE j.job_id = subquery.job_id;
 
--- Log the end of the script execution
 \echo 'Finished init-pgvector.sql execution'
