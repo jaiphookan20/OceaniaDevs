@@ -81,14 +81,12 @@ class JobsService:
 
             for key, value in filter_params.items():
                 if value:
-                    # Existing filters
                     if key == 'work_location':
                         jobs_query = jobs_query.filter(Job.work_location == value)
-                    if key == 'tech_stack':
+                    elif key == 'tech_stack':
                         jobs_query = jobs_query.join(JobTechnology).join(Technology).filter(Technology.name == value)
                     elif key == 'min_experience_years':
                         jobs_query = jobs_query.filter(Job.min_experience_years >= int(value))
-                    # New filters
                     elif key == 'specialization':
                         jobs_query = jobs_query.filter(Job.specialization == value)
                     elif key == 'experience_level':
@@ -99,13 +97,28 @@ class JobsService:
                         jobs_query = jobs_query.filter(Job.job_arrangement == value)
                     elif key == 'industry':
                         jobs_query = jobs_query.filter(Job.industry == value)
+                    elif key == 'query':
+                        # Add search functionality for the query
+                        search_terms = value.split()
+                        search_query = ' & '.join(term + ':*' for term in search_terms)
+                        tsquery = func.websearch_to_tsquery('english', search_query)
+                        jobs_query = Job.query.join(Company).filter(
+                            or_(
+                                Job.search_vector.op('@@')(tsquery),
+                                Job.title.ilike(f'%{search_query}%'),
+                                Company.name.ilike(f'%{search_query}%')
+                            )
+                        ).order_by(
+                            # Highlight: Using ts_rank_cd for ranking without similarity function
+                            func.ts_rank_cd(Job.search_vector, tsquery, 32).desc()
+                        )
                     else:
                         jobs_query = jobs_query.filter(getattr(Job, key) == value)
 
             total_jobs = jobs_query.count()
             jobs = jobs_query.order_by(Job.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
 
-            return self._format_job_results(jobs), total_jobs
+            return self._format_job_results(jobs, user_statuses), total_jobs
         except Exception as e:
             current_app.logger.error(f"Error in filtered_search_jobs: {str(e)}")
             raise
@@ -142,7 +155,7 @@ class JobsService:
             raise
     
     @cache.memoize(timeout=3600)
-    def get_home_page_jobs(self):
+    def get_home_page_jobs(self, user_statuses=None):
         """Retrieve jobs for the home page, grouped by specialization."""
         try:
             specializations = ['Frontend', 'Backend', 'Full-Stack', 'Mobile', 'Data & ML', 'QA & Testing', 'Cloud & Infra', 'DevOps', 'Project Management', 'IT Consulting', 'Cybersecurity']
@@ -151,22 +164,35 @@ class JobsService:
             for specialization in specializations:
                 jobs = Job.query.join(Company).filter(Job.specialization == specialization).order_by(Job.created_at.desc()).limit(5).all()
                 if jobs:
-                    all_jobs[specialization] = self._format_job_results(jobs)
+                    all_jobs[specialization] = self._format_job_results(jobs, user_statuses)
             
             return all_jobs
         except Exception as e:
             current_app.logger.error(f"Error in get_home_page_jobs: {str(e)}")
             raise
 
-    def _format_job_results(self, jobs):
-        """Format job results for API responses."""
+    def get_user_job_statuses(self, user_id):
+        """Fetch saved and applied job IDs for a user in a single query."""
+        try:
+            saved_jobs = set(db.session.query(Bookmark.jobid).filter(Bookmark.userid == user_id).all())
+            applied_jobs = set(db.session.query(Application.jobid).filter(Application.userid == user_id).all())
+            return {
+                'saved_jobs': list(saved_jobs),
+                'applied_jobs': list(applied_jobs)
+            }
+        except Exception as e:
+            current_app.logger.error(f"Error in get_user_job_statuses: {str(e)}")
+            raise
+
+    def _format_job_results(self, jobs, user_statuses=None):
+        """Format job results for API responses, including saved and applied status."""
         try:
             results = []
             for job in jobs:
                 technologies = db.session.query(Technology.name).join(JobTechnology).filter(JobTechnology.job_id == job.job_id).all()
                 tech_stack = [tech.name for tech in technologies]
 
-                results.append({
+                job_data = {
                     'job_id': job.job_id,
                     'company_id': job.company_id,
                     'title': job.title,
@@ -181,7 +207,13 @@ class JobsService:
                     'min_experience_years': job.min_experience_years,
                     'tech_stack': tech_stack,
                     'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.company.logo_url)}",
-                })
+                }
+                
+                if user_statuses:
+                    job_data['is_saved'] = job.job_id in user_statuses['saved_jobs']
+                    job_data['is_applied'] = job.job_id in user_statuses['applied_jobs']
+                
+                results.append(job_data)
             return results
         except Exception as e:
             current_app.logger.error(f"Error in _format_job_results: {str(e)}")

@@ -42,19 +42,20 @@ def filtered_search_jobs():
     """Search and filter jobs based on various criteria."""
     try:
         filter_params = {
-        'specialization': request.args.get('specialization'),
-        'experience_level': request.args.get('experience_level'),
-        'min_experience_years': request.args.get('min_experience_years'),
-        'work_location': request.args.get('work_location'),
-        'industry': request.args.get('industry'),
-        'salary_range': request.args.get('salary_range'),
-        'city': request.args.get('city'),
-        'tech_stack': request.args.get('tech_stack'),
-        'job_arrangement': request.args.get('job_arrangement')
-    }
+            'specialization': request.args.get('specialization'),
+            'experience_level': request.args.get('experience_level'),
+            'min_experience_years': request.args.get('min_experience_years'),
+            'work_location': request.args.get('work_location'),
+            'industry': request.args.get('industry'),
+            'salary_range': request.args.get('salary_range'),
+            'city': request.args.get('city'),
+            'tech_stack': request.args.get('tech_stack'),
+            'job_arrangement': request.args.get('job_arrangement'),
+            'query': request.args.get('query')
+        }
         page = request.args.get('page', default=1, type=int)
         page_size = request.args.get('page_size', default=10, type=int)
-
+        
         results, total_jobs = jobs_service.filtered_search_jobs(filter_params, page, page_size)
 
         return jsonify({

@@ -188,26 +188,9 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
     navigate(`/job_post/${jobId}`);
   };
 
-  const debouncedSearch = debounce(async (searchValue, fetchAllJobs, setSearchTitle, setAllJobs, setTotalJobs, pageSize) => {
-    setSearchTitle(searchValue || "Technology");
-    if (searchValue.trim() === "") {
-      const allJobsData = await fetchAllJobs();
-      setAllJobs(allJobsData.jobs);
-      setTotalJobs(allJobsData.total_jobs);
-    } else {
-      const data = await searchService.instantSearchJobs(searchValue, 1, pageSize);
-      setAllJobs(data.results);
-      setTotalJobs(data.total);
-    }
-  }, 700);
-  
   const handleSearch = (event) => {
     const searchValue = event.target.value;
-    console.log('Input changed:', searchValue);
     setSearchQuery(searchValue);
-    if (searchQuery.length >= 3) {
-      debouncedSearch(searchValue, fetchAllJobs, setSearchTitle, setAllJobs, setTotalJobs, pageSize);
-    }
   };
   
 
@@ -240,47 +223,33 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
 
   
 
-  const handleFilterSearch = useCallback(
-    debounce(async (page = 1) => {
-      try {
-        // Check if filters or page have changed since last call
-        if (
-          JSON.stringify(filters) === JSON.stringify(prevFilters.current) &&
-          page === currentPage &&
-          allJobs.length > 0
-        ) {
-          return; // No need to fetch if nothing has changed
-        }
-  
-        // Perform the API call with current filters and page
-        const data = await searchService.filteredSearchJobs({...filters, page, page_size: pageSize});
-        
-        // Update state with fetched data
-        setAllJobs(data.jobs);
-        setTotalJobs(data.total_jobs);
-        setCurrentPage(page);
-  
-        // Update search title based on active filters
-        if (filters.tech_stack.length > 0) {
-          setSearchTitle(`${filters.tech_stack[0].charAt(0).toUpperCase() + filters.tech_stack[0].slice(1)} Jobs`);
-        } else if (filters.specialization) {
-          setSearchTitle(`${filters.specialization} Jobs`);
-        } else {
-          setSearchTitle("Technology Jobs");
-        }
-  
-        // Update prevFilters ref to current filters for future comparison
-        prevFilters.current = {...filters};
-  
-      } catch (error) {
-        console.error('Error fetching filtered jobs:', error);
-        setAllJobs([]);
-        setTotalJobs(0);
-        toast.error("Failed to fetch jobs. Please try again later.");
+  const handleFilterSearch = useCallback(async (page = 1) => {
+    try {
+      const data = await searchService.filteredSearchJobs({...filters, query: searchQuery, page, page_size: pageSize});
+      
+      setAllJobs(data.jobs);
+      setTotalJobs(data.total_jobs);
+      setCurrentPage(page);
+
+      if (searchQuery) {
+        setSearchTitle(`Results for "${searchQuery}"`);
+      } else if (filters.tech_stack.length > 0) {
+        setSearchTitle(`${filters.tech_stack[0].charAt(0).toUpperCase() + filters.tech_stack[0].slice(1)} Jobs`);
+      } else if (filters.specialization) {
+        setSearchTitle(`${filters.specialization} Jobs`);
+      } else {
+        setSearchTitle("Technology Jobs");
       }
-    }, 300),  // 300ms debounce to prevent rapid successive calls
-    [filters, pageSize, currentPage, allJobs.length]
-  );
+
+      prevFilters.current = {...filters};
+
+    } catch (error) {
+      console.error('Error fetching filtered jobs:', error);
+      setAllJobs([]);
+      setTotalJobs(0);
+      toast.error("Failed to fetch jobs. Please try again later.");
+    }
+  }, [filters, searchQuery, pageSize]);
 
   const fetchSavedJobs = async () => {
     try {
@@ -318,22 +287,14 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
     }
   };
 
-  // const handlePageChange = (newPage) => {
-  //   setCurrentPage(newPage);
-  //   // fetchAllJobs(newPage);
-  //   handleFilterSearch(newPage);
-  // };
-
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
     if (searchQuery.trim() !== "") {
-      // If there's a search query, use instant search pagination
       searchService.instantSearchJobs(searchQuery, newPage, pageSize).then(data => {
         setAllJobs(data.results);
         setTotalJobs(data.total);
       });
     } else {
-      // Otherwise, use filtered search pagination
       handleFilterSearch(newPage);
     }
   };
@@ -411,10 +372,10 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      return data.bookmarked_jobs || []; // Ensure we always return an array
+      return data.bookmarked_jobs || [];
     } catch (error) {
       console.error("Error fetching more saved jobs:", error);
-      return []; // Return an empty array in case of error
+      return [];
     }
   };
 
@@ -431,10 +392,10 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      return data.applied_jobs || []; // Ensure we always return an array
+      return data.applied_jobs || [];
     } catch (error) {
       console.error("Error fetching more applied jobs:", error);
-      return []; // Return an empty array in case of error
+      return [];
     }
   };
 
@@ -522,7 +483,7 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
               onFilterSearch={handleFilterSearch}
               isInSession={isInSession}
               specialization={specialization}
-              onClearAll={handleClearAll}  // Pass the new handleClearAll function
+              onClearAll={handleClearAll}
               onTechFilter={handleTechFilter}
             />
           }
@@ -581,7 +542,6 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
                   jobs={savedJobs}
                   onApply={handleApply}
                   onView={handleView}
-                  // fetchMoreJobs={fetchSavedJobs}
                   fetchMoreJobs={fetchMoreSavedJobs}
                   onRemove={removeBookmark}
                   isSavedJobs={true}
