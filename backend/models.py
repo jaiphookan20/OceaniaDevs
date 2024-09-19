@@ -31,6 +31,8 @@ class Seeker(db.Model):
     country = db.Column(country_enum)
     datetimestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
 
+    applications = db.relationship('Application', back_populates='seeker')
+
     @property
     def password(self):
         raise AttributeError('password is not a readable attribute')
@@ -41,6 +43,9 @@ class Seeker(db.Model):
 
     def verify_password(self, password):
         return bcrypt.check_password_hash(self.password_hash, password)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
 
 class Recruiter(db.Model):
     __tablename__ = 'recruiters'
@@ -57,6 +62,9 @@ class Recruiter(db.Model):
     is_direct_recruiter = db.Column(db.Boolean)
     created_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
 
 class Company(db.Model):
     __tablename__ = 'companies'
@@ -77,6 +85,9 @@ class Company(db.Model):
     city = db.Column(db.String(255));
     type=db.Column(db.String(255));
     name_vector = db.Column(TSVECTOR)
+
+    def __str__(self):
+        return self.name
 
 class Job(db.Model):
     __tablename__ = 'jobs'
@@ -106,7 +117,6 @@ class Job(db.Model):
     specialization = db.Column(specialization_enum) #new
     job_type = db.Column(job_type_enum, default='normal')
     industry = db.Column(industry_enum, nullable=False)
-    job_technologies = db.relationship('JobTechnology', backref='job', lazy='joined')
     
     min_experience_years = db.Column(db.Integer)
     experience_level = db.Column(experience_level_enum) #new
@@ -121,11 +131,23 @@ class Job(db.Model):
     search_vector = db.Column(TSVECTOR)
     embedding = db.Column(Vector(1536))  
 
+    job_technologies = db.relationship('JobTechnology', back_populates='job', lazy='joined')
+    applications = db.relationship('Application', back_populates='job')
+
+    def __str__(self):
+        return f"{self.title} at {self.company.name}"
+
 class Technology(db.Model):
     __tablename__ = 'technologies'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True, nullable=False)
     name_vector = db.Column(TSVECTOR)
+
+    # Add this line
+    job_technologies = db.relationship('JobTechnology', back_populates='technology')
+
+    def __str__(self):
+        return self.name
 
 class TechnologyAlias(db.Model):
     __tablename__ = 'technology_aliases'
@@ -134,10 +156,20 @@ class TechnologyAlias(db.Model):
     
     technology = db.relationship('Technology', backref=db.backref('aliases', lazy=True))
 
+    def __str__(self):
+        return f"{self.alias} (alias for {self.technology.name})"
+
 class JobTechnology(db.Model):
     __tablename__ = 'job_technologies'
-    job_id = db.Column(db.Integer, db.ForeignKey('jobs.job_id'), primary_key=True)  # Updated foreign key reference
+    job_id = db.Column(db.Integer, db.ForeignKey('jobs.job_id'), primary_key=True)
     technology_id = db.Column(db.Integer, db.ForeignKey('technologies.id'), primary_key=True)
+    
+    # Change these lines
+    job = db.relationship('Job', back_populates='job_technologies')
+    technology = db.relationship('Technology', back_populates='job_technologies')
+
+    def __str__(self):
+        return f"{self.job.title} - {self.technology.name}"
 
 class Candidate(db.Model):
     __tablename__ = 'candidates'
@@ -150,13 +182,22 @@ class Candidate(db.Model):
     technologies = db.Column(db.ARRAY(db.String))
     embedding = db.Column(Vector(1536))
 
+    def __str__(self):
+        return self.name
+
 class Application(db.Model):
     __tablename__ = 'applications'
     applicationid = db.Column(db.Integer, primary_key=True)
     userid = db.Column(db.Integer, db.ForeignKey('seekers.uid'))
     jobid = db.Column(db.Integer, db.ForeignKey('jobs.job_id'))
     datetimestamp = db.Column(db.DateTime, server_default=db.func.current_timestamp())
-    status = db.Column(db.String(50), default='Applied')  # New field
+    status = db.Column(db.String(50), default='Applied')
+
+    seeker = db.relationship('Seeker', back_populates='applications')
+    job = db.relationship('Job', back_populates='applications')
+
+    def __str__(self):
+        return f"Application {self.applicationid}: {self.status}"
 
 class Bookmark(db.Model):
     __tablename__ = 'bookmarks'
@@ -164,3 +205,6 @@ class Bookmark(db.Model):
     userid = db.Column(db.Integer, db.ForeignKey('seekers.uid'))
     jobid = db.Column(db.Integer, db.ForeignKey('jobs.job_id'))
     datetimestamp = db.Column(db.DateTime, server_default=db.func.current_timestamp())
+
+    def __str__(self):
+        return f"Bookmark {self.bookmarksid}"
