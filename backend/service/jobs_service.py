@@ -118,7 +118,7 @@ class JobsService:
             total_jobs = jobs_query.count()
             jobs = jobs_query.order_by(Job.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
 
-            return self._format_job_results(jobs, user_statuses), total_jobs
+            return self._format_job_results(jobs), total_jobs
         except Exception as e:
             current_app.logger.error(f"Error in filtered_search_jobs: {str(e)}")
             raise
@@ -377,8 +377,6 @@ class JobsService:
                 'type': 'Company',
                 'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}"
             })
-        for tech in tech_suggestions:
-            suggestions.append({'name': tech.name, 'type': 'Technology'})
 
         return suggestions[:10]  # Limit to top 10 suggestions
 
