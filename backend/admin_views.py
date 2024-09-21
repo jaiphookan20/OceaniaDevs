@@ -1,7 +1,8 @@
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import SecureForm
 from flask_admin import BaseView, expose, AdminIndexView
-from wtforms import PasswordField
+from wtforms import PasswordField, StringField, SelectField
+from wtforms.validators import DataRequired, ValidationError
 from models import Seeker, Recruiter, Company, Job, Application, Bookmark, Technology, TechnologyAlias, JobTechnology
 from flask import redirect, url_for, session
 from sqlalchemy import func
@@ -12,6 +13,8 @@ import csv
 import io
 from sqlalchemy.orm import joinedload
 from flask import render_template
+from flask import flash
+from sqlalchemy.exc import IntegrityError
 
 # Base class for secure views, ensuring only authorized users can access
 class SecureModelView(ModelView):
@@ -68,8 +71,60 @@ class JobView(SecureModelView):
     column_filters = ['specialization', 'job_type', 'industry', 'experience_level', 'work_location']
 
 class TechnologiesView(SecureModelView):
+    column_list = ['id', 'name']
+    form_columns = ['name']
     column_searchable_list = ['id', 'name']
     column_filters = ['id', 'name']
+
+class TechnologyAliasView(SecureModelView):
+    column_list = ['alias', 'technology.name']
+    form_columns = ['alias', 'technology']
+    column_labels = {'technology.name': 'Technology'}
+    column_searchable_list = ['alias', 'technology.name']
+    column_filters = ['technology.name']
+
+class JobTechnologyView(SecureModelView):
+    column_list = ['job.title', 'technology.name']
+    form_columns = ['job', 'technology']
+    column_labels = {'job.title': 'Job Title', 'technology.name': 'Technology'}
+    column_searchable_list = ['job.title', 'technology.name']
+    column_filters = ['job.title', 'technology.name']
+
+    def on_model_change(self, form, model, is_created):
+        # Check if the association already exists
+        existing = JobTechnology.query.filter_by(job_id=model.job_id, technology_id=model.technology_id).first()
+        if existing:
+            raise ValidationError('This job-technology association already exists.')
+
+    def create_model(self, form):
+        try:
+            model = self.model()
+            form.populate_obj(model)
+            self.session.add(model)
+            self._on_model_change(form, model, True)
+            self.session.commit()
+        except ValidationError as ex:
+            flash(str(ex), 'error')
+            return False
+        except IntegrityError:
+            self.session.rollback()
+            flash('This job-technology association already exists.', 'error')
+            return False
+        return model
+
+    def update_model(self, form, model):
+        try:
+            form.populate_obj(model)
+            self._on_model_change(form, model, False)
+            self.session.commit()
+        except ValidationError as ex:
+            flash(str(ex), 'error')
+            return False
+        except IntegrityError:
+            self.session.rollback()
+            flash('This job-technology association already exists.', 'error')
+            return False
+        return True
 
 # Custom view for Application model
 class ApplicationView(SecureModelView):
@@ -95,22 +150,6 @@ class ApplicationView(SecureModelView):
     def get_count_query(self):
         return self.session.query(func.count('*')).select_from(self.model)
     
-# Custom view for TechnologyAlias model
-class TechnologyAliasView(SecureModelView):
-    column_list = ['alias', 'technology.name']
-    column_labels = {'technology.name': 'Technology'}
-    column_searchable_list = ['alias', 'technology.name']
-    column_filters = ['technology.name']
-
-# Custom view for JobTechnology model
-class JobTechnologyView(SecureModelView):
-    column_list = ['job.job_id', 'job.title', 'technology.name']
-    column_labels = {'job.job_id': 'Job.Job ID', 'job.title': 'Job Title', 'technology.name': 'Technology'}
-    column_searchable_list = ['job.job_id','job.title', 'technology.name']
-    column_filters = ['job.job_id','job.title', 'technology.name']
-
-    def __init__(self, model, session, **kwargs):
-        super(JobTechnologyView, self).__init__(model, session, **kwargs)
 
 # Dashboard view showing overview statistics
 class DashboardView(BaseView):
