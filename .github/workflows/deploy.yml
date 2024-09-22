@@ -113,9 +113,11 @@ jobs:
       - name: Clean up migrations and reset database state
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
-            cd ~/OceaniaDevs/backend
-            rm -rf migrations
-            docker-compose run --rm backend psql -h postgres -U ${{ secrets.DB_USER }} -d ${{ secrets.DB_NAME }} -c 'DROP TABLE IF EXISTS alembic_version;'
+            cd ~/OceaniaDevs
+            docker-compose run --rm backend sh -c '
+              rm -rf migrations
+              PGPASSWORD=$DB_PASSWORD docker exec -i $(docker ps -qf name=postgres) psql -U $DB_USER -d $DB_NAME -c \"DROP TABLE IF EXISTS alembic_version;\"
+            '
           "
 
       - name: Recreate migrations

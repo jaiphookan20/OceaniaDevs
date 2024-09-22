@@ -15,10 +15,15 @@ if [ ! -d "migrations" ]; then
     echo "Migrations directory not found. Initializing..."
     flask db init
 fi
+
+# Use PGPASSWORD environment variable for psql
 export PGPASSWORD=$DB_PASSWORD
+
+# Use docker exec to run psql command
+docker exec -i $(docker ps -qf name=postgres) psql -U $DB_USER -d $DB_NAME -c 'DROP TABLE IF EXISTS alembic_version;'
+
 flask db current || {
     echo "No current revision. Initializing database..."
-    psql -h $DB_HOST -U $DB_USER -d $DB_NAME -c 'DROP TABLE IF EXISTS alembic_version;'
     flask db stamp head
 }
 flask db migrate -m "initial migration" || echo "Failed to create migration"
@@ -29,6 +34,8 @@ flask db upgrade || {
     flask db migrate -m "initial migration"
     flask db upgrade || { echo "Migration recreation failed"; exit 1; }
 }
+
+# Unset PGPASSWORD for security
 unset PGPASSWORD
 
 echo "Migrations completed."
