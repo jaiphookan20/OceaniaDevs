@@ -10,24 +10,24 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 -- Create enum types
 DO $$
 BEGIN
-    -- state_enum
+    -- state_enum (no change needed)
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'state_enum') THEN
         CREATE TYPE state_enum AS ENUM ('VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA');
     END IF;
 
-    -- country_enum
+    -- country_enum (no change needed)
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'country_enum') THEN
         CREATE TYPE country_enum AS ENUM ('Australia', 'New Zealand');
     END IF;
 
-    -- job_type_enum
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'job_type') THEN
-        CREATE TYPE job_type AS ENUM ('premium', 'normal');
+    -- Change: job_type to job_type_enum
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'job_type_enum') THEN
+        CREATE TYPE job_type_enum AS ENUM ('premium', 'normal');
     END IF;
 
-    -- industry_enum
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'industry_type') THEN
-        CREATE TYPE industry_type AS ENUM (
+    -- Change: industry_type to industry_enum
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'industry_enum') THEN
+        CREATE TYPE industry_enum AS ENUM (
             'Government', 'Banking & Financial Services', 'Fashion', 'Mining', 'Healthcare',
             'IT - Software Development', 'IT - Data Analytics', 'IT - Cybersecurity',
             'IT - Cloud Computing', 'IT - Artificial Intelligence', 'Agriculture', 'Automotive',
@@ -38,16 +38,16 @@ BEGIN
         );
     END IF;
 
-    -- Updated salary_range_enum
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'salary_range_type') THEN
-        CREATE TYPE salary_range_type AS ENUM (
+    -- Change: salary_range_type to salary_range_enum
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'salary_range_enum') THEN
+        CREATE TYPE salary_range_enum AS ENUM (
             'Not Listed', '20000 - 40000', '40000 - 60000', '60000 - 80000', '80000 - 100000',
             '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000',
             '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+'
         );
     END IF;
 
-    -- New specialization_enum
+    -- specialization_enum (no change needed)
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'specialization_enum') THEN
         CREATE TYPE specialization_enum AS ENUM (
             'Frontend', 'Backend', 'Full-Stack', 'Mobile', 'Data & ML', 'QA & Testing',
@@ -55,25 +55,45 @@ BEGIN
         );
     END IF;
 
-    -- New experience_level_enum
+    -- experience_level_enum (no change needed)
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'experience_level_enum') THEN
         CREATE TYPE experience_level_enum AS ENUM (
             'Junior', 'Mid-Level', 'Senior', 'Executive'
         );
     END IF;
 
-    -- New work_location_enum
+    -- work_location_enum (no change needed)
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'work_location_enum') THEN
         CREATE TYPE work_location_enum AS ENUM (
             'Remote', 'Hybrid', 'Office'
         );
     END IF;
 
-    -- New job_arrangement_enum
+    -- job_arrangement_enum (no change needed)
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'job_arrangement_enum') THEN
         CREATE TYPE job_arrangement_enum AS ENUM (
             'Permanent', 'Contract/Temp', 'Internship', 'Part-Time'
         );
+    END IF;
+
+    -- salary_type_enum
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'salary_type_enum') THEN
+        CREATE TYPE salary_type_enum AS ENUM ('annual', 'hourly', 'daily');
+    END IF;
+
+    -- contract_duration_enum
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'contract_duration_enum') THEN
+        CREATE TYPE contract_duration_enum AS ENUM ('Not Listed', '0-3 months', '4-6 months', '7-9 months', '10-12 months', '12+ months');
+    END IF;
+
+    -- daily_range_enum
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'daily_range_enum') THEN
+        CREATE TYPE daily_range_enum AS ENUM ('Not Listed', '0-200', '200-400', '400-600', '600-800', '800-1000', '1000-1200', '1200-1400', '1400-1600', '1600+');
+    END IF;
+
+    -- hourly_range_enum
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'hourly_range_enum') THEN
+        CREATE TYPE hourly_range_enum AS ENUM ('Not Listed', '0-20', '20-40', '40-60', '60-80', '80-100', '100-120', '120-140', '140-160', '160+');
     END IF;
 END$$;
 
@@ -152,26 +172,121 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'candidates' AND column_name = 'embedding') THEN
     ALTER TABLE candidates ADD COLUMN embedding vector(1536);
   END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'citizens_or_pr_only') THEN
+    ALTER TABLE jobs ADD COLUMN citizens_or_pr_only BOOLEAN DEFAULT FALSE;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'security_clearance_required') THEN
+    ALTER TABLE jobs ADD COLUMN security_clearance_required BOOLEAN DEFAULT FALSE;
+  END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'salary_type') THEN
+    ALTER TABLE jobs ADD COLUMN salary_type salary_type_enum DEFAULT 'annual';
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'contract_duration') THEN
+    ALTER TABLE jobs ADD COLUMN contract_duration contract_duration_enum DEFAULT 'Not Listed';
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'daily_range') THEN
+    ALTER TABLE jobs ADD COLUMN daily_range daily_range_enum DEFAULT 'Not Listed';
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'hourly_range') THEN
+    ALTER TABLE jobs ADD COLUMN hourly_range hourly_range_enum DEFAULT 'Not Listed';
+  END IF;
 END$$;
 
 -- Create GIN indexes
-CREATE INDEX IF NOT EXISTS jobs_search_vector_idx ON jobs USING GIN (search_vector);
-CREATE INDEX IF NOT EXISTS companies_name_vector_idx ON companies USING GIN (name_vector);
-CREATE INDEX IF NOT EXISTS technologies_name_vector_idx ON technologies USING GIN (name_vector);
+\echo 'Creating or verifying GIN indexes...'
 
--- Add after the existing CREATE INDEX statements
+DO $$
+DECLARE
+    index_count INT;
+BEGIN
+    SELECT COUNT(*) INTO index_count FROM pg_indexes WHERE indexname = 'jobs_search_vector_idx';
+    IF index_count = 0 THEN
+        CREATE INDEX jobs_search_vector_idx ON jobs USING GIN (search_vector);
+        RAISE NOTICE 'Created index: jobs_search_vector_idx';
+    ELSE
+        RAISE NOTICE 'Index already exists: jobs_search_vector_idx';
+    END IF;
 
--- For frequently used filters in filtered_search_jobs
-CREATE INDEX IF NOT EXISTS jobs_specialization_idx ON jobs (specialization);
-CREATE INDEX IF NOT EXISTS jobs_experience_level_idx ON jobs (experience_level);
-CREATE INDEX IF NOT EXISTS jobs_work_location_idx ON jobs (work_location);
-CREATE INDEX IF NOT EXISTS jobs_city_idx ON jobs (city);
+    SELECT COUNT(*) INTO index_count FROM pg_indexes WHERE indexname = 'companies_name_vector_idx';
+    IF index_count = 0 THEN
+        CREATE INDEX companies_name_vector_idx ON companies USING GIN (name_vector);
+        RAISE NOTICE 'Created index: companies_name_vector_idx';
+    ELSE
+        RAISE NOTICE 'Index already exists: companies_name_vector_idx';
+    END IF;
 
--- For tech stack filtering
-CREATE INDEX IF NOT EXISTS job_technologies_job_id_idx ON job_technologies (job_id);
-CREATE INDEX IF NOT EXISTS job_technologies_technology_id_idx ON job_technologies (technology_id);
+    SELECT COUNT(*) INTO index_count FROM pg_indexes WHERE indexname = 'technologies_name_vector_idx';
+    IF index_count = 0 THEN
+        CREATE INDEX technologies_name_vector_idx ON technologies USING GIN (name_vector);
+        RAISE NOTICE 'Created index: technologies_name_vector_idx';
+    ELSE
+        RAISE NOTICE 'Index already exists: technologies_name_vector_idx';
+    END IF;
+END $$;
+
+\echo 'Creating or verifying B-tree indexes...'
+
+DO $$
+DECLARE
+    index_count INT;
+BEGIN
+    SELECT COUNT(*) INTO index_count FROM pg_indexes WHERE indexname = 'jobs_specialization_idx';
+    IF index_count = 0 THEN
+        CREATE INDEX jobs_specialization_idx ON jobs (specialization);
+        RAISE NOTICE 'Created index: jobs_specialization_idx';
+    ELSE
+        RAISE NOTICE 'Index already exists: jobs_specialization_idx';
+    END IF;
+
+    SELECT COUNT(*) INTO index_count FROM pg_indexes WHERE indexname = 'jobs_experience_level_idx';
+    IF index_count = 0 THEN
+        CREATE INDEX jobs_experience_level_idx ON jobs (experience_level);
+        RAISE NOTICE 'Created index: jobs_experience_level_idx';
+    ELSE
+        RAISE NOTICE 'Index already exists: jobs_experience_level_idx';
+    END IF;
+
+    SELECT COUNT(*) INTO index_count FROM pg_indexes WHERE indexname = 'jobs_work_location_idx';
+    IF index_count = 0 THEN
+        CREATE INDEX jobs_work_location_idx ON jobs (work_location);
+        RAISE NOTICE 'Created index: jobs_work_location_idx';
+    ELSE
+        RAISE NOTICE 'Index already exists: jobs_work_location_idx';
+    END IF;
+
+    SELECT COUNT(*) INTO index_count FROM pg_indexes WHERE indexname = 'jobs_city_idx';
+    IF index_count = 0 THEN
+        CREATE INDEX jobs_city_idx ON jobs (city);
+        RAISE NOTICE 'Created index: jobs_city_idx';
+    ELSE
+        RAISE NOTICE 'Index already exists: jobs_city_idx';
+    END IF;
+
+    SELECT COUNT(*) INTO index_count FROM pg_indexes WHERE indexname = 'job_technologies_job_id_idx';
+    IF index_count = 0 THEN
+        CREATE INDEX job_technologies_job_id_idx ON job_technologies (job_id);
+        RAISE NOTICE 'Created index: job_technologies_job_id_idx';
+    ELSE
+        RAISE NOTICE 'Index already exists: job_technologies_job_id_idx';
+    END IF;
+
+    SELECT COUNT(*) INTO index_count FROM pg_indexes WHERE indexname = 'job_technologies_technology_id_idx';
+    IF index_count = 0 THEN
+        CREATE INDEX job_technologies_technology_id_idx ON job_technologies (technology_id);
+        RAISE NOTICE 'Created index: job_technologies_technology_id_idx';
+    ELSE
+        RAISE NOTICE 'Index already exists: job_technologies_technology_id_idx';
+    END IF;
+END $$;
 
 -- Update existing rows
+\echo 'Updating existing rows...'
 UPDATE companies SET name_vector = to_tsvector('english', coalesce(name,''));
 UPDATE technologies SET name_vector = to_tsvector('english', coalesce(name,''));
 
@@ -193,3 +308,82 @@ FROM (
 WHERE j.job_id = subquery.job_id;
 
 \echo 'Finished init-pgvector.sql execution'
+
+/*
+@init-pgvector.sql Explain to me in detail everything that is happening here in this file, because I don't understand at all.
+
+Certainly! I'll break down the init-pgvector.sql file section by section:
+Database Connection and Extensions:
+\c job_board;
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+This connects to the 'job_board' database and ensures the 'vector' and 'pg_trgm' extensions are installed. These extensions are needed for vector operations and text similarity searches.
+Enum Types Creation:
+DO $$
+BEGIN
+    -- state_enum, country_enum, job_type_enum, etc.
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'state_enum') THEN
+        CREATE TYPE state_enum AS ENUM ('VIC', 'NSW', ...);
+    END IF;
+    -- ... (other enum types)
+END$$;
+
+This block creates various ENUM types if they don't already exist. ENUMs are custom data types that allow a column to have a predefined set of values.
+
+Function Definitions:
+CREATE OR REPLACE FUNCTION jobs_search_vector_update() RETURNS trigger AS $$
+-- ... function body ...
+$$ LANGUAGE plpgsql;
+
+These functions are used to update search vectors. They're called by triggers when data is inserted or updated in certain tables.
+
+Trigger Creation:
+DROP TRIGGER IF EXISTS jobs_search_vector_update ON jobs;
+CREATE TRIGGER jobs_search_vector_update
+BEFORE INSERT OR UPDATE ON jobs
+FOR EACH ROW EXECUTE FUNCTION jobs_search_vector_update();
+
+These create triggers that automatically call the functions defined earlier when data is inserted or updated in the respective tables.
+Adding Vector Columns:
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'search_vector') THEN
+    ALTER TABLE jobs ADD COLUMN search_vector tsvector;
+  END IF;
+  -- ... (similar for other tables)
+END$$;
+
+This block adds vector columns to tables if they don't already exist. These columns are used for full-text search and vector operations.
+
+Creating Indexes:
+DO $$
+DECLARE
+    index_count INT;
+BEGIN
+    SELECT COUNT(*) INTO index_count FROM pg_indexes WHERE indexname = 'jobs_search_vector_idx';
+    IF index_count = 0 THEN
+        CREATE INDEX jobs_search_vector_idx ON jobs USING GIN (search_vector);
+        RAISE NOTICE 'Created index: jobs_search_vector_idx';
+    ELSE
+        RAISE NOTICE 'Index already exists: jobs_search_vector_idx';
+    END IF;
+    -- ... (similar for other indexes)
+END $$;
+This creates various indexes if they don't already exist. Indexes improve query performance for searching and filtering.
+
+Updating Existing Rows:
+UPDATE companies SET name_vector = to_tsvector('english', coalesce(name,''));
+UPDATE technologies SET name_vector = to_tsvector('english', coalesce(name,''));
+
+UPDATE jobs j
+SET search_vector = subquery.new_search_vector
+FROM (
+    -- ... complex query ...
+) AS subquery
+WHERE j.job_id = subquery.job_id;
+;
+These statements update the vector columns for existing rows in the database, ensuring all current data has the appropriate search vectors.
+In summary, this script sets up the database structure for efficient text search and vector operations. It creates custom data types, sets up automatic updating of search vectors, adds necessary columns, creates performance-enhancing indexes, and ensures all existing data is properly formatted for these new features. This script is designed to be run multiple times safely, only making changes when necessary.
+
+*/

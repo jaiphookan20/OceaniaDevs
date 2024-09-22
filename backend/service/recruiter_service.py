@@ -1,5 +1,5 @@
 from extensions import db, bcrypt
-from models import Job, Recruiter, Company, TechnologyAlias, Technology, JobTechnology, Application, Bookmark
+from models import Job, Recruiter, Company, TechnologyAlias, Technology, JobTechnology, Application, Bookmark, salary_type_enum, contract_duration_enum, daily_range_enum, hourly_range_enum
 from service.jobs_service import JobsService    
 from flask import session, jsonify, current_app, request
 from utils.categorize import categorize_words
@@ -239,7 +239,7 @@ class RecruiterService:
             },
             {
                 "role": "user",
-                "content": f"""Analyze the following job description and title. Provide a response in JSON format with these keys: 'specialization', 'industry', 'salary_type', 'salary_range', 'work_location', 'city', 'state', 'country', 'job_arrangement'.
+                "content": f"""Analyze the following job description and title. Provide a response in JSON format with these keys: 'specialization', 'technologies', 'industry', 'work_location', 'min_experience_years', 'experience_level', 'city', 'state', 'job_arrangement', 'citizens_or_pr_only', 'security_clearance_required'.
 
                 Title: {title}
                 Job Description: {description}
@@ -253,7 +253,8 @@ class RecruiterService:
                 6. 'experience_level': Classify as you deem fit into one of: 'Junior', 'Mid-Level', 'Senior', or 'Executive' based on the experience requirements defined in the role and/or title.
                 7. 'city': Extract the city where the job is located. Strictly only do so if mentioned, otherwise empty.
                 8. 'state': Extract the state where the job is located. Use one of the following: ['VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA']. Strictly only do so if mentioned, otherwise empty.
-                9. 'job_arrangement': Specify the job arrangement as ONLY one of: 'Permanent', 'Contract/Temp', 'Part-Time' or 'Internship'. Strictly do not include any other value.
+                9. 'citizens_or_pr_only': Set to true if the job description explicitly states that only Australian citizens or permanent residents can apply. Otherwise, set to false.
+                10. 'security_clearance_required': Set to true if the job description mentions any level of security clearance requirement (Baseline, Negative Vetting 1, Negative Vetting 2, or Positive Vetting). Otherwise, set to false.
 
                 Provide only the JSON object as output, with no additional text.
                 """
@@ -276,7 +277,7 @@ class RecruiterService:
             },
             {
                 "role": "user",
-                "content": f"""Analyze the following job description and title. Provide a response in JSON format with these keys: 'overview', 'responsibilities', 'requirements', 'technologies', 'min_experience_years', 'experience_level', 'hourly_range', 'daily_range', 'work_rights', 'contract_duration'.
+                "content": f"""Analyze the following job description and title. Provide a response in JSON format with these keys: 'overview', 'responsibilities', 'requirements', 'technologies', 'salary_type', 'salary_range', 'hourly_range', 'daily_range', 'job_arrangement','contract_duration'.
 
                 Title: {title}
                 Job Description: {description}
@@ -286,12 +287,12 @@ class RecruiterService:
                 1. 'overview': Summarize the role and company, including all key and salient information relevant to potential candidates. Add any information related to benefits or perks here. Add information verbatim if needed but all of the information is needed.
                 2. 'responsibilities': List main job duties and expectations. Provide detailed information.
                 3. 'requirements': Enumerate essential qualifications and skills needed. Provide detailed information.
-                4. 'salary_type': If only available, specify the type of salary or payment arrangement (e.g., 'Annual', 'Hourly', 'Daily').
-                5. 'salary_range': If only available AND salary_type="Annual", extract the salary information and classify it in the bucket it fits in: '40000 - 60000', '60000 - 80000', '80000 - 100000', '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000', '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+'. Otherwise leave empty.
-                6. 'hourly_range': If only available AND salary_type="Hourly", extract the hourly-rate information and classify it in the bucket it fits in: '0 - 20', '20 - 30', '30 - 40', '40 - 50', '50 - 60', '60 - 70', '70 - 80', '80 - 100', '100+'. Otherwise leave empty.
-                7. 'daily_range': If only available AND salary_type="Daily", extract the daily-rate information and classify it in the bucket it fits in: '300 - 400', '400 - 500', '500 - 600', '600 - 700', '700 - 800', '800 - 900', '900 - 1000', '1000 - 1100', '1200+'. Otherwise leave empty.
-                8. 'work_rights': List any work rights or visa requirements. Strictly only do so if mentioned, otherwise empty.
-                9. contract_duration': If only the 'job_arrangement' is 'Contract', and if the duration of the contract is provided and available, classify it as belonging to one of the following buckets: '3-6 Months', '6-9 Months', '9-12 Months' or '12 Months+'. Otherwise leave empty.
+                4. 'salary_type': If only available the type of salary is availabe and mentioned, specify the type of salary or payment arrangement. Choose ONLY one of the following: ['annual', 'hourly', 'daily'].
+                5. 'salary_range': If only the salary is available AND salary_type="annual", extract the salary information and classify it in the bucket it fits in: 'Not Listed', '40000 - 60000', '60000 - 80000', '80000 - 100000', '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000', '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+'. If Unavailable, choose 'Not Listed'.
+                6. 'hourly_range': If only the hourly pay information is available AND salary_type="hourly", extract the hourly-rate information and classify it in the bucket it fits in: 'Not Listed', '0-20', '20-40', '40-60', '60-80', '80-100', '100-120', '120-140', '140-160', '160+'. If Unavailable, choose 'Not Listed'.
+                7. 'daily_range': If only the daily pay information is available AND salary_type="daily", extract the daily-rate information and classify it in the bucket it fits in: 'Not Listed', '0-200', '200-400', '400-600', '600-800', '800-1000', '1000-1200', '1200-1400', '1400-1600', '1600+'. If Unavailable, choose 'Not Listed'.
+                8. 'job_arrangement': Specify the job arrangement as ONLY one of: 'Permanent', 'Contract/Temp', 'Part-Time' or 'Internship'. Strictly do not include any other value. Classify as Contract/Temp if the job is a contract or temporary job.
+                9. 'contract_duration': If only the 'job_arrangement' is 'Contract/Temp', and if the duration of the contract is provided and available, classify it as belonging to one of the following buckets: 'Not Listed', '0-3 months', '4-6 months', '7-9 months', '10-12 months' or '12+ months'. If unavailable, choose 'Not Listed'.
 
                 Provide only the JSON object as output, with no additional text.
                 """
@@ -340,18 +341,20 @@ class RecruiterService:
                     city=job_data.get('city') or processed_data.get('city'),
                     state=job_data.get('state') or processed_data.get('state'),
                     country=job_data.get('country') or processed_data.get('country'),
-                    work_rights=job_data.get('work_rights') or processed_data.get('work_rights'),
+                    # work_rights=job_data.get('work_rights') or processed_data.get('work_rights'),
                     overview=processed_data.get('overview') or processed_data.get('overview'),
                     responsibilities=job_data.get('responsibilities', '') or processed_data.get('responsibilities'),
                     requirements=job_data.get('requirements', '') or processed_data.get('requirements'),
                     job_arrangement=processed_data.get('job_arrangement') or job_data.get('job_arrangement'),
-                    contract_duration=job_data.get('contract_duration') or processed_data.get('contract_duration'),
-                    hourly_range=job_data.get('hourly_range') or processed_data.get('hourly_range'),
-                    daily_range=job_data.get('daily_range') or processed_data.get('daily_range'),
+                    contract_duration=contract_duration_enum(job_data.get('contract_duration') or processed_data.get('contract_duration') or 'Not Listed'),
+                    hourly_range=hourly_range_enum(job_data.get('hourly_range') or processed_data.get('hourly_range') or 'Not Listed'),
+                    daily_range=daily_range_enum(job_data.get('daily_range') or processed_data.get('daily_range') or 'Not Listed'),
+                    citizens_or_pr_only=job_data.get('citizens_or_pr_only') or processed_data.get('citizens_or_pr_only', False),
+                    security_clearance_required=job_data.get('security_clearance_required') or processed_data.get('security_clearance_required', False),
                 )
 
-                # db.session.add(new_job)
-                # db.session.commit()  # Commit to generate job_id
+                db.session.add(new_job)
+                db.session.commit()  # Commit to generate job_id
                 
 
                 # Step 2: Normalize and process technologies from tech_stack
@@ -407,12 +410,8 @@ class RecruiterService:
             current_app.logger.info(f"No normalized name found for alias: {tech_name}")
             return None    
 
+    # NEED TO UPDATE ON FRONTEND FOR SALARY_TYPE, CONTRACT_DURATION, DAILY_RANGE, and HOURLY_RANGE
     def update_job(self, job_id, data):
-        """
-        Update a job post with given updates.
-        :param job_id: int - The ID of the job to be updated.
-        :param data: dict - A dictionary containing the fields to update with their new values.
-        """
         try:
             job = Job.query.get(job_id)
             if not job:
@@ -420,7 +419,16 @@ class RecruiterService:
                 return None
             
             for key, value in data.items():
-                setattr(job, key, value)
+                if key == 'salary_type':
+                    setattr(job, key, salary_type_enum(value))
+                elif key == 'contract_duration':
+                    setattr(job, key, contract_duration_enum(value))
+                elif key == 'daily_range':
+                    setattr(job, key, daily_range_enum(value))
+                elif key == 'hourly_range':
+                    setattr(job, key, hourly_range_enum(value))
+                else:
+                    setattr(job, key, value)
             
             db.session.commit()
 
@@ -436,7 +444,7 @@ class RecruiterService:
             current_app.logger.error(f"Database error in update_job: {str(e)}")
             db.session.rollback()
             return None
-
+        
     def remove_job(self, job_id, recruiter_id):
         try:
             job = Job.query.filter_by(job_id=job_id, recruiter_id=recruiter_id).first()
@@ -467,8 +475,8 @@ class RecruiterService:
             db.session.rollback()
             current_app.logger.error(f"Unexpected error in remove_job: {str(e)}")
             return {'success': False, 'error': 'unexpected_error'}
-
-    # @cache.cached(timeout=3600)
+    
+    @cache.cached(timeout=3600)
     def get_all_companies(self):
         try:
             companies = Company.query.all()
@@ -496,7 +504,6 @@ class RecruiterService:
             current_app.logger.info(f"Cache invalidated for job {job.job_id}")
         except Exception as e:
             current_app.logger.error(f"Error invalidating cache: {str(e)}")
-
 
     def get_companies_with_pagination(self, page, page_size, search, industries, types):
         try:
@@ -549,6 +556,7 @@ class RecruiterService:
         except SQLAlchemyError as e:
             current_app.logger.error(f"Database error in get_job_count_for_company: {str(e)}")
             return 0
+    
     @cache.memoize(timeout=3600)
     def get_company_details(self, company_id):
         try:

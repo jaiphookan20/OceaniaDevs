@@ -3,6 +3,7 @@ from sqlalchemy.dialects.postgresql import ENUM, TSVECTOR
 from sqlalchemy import event, text
 from sqlalchemy.schema import DDL
 from pgvector.sqlalchemy import Vector
+from sqlalchemy import UniqueConstraint
 
 # Define all ENUM types
 state_enum = ENUM('VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA', name='state_enum', create_type=False)
@@ -16,6 +17,11 @@ specialization_enum = ENUM('Frontend', 'Backend', 'Full-Stack', 'Mobile', 'Data 
 experience_level_enum = ENUM('Junior', 'Mid-Level', 'Senior', 'Executive', name='experience_level_enum', create_type=False)
 work_location_enum = ENUM('Remote', 'Hybrid', 'Office', name='work_location_enum', create_type=False)
 job_arrangement_enum = ENUM('Permanent', 'Contract/Temp', 'Internship', 'Part-Time', name='job_arrangement_enum', create_type=False)
+
+salary_type_enum = ENUM('annual', 'hourly', 'daily', name='salary_type_enum', create_type=False)
+contract_duration_enum = ENUM('Not Listed', '0-3 months', '4-6 months', '7-9 months', '10-12 months', '12+ months', name='contract_duration_enum', create_type=False)
+daily_range_enum = ENUM('Not Listed', '0-200', '200-400', '400-600', '600-800', '800-1000', '1000-1200', '1200-1400', '1400-1600', '1600+', name='daily_range_enum', create_type=False)
+hourly_range_enum = ENUM('Not Listed', '0-20', '20-40', '40-60', '60-80', '80-100', '100-120', '120-140', '140-160', '160+', name='hourly_range_enum', create_type=False)
 
 # Define your models
 class Seeker(db.Model):
@@ -86,6 +92,10 @@ class Company(db.Model):
     type=db.Column(db.String(255));
     name_vector = db.Column(TSVECTOR)
 
+    __table_args__ = (
+        db.Index('companies_name_vector_idx', 'name_vector', postgresql_using='gin'),
+    )
+
     def __str__(self):
         return self.name
 
@@ -123,10 +133,14 @@ class Job(db.Model):
     tech_stack = db.Column(db.ARRAY(db.String))
     
     salary_range = db.Column(salary_range_enum)
-    salary_type = db.Column(db.String(10))
-    contract_duration =  db.Column(db.String(255))  # New field
-    hourly_range=db.Column(db.String(255))  # New field
-    daily_range=db.Column(db.String(255))  # New field
+    salary_type = db.Column(salary_type_enum, default='annual')
+    contract_duration = db.Column(contract_duration_enum, default='Not Listed')
+    daily_range = db.Column(daily_range_enum, default='Not Listed')
+    hourly_range = db.Column(hourly_range_enum, default='Not Listed')
+
+    # Add these new fields
+    citizens_or_pr_only = db.Column(db.Boolean, default=False)
+    security_clearance_required = db.Column(db.Boolean, default=False)
 
     search_vector = db.Column(TSVECTOR)
     embedding = db.Column(Vector(1536))  
@@ -134,9 +148,16 @@ class Job(db.Model):
     job_technologies = db.relationship('JobTechnology', back_populates='job', lazy='joined')
     applications = db.relationship('Application', back_populates='job')
 
+    __table_args__ = (
+        db.Index('jobs_specialization_idx', 'specialization'),
+        db.Index('jobs_experience_level_idx', 'experience_level'),
+        db.Index('jobs_work_location_idx', 'work_location'),
+        db.Index('jobs_city_idx', 'city'),
+        db.Index('jobs_search_vector_idx', 'search_vector', postgresql_using='gin'),
+    )
+
     def __str__(self):
         return f"{self.title} at {self.company.name}"
-
 class Technology(db.Model):
     __tablename__ = 'technologies'
     id = db.Column(db.Integer, primary_key=True)
@@ -145,6 +166,10 @@ class Technology(db.Model):
 
     # Add this line
     job_technologies = db.relationship('JobTechnology', back_populates='technology')
+
+    __table_args__ = (
+        db.Index('technologies_name_vector_idx', 'name_vector', postgresql_using='gin'),
+    )
 
     def __str__(self):
         return self.name
@@ -167,6 +192,16 @@ class JobTechnology(db.Model):
     # Change these lines
     job = db.relationship('Job', back_populates='job_technologies')
     technology = db.relationship('Technology', back_populates='job_technologies')
+
+    __table_args__ = (
+        db.Index('job_technologies_job_id_idx', 'job_id'),
+        db.Index('job_technologies_technology_id_idx', 'technology_id'),
+        UniqueConstraint('job_id', 'technology_id', name='uq_job_technology'),
+    )
+
+    def __init__(self, job=None, technology=None):
+        self.job = job
+        self.technology = technology
 
     def __str__(self):
         return f"{self.job.title} - {self.technology.name}"
