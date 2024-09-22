@@ -6,7 +6,7 @@ on:
       - search
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -33,25 +33,6 @@ jobs:
         run: |
           ls -R frontend/build
 
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: build
-          path: frontend/build
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Download build artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: build
-          path: ./build
-
       - name: Install SSH Key
         uses: shimataro/ssh-key-action@v2
         with:
@@ -66,7 +47,7 @@ jobs:
       - name: Deploy frontend to server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "rm -rf ~/OceaniaDevs/frontend/build && mkdir -p ~/OceaniaDevs/frontend/build"
-          scp -r -o StrictHostKeyChecking=no ./build/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/frontend/build/
+          scp -r -o StrictHostKeyChecking=no frontend/build/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/frontend/build/
 
       - name: Deploy backend code
         run: |
