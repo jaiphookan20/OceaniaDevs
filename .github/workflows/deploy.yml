@@ -101,6 +101,24 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "ls -R ~/OceaniaDevs/frontend/build/"
 
+      - name: Clean up migrations
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+            cd ~/OceaniaDevs/backend
+            rm -rf migrations
+            mkdir migrations
+            touch migrations/__init__.py
+          "
+
+      - name: Recreate migrations
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+            cd ~/OceaniaDevs
+            docker-compose run --rm backend flask db init
+            docker-compose run --rm backend flask db migrate -m 'initial migration'
+            docker-compose run --rm backend flask db upgrade
+          "
+
       - name: Restart Docker containers
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && docker-compose -f docker-compose.yml -f docker-compose.prod.yml down && docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build"

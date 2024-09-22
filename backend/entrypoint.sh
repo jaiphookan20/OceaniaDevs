@@ -11,7 +11,15 @@ echo "PostgreSQL started"
 
 # Run database migrations
 echo "Running database migrations..."
-flask db upgrade || { echo "Migration failed"; exit 1; }
+flask db upgrade || {
+    echo "Migration failed. Attempting to recreate migrations..."
+    rm -rf migrations
+    mkdir migrations
+    touch migrations/__init__.py
+    flask db init
+    flask db migrate -m "initial migration"
+    flask db upgrade || { echo "Migration recreation failed"; exit 1; }
+}
 
 echo "Migrations completed."
 
