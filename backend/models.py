@@ -196,7 +196,7 @@ class JobTechnology(db.Model):
     __table_args__ = (
         db.Index('job_technologies_job_id_idx', 'job_id'),
         db.Index('job_technologies_technology_id_idx', 'technology_id'),
-        UniqueConstraint('job_id', 'technology_id', name='uq_job_technology'),
+        db.UniqueConstraint('job_id', 'technology_id', name='uq_job_technology'),
     )
 
     def __init__(self, job=None, technology=None):

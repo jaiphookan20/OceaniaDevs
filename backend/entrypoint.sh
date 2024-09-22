@@ -25,11 +25,12 @@ flask db current || {
 }
 flask db migrate -m "initial migration" || echo "Failed to create migration"
 flask db upgrade || {
-    echo "Migration failed. Attempting to recreate migrations..."
-    rm -rf migrations
-    flask db init
-    flask db migrate -m "initial migration"
-    flask db upgrade || { echo "Migration recreation failed"; exit 1; }
+    echo "Migration failed. Attempting to apply migrations without creating new ones..."
+    flask db upgrade --sql | psql -U $DB_USER -d $DB_NAME -h $DB_HOST
+    if [ $? -ne 0 ]; then
+        echo "Migration recreation failed"
+        exit 1
+    fi
 }
 
 # Unset PGPASSWORD for security
