@@ -19,9 +19,6 @@ fi
 # Use PGPASSWORD environment variable for psql
 export PGPASSWORD=$DB_PASSWORD
 
-# Use SQLAlchemy to drop the alembic_version table
-python -c "from sqlalchemy import create_engine; from sqlalchemy.sql import text; engine = create_engine('postgresql://$DB_USER:$DB_PASSWORD@$DB_HOST/$DB_NAME'); with engine.connect() as conn: conn.execute(text('DROP TABLE IF EXISTS alembic_version'))"
-
 flask db current || {
     echo "No current revision. Initializing database..."
     flask db stamp head
