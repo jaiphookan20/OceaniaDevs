@@ -19,8 +19,8 @@ fi
 # Use PGPASSWORD environment variable for psql
 export PGPASSWORD=$DB_PASSWORD
 
-# Use docker exec to run psql command
-docker exec -i $(docker ps -qf name=postgres) psql -U $DB_USER -d $DB_NAME -c 'DROP TABLE IF EXISTS alembic_version;'
+# Use psql command directly
+psql -h $DB_HOST -U $DB_USER -d $DB_NAME -c 'DROP TABLE IF EXISTS alembic_version;'
 
 flask db current || {
     echo "No current revision. Initializing database..."
