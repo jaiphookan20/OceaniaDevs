@@ -115,13 +115,15 @@ jobs:
             cd ~/OceaniaDevs/backend
             rm -rf migrations
           "
-          
+
       - name: Recreate migrations
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
             cd ~/OceaniaDevs
             docker-compose run --rm backend sh -c '
               flask db init &&
+              flask db current &&
+              flask db stamp head &&
               flask db migrate -m \"initial migration\" &&
               flask db upgrade
             '

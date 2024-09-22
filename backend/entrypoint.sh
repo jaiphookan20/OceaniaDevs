@@ -15,11 +15,14 @@ if [ ! -d "migrations" ]; then
     echo "Migrations directory not found. Initializing..."
     flask db init
 fi
-flask db migrate -m "initial migration" || true
+flask db current || echo "No current revision"
+flask db stamp head || echo "Failed to stamp head"
+flask db migrate -m "initial migration" || echo "Failed to create migration"
 flask db upgrade || {
     echo "Migration failed. Attempting to recreate migrations..."
     rm -rf migrations
     flask db init
+    flask db stamp head
     flask db migrate -m "initial migration"
     flask db upgrade || { echo "Migration recreation failed"; exit 1; }
 }
