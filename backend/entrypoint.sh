@@ -17,7 +17,7 @@ if [ ! -d "migrations" ]; then
 fi
 flask db current || {
     echo "No current revision. Initializing database..."
-    psql -h $DB_HOST -U $DB_USER -d $DB_NAME -c 'DROP TABLE IF EXISTS alembic_version;'
+    PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USER -d $DB_NAME -c 'DROP TABLE IF EXISTS alembic_version;'
     flask db stamp head
 }
 flask db migrate -m "initial migration" || echo "Failed to create migration"
