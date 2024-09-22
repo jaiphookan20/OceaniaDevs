@@ -11,11 +11,14 @@ echo "PostgreSQL started"
 
 # Run database migrations
 echo "Running database migrations..."
+if [ ! -d "migrations" ]; then
+    echo "Migrations directory not found. Initializing..."
+    flask db init
+fi
+flask db migrate -m "initial migration" || true
 flask db upgrade || {
     echo "Migration failed. Attempting to recreate migrations..."
     rm -rf migrations
-    mkdir migrations
-    touch migrations/__init__.py
     flask db init
     flask db migrate -m "initial migration"
     flask db upgrade || { echo "Migration recreation failed"; exit 1; }
