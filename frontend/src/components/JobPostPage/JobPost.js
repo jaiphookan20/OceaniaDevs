@@ -14,6 +14,7 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
   const [error, setError] = useState(null);
   const technologiesRef = useRef(null);
   const [recommendedJobs, setRecommendedJobs] = useState([]);
+  const [showDescription, setShowDescription] = useState(false);
 
   const navigate = useNavigate();
 
@@ -184,6 +185,22 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
                   <li key={index}>{requirement}</li>
                 ))}
               </ul>
+            </section>
+            {/* New toggle section for job description */}
+            <section className="mt-6">
+              <h2 
+                className="text-3xl font-semibold mt-4 mb-1 text-slate-800 cursor-pointer flex items-center"
+                style={{ fontFamily: "Avenir, sans-serif" }}
+                onClick={() => setShowDescription(!showDescription)}
+              >
+                Full Job Description
+                <span className="ml-2">{showDescription ? '▲' : '▼'}</span>
+              </h2>
+              {showDescription && (
+                <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Avenir, sans-serif" }}>
+                  {job.description}
+                </p>
+              )}
             </section>
             <section ref={technologiesRef} className="mt-6" style={{ fontFamily: "Avenir, sans-serif" }}>
               <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800">
