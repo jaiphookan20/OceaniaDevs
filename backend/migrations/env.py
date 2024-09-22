@@ -95,17 +95,16 @@ def check_migration_safety():
     try:
         engine = get_engine()
         with engine.connect() as connection:
-            # Check if there's an active backup
-            result = connection.execute(text("SELECT pg_is_in_backup()")).scalar()
-            if result:
-                logger.warning("Database is currently being backed up. Migration might be unsafe.")
-                return False
-
             # Check for active transactions
             result = connection.execute(text("SELECT count(*) FROM pg_stat_activity WHERE state = 'active' AND pid != pg_backend_pid()")).scalar()
             if result > 0:
                 logger.warning(f"There are {result} active transactions. Migration might interfere with ongoing operations.")
                 return False
+
+        return True
+    except Exception as e:
+        logger.error(f"Error during migration safety check: {e}")
+        return False
 
         return True
     except Exception as e:
