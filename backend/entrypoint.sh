@@ -15,9 +15,10 @@ if [ ! -d "migrations" ]; then
     echo "Migrations directory not found. Initializing..."
     flask db init
 fi
+export PGPASSWORD=$DB_PASSWORD
 flask db current || {
     echo "No current revision. Initializing database..."
-    PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USER -d $DB_NAME -c 'DROP TABLE IF EXISTS alembic_version;'
+    psql -h $DB_HOST -U $DB_USER -d $DB_NAME -c 'DROP TABLE IF EXISTS alembic_version;'
     flask db stamp head
 }
 flask db migrate -m "initial migration" || echo "Failed to create migration"
@@ -28,6 +29,7 @@ flask db upgrade || {
     flask db migrate -m "initial migration"
     flask db upgrade || { echo "Migration recreation failed"; exit 1; }
 }
+unset PGPASSWORD
 
 echo "Migrations completed."
 
