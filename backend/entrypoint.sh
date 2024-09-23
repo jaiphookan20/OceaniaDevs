@@ -18,8 +18,17 @@ else
     flask db upgrade
 fi
 
-echo "Starting the application..."
-exec gunicorn --config gunicorn_config.py "app:create_app()"
+echo "AUTH0_DOMAIN: $AUTH0_DOMAIN"
+echo "AUTH0_CLIENT_ID: $AUTH0_CLIENT_ID"
+echo "AUTH0_CLIENT_SECRET: $AUTH0_CLIENT_SECRET"
+
+# Check if a custom command is provided
+if [ $# -gt 0 ]; then
+    exec "$@"
+else
+    echo "Starting the application..."
+    exec gunicorn --config gunicorn_config.py "app:create_app()"
+fi
 
 
 # #!/bin/sh

@@ -49,6 +49,10 @@ def create_app():
     file_handler.setFormatter(formatter)
     app.logger.addHandler(file_handler)
 
+    app.logger.info(f"AUTH0_DOMAIN: {os.getenv('AUTH0_DOMAIN')}")
+    app.logger.info(f"AUTH0_CLIENT_ID: {os.getenv('AUTH0_CLIENT_ID')}")
+    app.logger.info(f"AUTH0_CLIENT_SECRET: {os.getenv('AUTH0_CLIENT_SECRET')}")
+
     # Define the upload subdirectory
     UPLOAD_FOLDER = os.path.join('uploads', 'upload_company_logo')
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
