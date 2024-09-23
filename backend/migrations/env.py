@@ -74,26 +74,28 @@ def run_migrations_offline():
 
 
 def run_migrations_online():
-       """Run migrations in 'online' mode."""
-       try:
-           connectable = get_engine()
-           with connectable.connect() as connection:
-               context.configure(
-                   connection=connection,
-                   target_metadata=get_metadata(),
-                   compare_type=True,
-                   render_as_batch=True,  # Add this line
-                   **current_app.extensions['migrate'].configure_args
-               )
+    """Run migrations in 'online' mode."""
+    try:
+        connectable = get_engine()
+        with connectable.connect() as connection:
+            config_args = current_app.extensions['migrate'].configure_args.copy()
+            config_args.setdefault('compare_type', True)
+            config_args.setdefault('render_as_batch', True)
+            
+            context.configure(
+                connection=connection,
+                target_metadata=get_metadata(),
+                **config_args
+            )
 
-               with context.begin_transaction():
-                   context.run_migrations()
-       except Exception as e:
-           if 'already exists' in str(e):
-               logger.warning(f"Object already exists, skipping: {str(e)}")
-           else:
-               logger.error(f"Error during migration: {e}")
-               raise
+            with context.begin_transaction():
+                context.run_migrations()
+    except Exception as e:
+        if 'already exists' in str(e):
+            logger.warning(f"Object already exists, skipping: {str(e)}")
+        else:
+            logger.error(f"Error during migration: {e}")
+            raise
 
 def check_migration_safety():
     """Check if it's safe to run migrations."""
