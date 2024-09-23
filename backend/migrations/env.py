@@ -87,8 +87,11 @@ def run_migrations_online():
             with context.begin_transaction():
                 context.run_migrations()
     except Exception as e:
-        logger.error(f"Error during migration: {e}")
-        raise
+        if 'relation "uq_job_technology" already exists' in str(e):
+            logger.warning("Unique constraint already exists, skipping...")
+        else:
+            logger.error(f"Error during migration: {e}")
+            raise
 
 def check_migration_safety():
     """Check if it's safe to run migrations."""

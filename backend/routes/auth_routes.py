@@ -149,6 +149,8 @@ def logout():
 
 def init_auth(app):
     print(f"Initializing Auth0 with domain: {config.AUTH0_DOMAIN}")
+    print(f"Auth0 Client ID: {config.AUTH0_CLIENT_ID}")
+    print(f"Auth0 Client Secret: {config.AUTH0_CLIENT_SECRET}")
     oauth.init_app(app)
     oauth.register(
         "auth0",
