@@ -69,6 +69,15 @@ jobs:
           "
           scp -r -o StrictHostKeyChecking=no backend/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/backend/
 
+      - name: Deploy postgres files
+        run: |
+            ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+              sudo chown -R ${{ secrets.LIGHTSAIL_USER }}:${{ secrets.LIGHTSAIL_USER }} ~/OceaniaDevs/postgres
+              rm -rf ~/OceaniaDevs/postgres || true
+              mkdir -p ~/OceaniaDevs/postgres
+            "
+            scp -r -o StrictKeyChecking=no postgres/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/postgres/
+
       - name: Copy env.py file
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
@@ -112,4 +121,9 @@ jobs:
 
       - name: Restart Docker containers
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "cd ~/OceaniaDevs && docker-compose -f docker-compose.yml -f docker-compose.prod.yml down && docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build"
+        ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+          cd ~/OceaniaDevs && 
+          docker-compose -f docker-compose.yml -f docker-compose.prod.yml down && 
+          docker-compose -f docker-compose.yml -f docker-compose.prod.yml build --no-cache postgres && 
+          docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+        "
