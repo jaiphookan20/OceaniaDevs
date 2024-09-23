@@ -39,6 +39,12 @@ jobs:
           known_hosts: ${{ secrets.KNOWN_HOSTS }}
           if_key_exists: replace
 
+      - name: Remove existing known hosts entry
+        run: ssh-keygen -f "/home/runner/.ssh/known_hosts" -R "${{ secrets.LIGHTSAIL_HOST }}"
+
+      - name: Add new host key
+        run: ssh-keyscan -H ${{ secrets.LIGHTSAIL_HOST }} >> /home/runner/.ssh/known_hosts
+
       - name: Check DNS resolution
         run: |
           nslookup ${{ secrets.LIGHTSAIL_HOST }}
@@ -49,46 +55,46 @@ jobs:
 
       - name: Debug SSH connection
         run: |
-          ssh -vvv -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} echo "SSH connection successful" || echo "SSH connection failed"
+          ssh -vvv -o UserKnownHostsFile=/home/runner/.ssh/known_hosts -o StrictHostKeyChecking=accept-new ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} echo "SSH connection successful" || echo "SSH connection failed"
 
       - name: Test SSH connection
         run: |
-          ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} echo "SSH connection successful" || exit 1
+          ssh -o UserKnownHostsFile=/home/runner/.ssh/known_hosts -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} echo "SSH connection successful" || exit 1
 
       - name: Deploy frontend to server
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "rm -rf ~/OceaniaDevs/frontend/build && mkdir -p ~/OceaniaDevs/frontend/build"
-          scp -r -o StrictHostKeyChecking=no frontend/build/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/frontend/build/
+          ssh -o UserKnownHostsFile=/home/runner/.ssh/known_hosts -o StrictHostKeyChecking=accept-new ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "rm -rf ~/OceaniaDevs/frontend/build && mkdir -p ~/OceaniaDevs/frontend/build"
+          scp -o UserKnownHostsFile=/home/runner/.ssh/known_hosts -o StrictHostKeyChecking=accept-new -r frontend/build/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/frontend/build/
 
       - name: Deploy backend code
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+          ssh -o UserKnownHostsFile=/home/runner/.ssh/known_hosts -o StrictHostKeyChecking=accept-new ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
             sudo chown -R ${{ secrets.LIGHTSAIL_USER }}:${{ secrets.LIGHTSAIL_USER }} ~/OceaniaDevs/backend
             rm -rf ~/OceaniaDevs/backend || true
             mkdir -p ~/OceaniaDevs/backend
           "
-          scp -r -o StrictHostKeyChecking=no backend/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/backend/
+          scp -o UserKnownHostsFile=/home/runner/.ssh/known_hosts -o StrictHostKeyChecking=accept-new -r backend/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/backend/
 
       - name: Deploy postgres files
         run: |
-            ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
-              sudo chown -R ${{ secrets.LIGHTSAIL_USER }}:${{ secrets.LIGHTSAIL_USER }} ~/OceaniaDevs/postgres
-              rm -rf ~/OceaniaDevs/postgres || true
-              mkdir -p ~/OceaniaDevs/postgres
-            "
-            scp -r -o StrictKeyChecking=no postgres/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/postgres/
+          ssh -o UserKnownHostsFile=/home/runner/.ssh/known_hosts -o StrictHostKeyChecking=accept-new ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+            sudo chown -R ${{ secrets.LIGHTSAIL_USER }}:${{ secrets.LIGHTSAIL_USER }} ~/OceaniaDevs/postgres
+            rm -rf ~/OceaniaDevs/postgres || true
+            mkdir -p ~/OceaniaDevs/postgres
+          "
+          scp -o UserKnownHostsFile=/home/runner/.ssh/known_hosts -o StrictHostKeyChecking=accept-new -r postgres/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/postgres/
 
       - name: Copy env.py file
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+          ssh -o UserKnownHostsFile=/home/runner/.ssh/known_hosts -o StrictHostKeyChecking=accept-new ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
             mkdir -p ~/OceaniaDevs/backend/migrations
             cp ~/OceaniaDevs/backend/migrations/env.py ~/OceaniaDevs/backend/migrations/env.py.backup || true
           "
-          scp -o StrictHostKeyChecking=no backend/migrations/env.py ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/backend/migrations/env.py
+          scp -o UserKnownHostsFile=/home/runner/.ssh/known_hosts -o StrictHostKeyChecking=accept-new backend/migrations/env.py ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/OceaniaDevs/backend/migrations/env.py
 
       - name: Set correct permissions for backend files
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+          ssh -o UserKnownHostsFile=/home/runner/.ssh/known_hosts -o StrictHostKeyChecking=accept-new ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
             sudo chown -R ${{ secrets.LIGHTSAIL_USER }}:${{ secrets.LIGHTSAIL_USER }} ~/OceaniaDevs/backend
             find ~/OceaniaDevs/backend -type d -exec chmod 755 {} \;
             find ~/OceaniaDevs/backend -type f -exec chmod 644 {} \;
@@ -96,7 +102,7 @@ jobs:
 
       - name: Create .env file on server
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+          ssh -o UserKnownHostsFile=/home/runner/.ssh/known_hosts -o StrictHostKeyChecking=accept-new ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
           cd ~/OceaniaDevs && 
           cat << EOF > .env
           AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }}
@@ -117,11 +123,11 @@ jobs:
 
       - name: Verify deployment
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "ls -R ~/OceaniaDevs/frontend/build/"
+          ssh -o UserKnownHostsFile=/home/runner/.ssh/known_hosts -o StrictHostKeyChecking=accept-new ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "ls -R ~/OceaniaDevs/frontend/build/"
 
       - name: Restart Docker containers
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+          ssh -o UserKnownHostsFile=/home/runner/.ssh/known_hosts -o StrictHostKeyChecking=accept-new ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
             cd ~/OceaniaDevs && 
             docker-compose -f docker-compose.yml -f docker-compose.prod.yml down && 
             docker-compose -f docker-compose.yml -f docker-compose.prod.yml build --no-cache postgres && 
