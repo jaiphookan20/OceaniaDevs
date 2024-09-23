@@ -73,25 +73,27 @@ def run_migrations_offline():
         context.run_migrations()
 
 
-def run_migrations_online():
-    """Run migrations in 'online' mode."""
-    try:
-        connectable = get_engine()
-        with connectable.connect() as connection:
-            context.configure(
-                connection=connection,
-                target_metadata=get_metadata(),
-                **current_app.extensions['migrate'].configure_args
-            )
+    def run_migrations_online():
+       """Run migrations in 'online' mode."""
+       try:
+           connectable = get_engine()
+           with connectable.connect() as connection:
+               context.configure(
+                   connection=connection,
+                   target_metadata=get_metadata(),
+                   compare_type=True,
+                   render_as_batch=True,  # Add this line
+                   **current_app.extensions['migrate'].configure_args
+               )
 
-            with context.begin_transaction():
-                context.run_migrations()
-    except Exception as e:
-        if 'relation "uq_job_technology" already exists' in str(e):
-            logger.warning("Unique constraint already exists, skipping...")
-        else:
-            logger.error(f"Error during migration: {e}")
-            raise
+               with context.begin_transaction():
+                   context.run_migrations()
+       except Exception as e:
+           if 'already exists' in str(e):
+               logger.warning(f"Object already exists, skipping: {str(e)}")
+           else:
+               logger.error(f"Error during migration: {e}")
+               raise
 
 def check_migration_safety():
     """Check if it's safe to run migrations."""

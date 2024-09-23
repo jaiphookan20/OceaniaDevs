@@ -1,34 +1,22 @@
 #!/bin/sh
 
-set -e
+#!/bin/sh
 
-echo "Waiting for PostgreSQL..."
-while ! nc -z $DB_HOST 5432; do
-  sleep 1
-done
-echo "PostgreSQL started"
+   #!/bin/sh
 
-if [ ! -d "migrations" ]; then
-    echo "Initializing database..."
-    flask db init
-    flask db migrate -m "initial migration"
-    flask db upgrade
-else
-    echo "Applying any pending migrations..."
-    flask db upgrade
-fi
+   set -e
 
-echo "AUTH0_DOMAIN: $AUTH0_DOMAIN"
-echo "AUTH0_CLIENT_ID: $AUTH0_CLIENT_ID"
-echo "AUTH0_CLIENT_SECRET: $AUTH0_CLIENT_SECRET"
+   echo "Waiting for PostgreSQL..."
+   while ! nc -z $DB_HOST 5432; do
+     sleep 1
+   done
+   echo "PostgreSQL started"
 
-# Check if a custom command is provided
-if [ $# -gt 0 ]; then
-    exec "$@"
-else
-    echo "Starting the application..."
-    exec gunicorn --config gunicorn_config.py "app:create_app()"
-fi
+   echo "Applying any pending migrations..."
+   flask db upgrade || echo "Migration failed, but continuing..."
+
+   echo "Starting the application..."
+   exec gunicorn --config gunicorn_config.py "app:create_app()"
 
 
 # #!/bin/sh
