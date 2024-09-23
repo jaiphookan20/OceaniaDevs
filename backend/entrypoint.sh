@@ -1,22 +1,22 @@
 #!/bin/sh
 
-#!/bin/sh
+set -e
 
-   #!/bin/sh
+echo "Waiting for PostgreSQL..."
+while ! nc -z $DB_HOST 5432; do
+  sleep 1
+done
+echo "PostgreSQL started"
 
-   set -e
+# Add a delay to ensure database is fully initialized
+echo "Waiting for database initialization..."
+sleep 10
 
-   echo "Waiting for PostgreSQL..."
-   while ! nc -z $DB_HOST 5432; do
-     sleep 1
-   done
-   echo "PostgreSQL started"
+echo "Applying any pending migrations..."
+flask db upgrade || echo "Migration failed, but continuing..."
 
-   echo "Applying any pending migrations..."
-   flask db upgrade || echo "Migration failed, but continuing..."
-
-   echo "Starting the application..."
-   exec gunicorn --config gunicorn_config.py "app:create_app()"
+echo "Starting the application..."
+exec gunicorn --config gunicorn_config.py "app:create_app()"
 
 
 # #!/bin/sh
