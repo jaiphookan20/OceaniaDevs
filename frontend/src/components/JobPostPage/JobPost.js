@@ -6,6 +6,15 @@ import RecommendedJobs from "./RecommendedJobs";
 import HashLoader from "react-spinners/HashLoader";
 import { useNavigate } from "react-router-dom";
 import { getRelativeTimeString } from '../../utils/time';
+import greenTick from '../../assets/green-tick.svg';
+import industryIcon from '../../assets/jobpost/industry-icon.webp';
+import experienceIcon from '../../assets/jobpost/experience-icon.webp';
+import salaryIcon from '../../assets/jobpost/salary-icon.webp';
+import locationIcon from '../../assets/jobpost/location-icon.webp';
+import minExperienceIcon from '../../assets/jobpost/min-experience-icon.webp';
+import specialisationIcon from '../../assets/jobpost/specialisation-icon.webp';
+import workLocationIcon from '../../assets/jobpost/work-location-icon.webp';
+import jobArrangementIcon from '../../assets/jobpost/job-arrangement-icon.webp';  
 
 const JobPost = ({ onSave, onApply, isInSession, userJobStatuses, onUnsave }) => {
   const { jobId } = useParams();
@@ -17,6 +26,7 @@ const JobPost = ({ onSave, onApply, isInSession, userJobStatuses, onUnsave }) =>
   const [showDescription, setShowDescription] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isApplied, setIsApplied] = useState(false);
+  const [applicationDate, setApplicationDate] = useState(null);
 
   const navigate = useNavigate();
 
@@ -50,7 +60,10 @@ const JobPost = ({ onSave, onApply, isInSession, userJobStatuses, onUnsave }) =>
         const data = await response.json();
         if (response.ok) {
           setJob(data);
-          console.log(job);
+          // Set the application date if the job has been applied to
+          if (data.application_date) {
+            setApplicationDate(new Date(data.application_date));
+          }
         } else {
           setError(data.error);
         }
@@ -141,14 +154,14 @@ const JobPost = ({ onSave, onApply, isInSession, userJobStatuses, onUnsave }) =>
         </div>
         <div className="grid grid-cols-4 gap-6 mt-6 p-4 bg-[#f5f5ec] border-t border-b border-slate-400 rounded-md shadow-sm">
   {[
-    { icon: "https://img.icons8.com/?size=100&id=Z3STIRU4hxMn&format=png&color=000000", label: "Industry", value: job.industry },
-    { icon: "https://img.icons8.com/?size=100&id=3BUZy0U5CdQL&format=png&color=000000", label: "Experience", value: job.experience_level },
-    { icon: "https://img.icons8.com/?size=100&id=tUxN1SSkN8zG&format=png&color=000000", label: "Salary", value: `${job.salary_range} AUD` },
-    { icon: "https://img.icons8.com/?size=100&id=HvkLiNNdKM33&format=png&color=000000", label: "Location", value: job.location },
-    { icon: "https://img.icons8.com/?size=100&id=bnRjsA4q33Cw&format=png&color=000000", label: "Min. Experience", value: `${job.min_experience_years}+ Years` },
-    { icon: "https://img.icons8.com/?size=100&id=KDmZN631Ig1j&format=png&color=000000", label: "Specialization", value: job.specialization },
-    { icon: "https://img.icons8.com/?size=100&id=aUSV1wxr8mk2&format=png&color=000000", label: "Work Location", value: job.work_location },
-    { icon: "https://img.icons8.com/?size=100&id=8Y1SrtCBXvmA&format=png&color=000000", label: "Job Arrangement", value: job.job_arrangement }
+    { icon: industryIcon, label: "Industry", value: job.industry },
+    { icon: experienceIcon, label: "Experience", value: job.experience_level },
+    { icon: salaryIcon, label: "Salary", value: `${job.salary_range} AUD` },
+    { icon: locationIcon, label: "Location", value: job.location },
+    { icon: minExperienceIcon, label: "Min. Experience", value: `${job.min_experience_years}+ Years` },
+    { icon: specialisationIcon, label: "Specialization", value: job.specialization },
+    { icon: workLocationIcon, label: "Work Location", value: job.work_location },
+    { icon: jobArrangementIcon, label: "Job Arrangement", value: job.job_arrangement }
   ].map((item, index) => (
     <div key={index} className="flex flex-col items-center p-2 bg-white rounded-md shadow-sm border border-slate-400 transition-all duration-300 hover:shadow-md">
       <img
@@ -165,6 +178,15 @@ const JobPost = ({ onSave, onApply, isInSession, userJobStatuses, onUnsave }) =>
 </div>
             <div className="flex justify-between items-between pxb-20">
           <div className="w-3/4 pl-8 pr-2">
+          {/* Add this conditional rendering for the applied status */}
+          {isApplied && applicationDate && (
+              <div className="flex justify-start font-semibold text-emerald-600 px-4 py-1 mt-4 rounded-lg relative mb-4" role="alert">
+                <div className="flex text-center items-center">
+                  <img src={greenTick} alt="Green Tick" className="w-4 h-4 mr-2" />
+                  <span className="block sm:inline">Applied on External Website | October 7th</span>
+                </div>
+              </div>
+            )}
             <section className="mt-6">
               <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800" style={{ fontFamily: "Avenir, sans-serif" }}>
                 About the role
