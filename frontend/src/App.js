@@ -39,6 +39,7 @@ const App = () => {
   const [specialization, setSpecialization] = useState("");
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState([]);
+  const [userJobStatuses, setUserJobStatuses] = useState({ saved_jobs: [], applied_jobs: [] });
   
   const [filters, setFilters] = useState({
     specialization: "",
@@ -68,6 +69,26 @@ const App = () => {
     fetchAllJobs(); 
     checkSession();
   }, []);
+
+  useEffect(() => {
+    if (isInSession) {
+      fetchUserJobStatuses();
+    }
+  }, [isInSession]);
+
+  const fetchUserJobStatuses = async () => {
+    try {
+      const response = await fetch('/api/user_job_statuses', {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUserJobStatuses(data);
+      }
+    } catch (error) {
+      console.error('Error fetching user job statuses:', error);
+    }
+  };
 
   const checkSession = async () => {
     try {
@@ -139,50 +160,88 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
 };
 
 
-  const handleSave = async (jobId) => {
-    try {
-      if (!isInSession) {
-        toast.error("Sign in first to save a job.");
-      } else {
-          const response = await fetch(`/api/bookmark_job`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({ jobid: jobId }),
-          });
-          const result = await response.json();
-          toast.success(result.message);
-        }
-    } catch (error) {
-      console.error("Error saving job:", error);
-      toast.error("Failed to save job.");
-    }
-  };
+const handleSave = useCallback(async (jobId) => {
+  if (!isInSession) {
+    toast.error("Please sign in to save a job.");
+    return;
+  }
 
-  const handleApply = async (jobId) => {
-    try {
-      if (!isInSession) {
-        toast.error("Sign in first to apply.");
-      } else {
-        const response = await fetch(`/api/apply_to_job`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({ jobid: jobId }),
-        });
-        const result = await response.json();
-        toast.success("Boom!");
-        navigate(`/job_post/${jobId}`);
-      }
-    } catch (error) {
-      console.error("Error applying to job:", error);
-      toast.error("Failed to apply to job.");
+  try {
+    const response = await fetch(`/api/bookmark_job`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ jobid: jobId }),
+    });
+    if (response.ok) {
+      setUserJobStatuses(prev => ({
+        ...prev,
+        saved_jobs: [...prev.saved_jobs, jobId]
+      }));
+      toast.success("Job saved successfully");
+    } else {
+      toast.error("Failed to save job");
     }
-  };
+  } catch (error) {
+    console.error("Error saving job:", error);
+    toast.error("Failed to save job");
+  }
+}, [isInSession]);
+
+const handleUnsave = useCallback(async (jobId) => {
+  if (!isInSession) {
+    toast.error("Please sign in to unsave a job.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/unsave_job/${jobId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    if (response.ok) {
+      setUserJobStatuses(prev => ({
+        ...prev,
+        saved_jobs: prev.saved_jobs.filter(id => id !== jobId)
+      }));
+      toast.success("Job unsaved successfully");
+    } else {
+      toast.error("Failed to unsave job");
+    }
+  } catch (error) {
+    console.error("Error unsaving job:", error);
+    toast.error("Failed to unsave job");
+  }
+}, [isInSession]);
+
+const handleApply = useCallback(async (jobId) => {
+  if (!isInSession) {
+    toast.error("Please sign in to apply for a job.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/apply_job`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ jobid: jobId }),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      setUserJobStatuses(prev => ({
+        ...prev,
+        applied_jobs: [...prev.applied_jobs, jobId]
+      }));
+      toast.success(data.message || "Application submitted successfully");
+    } else {
+      toast.error(data.error || "Failed to submit application");
+    }
+  } catch (error) {
+    console.error("Error applying to job:", error);
+    toast.error("Failed to submit application. Please try again later.");
+  }
+}, [isInSession]);
 
   const handleView = (jobId) => {
     navigate(`/job_post/${jobId}`);
@@ -455,6 +514,8 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
                       isInSession={isInSession}
                       onViewAll={() => handleViewAllRoles(specialization)}
                       userData={userData}
+                      onUnsave={handleUnsave}
+                      userJobStatuses={userJobStatuses}
                     />
                   ))}
                 </div>
@@ -485,6 +546,8 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
               specialization={specialization}
               onClearAll={handleClearAll}
               onTechFilter={handleTechFilter}
+              onUnsave={handleUnsave}
+              userJobStatuses={userJobStatuses}
             />
           }
         />
@@ -528,7 +591,7 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
         <Route path="/edit-job/:jobId" element={<EditJob />} />z
         <Route
           path="/job_post/:jobId"
-          element={<JobPost onSave={handleSave} onApply={handleApply} isInSession={isInSession} />}
+          element={<JobPost onSave={handleSave} onApply={handleApply} isInSession={isInSession} userJobStatuses={userJobStatuses} onUnsave={handleUnsave} />}
         />
         {/* <Route path="/profile" element={<DeveloperProfile />} /> */}
         <Route path="/profile" element={<JobBoardProfile />} />

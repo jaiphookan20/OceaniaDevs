@@ -7,7 +7,7 @@ import HashLoader from "react-spinners/HashLoader";
 import { useNavigate } from "react-router-dom";
 import { getRelativeTimeString } from '../../utils/time';
 
-const JobPost = ({ onSave, onApply, isInSession }) => {
+const JobPost = ({ onSave, onApply, isInSession, userJobStatuses, onUnsave }) => {
   const { jobId } = useParams();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,6 +15,8 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
   const technologiesRef = useRef(null);
   const [recommendedJobs, setRecommendedJobs] = useState([]);
   const [showDescription, setShowDescription] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isApplied, setIsApplied] = useState(false);
 
   const navigate = useNavigate();
 
@@ -34,7 +36,12 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
     }
   }, [job, jobId]);
   
-  
+  useEffect(() => {
+    if (userJobStatuses && job) {
+      setIsSaved(userJobStatuses.saved_jobs.includes(job.job_id));
+      setIsApplied(userJobStatuses.applied_jobs.includes(job.job_id));
+    }
+  }, [userJobStatuses, job]);
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -126,7 +133,7 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
             <h3 className="text-3xl pt-2 text-slate-500 font-semibold hover:text-slate-700 hover:cursor-pointer" onClick={()=> navigate(`/company/${job.company_id}`)}>
               {job.company}
             </h3>
-            <p className="items-bottom p-2 text-xl text-slate-600 font-semibold">{getRelativeTimeString(job.created_at)}</p>
+            <p className="items-bottom p-2 text-xl text-emerald-700 font-semibold">{getRelativeTimeString(job.created_at)}</p>
           </div>
           <p className="text-gray-500 mt-2 text-xl">
             {job.company_description}
@@ -224,7 +231,7 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
             </section>
           </div>
           <div className="w-1/4 p-4">
-            <JobPostSideBar job={job} onSave={onSave} onApply={onApply} isInSession={isInSession}/>
+            <JobPostSideBar job={job} onSave={onSave} onApply={onApply} isInSession={isInSession} onUnsave={onUnsave} isSaved={isSaved} isApplied={isApplied} />
           </div>
         </div>
         <RecommendedJobs jobs={recommendedJobs} />

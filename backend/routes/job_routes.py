@@ -35,6 +35,17 @@ def get_job_post_page(job_id):
     except Exception as e:
         current_app.logger.error(f"Error in get_job_post_page: {str(e)}")
         return jsonify({"error": "An unexpected error occurred"}), 500
+    
+@job_blueprint.route('/api/user_job_statuses', methods=['GET'])
+@requires_auth
+def get_user_job_statuses():
+    try:
+        user_id = session['user']['uid']
+        statuses = jobs_service.get_user_job_statuses(user_id)
+        return jsonify(statuses)
+    except Exception as e:
+        current_app.logger.error(f"Error in get_user_job_statuses: {str(e)}")
+        return jsonify({"error": "An error occurred while fetching job statuses"}), 500
 
 @job_blueprint.route('/api/filtered_search_jobs', methods=['GET'])
 @timing_decorator
@@ -117,15 +128,15 @@ def get_technologies():
         current_app.logger.error(f"Error in get_technologies: {str(e)}")
         return jsonify({"error": "An error occurred while retrieving technologies"}), 500
 
-@job_blueprint.route('/api/apply_to_job', methods=['POST'])
+@job_blueprint.route('/api/apply_job', methods=['POST'])
 @requires_auth
-def apply_to_job():
+def apply_job():
     """Allow a seeker to apply for a job."""
     if 'user' not in session:
         return jsonify({"error": "Unauthorized access"}), 401
     
     if session['user']['type'] == "recruiter":
-        return jsonify({"error": "Unauthorized access: Cannot Apply to Job as a Recruiter"}), 401
+        return jsonify({"error": "Unauthorized access: Cannot Apply for Job as a Recruiter"}), 401
     
     job_id = request.json.get('jobid')
     if not isinstance(job_id, int):
@@ -136,10 +147,13 @@ def apply_to_job():
         return jsonify({"error": "No UserId found"}), 400
     
     try:
-        jobs_service.apply_to_job(seeker_id, job_id)
-        return jsonify({"message": "Job application submitted successfully"})
-    except Exception as e:
+        jobs_service.apply_job(seeker_id, job_id)
+        return jsonify({"message": "Application submitted successfully"})
+    except ValueError as e:
         return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        current_app.logger.error(f"Error in apply_job: {str(e)}")
+        return jsonify({"error": "An unexpected error occurred. Please try again later."}), 500
 
 
 @job_blueprint.route('/api/bookmark_job', methods=['POST'])

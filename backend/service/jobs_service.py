@@ -172,17 +172,12 @@ class JobsService:
             raise
 
     def get_user_job_statuses(self, user_id):
-        """Fetch saved and applied job IDs for a user in a single query."""
-        try:
-            saved_jobs = set(db.session.query(Bookmark.jobid).filter(Bookmark.userid == user_id).all())
-            applied_jobs = set(db.session.query(Application.jobid).filter(Application.userid == user_id).all())
-            return {
-                'saved_jobs': list(saved_jobs),
-                'applied_jobs': list(applied_jobs)
-            }
-        except Exception as e:
-            current_app.logger.error(f"Error in get_user_job_statuses: {str(e)}")
-            raise
+        saved_jobs = db.session.query(Bookmark.jobid).filter(Bookmark.userid == user_id).all()
+        applied_jobs = db.session.query(Application.jobid).filter(Application.userid == user_id).all()
+        return {
+            'saved_jobs': [job.jobid for job in saved_jobs],
+            'applied_jobs': [job.jobid for job in applied_jobs]
+        }
 
     def _format_job_results(self, jobs, user_statuses=None):
         """Format job results for API responses, including saved and applied status."""
@@ -229,24 +224,22 @@ class JobsService:
             current_app.logger.error(f"Error in get_technologies: {str(e)}")
             raise
 
-    def apply_to_job(self, seeker_id, job_id):
-        """Allow a seeker to apply for a job."""
+    def apply_job(self, seeker_id, job_id):
+        """Submit a job application."""
         try:
+            # Check if the application already exists
             existing_application = Application.query.filter_by(userid=seeker_id, jobid=job_id).first()
             if existing_application:
-                raise ValueError("You have already applied to this job")
+                raise ValueError("You have already applied for this job")
 
-            job = Job.query.get(job_id)
-            if not job:
-                raise ValueError("Job not found")
-            
+            # Create a new application
             new_application = Application(userid=seeker_id, jobid=job_id)
             db.session.add(new_application)
             db.session.commit()
-        
+            current_app.logger.info(f"Application submitted successfully for seeker {seeker_id} and job {job_id}")
         except Exception as e:
-            current_app.logger.error(f"Error in apply_to_job: {str(e)}")
             db.session.rollback()
+            current_app.logger.error(f"Error in apply_job: {str(e)}")
             raise
 
     def bookmark_job(self, seeker_id, job_id):

@@ -24,7 +24,9 @@ const SearchPage = ({
   isInSession,
   specialization,
   onClearAll,
-  onTechFilter
+  onTechFilter,
+  userJobStatuses,
+  onUnsave
 }) => {
   const location = useLocation();
   // Create a ref to track if the initial fetch has been done
@@ -98,6 +100,8 @@ const SearchPage = ({
             filters={filters}
             searchQuery={searchQuery}
             isSearchPerformed={isSearchPerformed}
+            userJobStatuses={userJobStatuses}
+            onUnsave={onUnsave}
           />
         </div>
       </div>
