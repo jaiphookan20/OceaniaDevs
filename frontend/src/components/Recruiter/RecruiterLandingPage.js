@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import doodleLaptopGuyPark from '../../assets/doodles/doodle_laptop_guy_park.webp';
 import RecruiterTestimonials from './RecruiterTestimonials';
 import RecruiterPostJobBox from './RecruiterPostJobBox';
+import RecruiterHiringSteps from './RecruiterHiringSteps';
 
 const RecruiterLandingPage = () => {
   return (
@@ -51,6 +52,7 @@ const RecruiterLandingPage = () => {
           </div>
         </div>
       </div>
+      <RecruiterHiringSteps />
       <div className="w-2/3 bg-amber-50 py-12">
         <RecruiterTestimonials />
       </div>
