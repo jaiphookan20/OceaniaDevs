@@ -26,7 +26,7 @@ class JobsService:
             return [item.strip() for item in text.split('\n') if item.strip()]
 
     @cache.memoize(timeout=3600) 
-    def get_job_post_data(self, job_id):
+    def get_job_post_data(self, job_id, user_id=None, user_type=None):
         """Retrieve detailed information for a specific job post."""
         try:
             job = Job.query.get(job_id)
@@ -38,7 +38,7 @@ class JobsService:
             technologies = db.session.query(Technology.name).join(JobTechnology).filter(JobTechnology.job_id == job_id).all()
             tech_stack = [tech.name for tech in technologies]
             
-            return {
+            job_data = {
                 'job_id': job.job_id,
                 'title': job.title,
                 'company': company.name,
@@ -69,10 +69,19 @@ class JobsService:
                 'jobpost_url': job.jobpost_url,
                 'created_at': job.created_at,
             }
+
+            # Only include application date for seekers
+            if user_id and user_type == 'seeker':
+                application = Application.query.filter_by(userid=user_id, jobid=job_id).first()
+                if application:
+                    job_data['application_date'] = application.datetimestamp.isoformat()
+
+            return job_data
+        
         except Exception as e:
             current_app.logger.error(f"Error in get_job_post_data: {str(e)}")
             raise
-    
+     
     @cache.memoize(timeout=300)
     def filtered_search_jobs(self, filter_params, page, page_size):
         """Search and filter jobs based on various criteria."""
@@ -84,7 +93,10 @@ class JobsService:
                     if key == 'work_location':
                         jobs_query = jobs_query.filter(Job.work_location == value)
                     elif key == 'tech_stack':
-                        jobs_query = jobs_query.join(JobTechnology).join(Technology).filter(Technology.name == value)
+                        if isinstance(value, list):
+                            jobs_query = jobs_query.join(JobTechnology).join(Technology).filter(Technology.name.in_(value))
+                        else:
+                            jobs_query = jobs_query.join(JobTechnology).join(Technology).filter(Technology.name == value)
                     elif key == 'min_experience_years':
                         jobs_query = jobs_query.filter(Job.min_experience_years >= int(value))
                     elif key == 'specialization':
@@ -102,16 +114,13 @@ class JobsService:
                         search_terms = value.split()
                         search_query = ' & '.join(term + ':*' for term in search_terms)
                         tsquery = func.websearch_to_tsquery('english', search_query)
-                        jobs_query = Job.query.join(Company).filter(
+                        jobs_query = jobs_query.filter(
                             or_(
                                 Job.search_vector.op('@@')(tsquery),
                                 Job.title.ilike(f'%{search_query}%'),
                                 Company.name.ilike(f'%{search_query}%')
                             )
-                        ).order_by(
-                            # Highlight: Using ts_rank_cd for ranking without similarity function
-                            func.ts_rank_cd(Job.search_vector, tsquery, 32).desc()
-                        )
+                        ).order_by(func.ts_rank_cd(Job.search_vector, tsquery, 32).desc())
                     else:
                         jobs_query = jobs_query.filter(getattr(Job, key) == value)
 
@@ -122,7 +131,7 @@ class JobsService:
         except Exception as e:
             current_app.logger.error(f"Error in filtered_search_jobs: {str(e)}")
             raise
-    
+
     @cache.memoize(timeout=300)
     def instant_search_jobs(self, query, page, page_size):
         """Perform an instant search on jobs based on a query string, allowing partial matches."""

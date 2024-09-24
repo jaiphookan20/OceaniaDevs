@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import SearchPageBar from "./SearchPageBar";
 import SearchPageHeader from "./SearchPageHeader";
 import SearchPageJobSection from "./SearchPageJobSection";
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 
@@ -29,37 +29,75 @@ const SearchPage = ({
   onUnsave
 }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   // Create a ref to track if the initial fetch has been done
   const initialFetchDone = useRef(false);
   const [isSearchPerformed, setIsSearchPerformed] = useState(false);
 
   useEffect(() => {
-    // Only run this effect if the initial fetch hasn't been done
     if (!initialFetchDone.current) {
       const searchParams = new URLSearchParams(location.search);
-      const tech = searchParams.get('tech');
-      
-      // Check for tech parameter in URL
+      const newFilters = { ...filters };
+      let newQuery = null;
+      let hasChanges = false;
+
+      ['specialization', 'experience_level', 'work_location', 'city', 'job_arrangement'].forEach(param => {
+        const value = searchParams.get(param);
+        if (value) {
+          newFilters[param] = value;
+          hasChanges = true;
+        }
+      });
+
+      const tech = searchParams.get('tech_stack');
       if (tech) {
-        onTechFilter(tech);
-      } 
-      // Check for specialization prop
-      else if (specialization) {
-        onFilterChange({ target: { name: "specialization", value: specialization } });
-        onFilterSearch(1);
-      } 
-      // If no tech or specialization, and no jobs, fetch all jobs
-      else if (!jobs || jobs.length === 0) {
+        newFilters.tech_stack = [tech];
+        hasChanges = true;
+      }
+
+      newQuery = searchParams.get('query');
+      if (newQuery) {
+        hasChanges = true;
+      }
+
+      if (hasChanges) {
+        onFilterSearch(1, newFilters, newQuery);
+      } else if (!jobs || jobs.length === 0) {
         onFilterSearch(1);
       }
-      
-      // Mark initial fetch as done
+
       initialFetchDone.current = true;
     }
-  }, [location, specialization, jobs, onTechFilter, onFilterChange, onFilterSearch]);
+  }, [location, onFilterSearch]);
 
   const handleFilterSearch = (page) => {
     setIsSearchPerformed(true);
+    const searchParams = new URLSearchParams();
+
+    // Add filters to URL
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value && value !== '') {
+        if (Array.isArray(value)) {
+          value.forEach(v => searchParams.append(key, v));
+        } else {
+          searchParams.set(key, value);
+        }
+      }
+    });
+
+    // Add search query to URL
+    if (searchQuery) {
+      searchParams.set('query', searchQuery);
+    }
+
+    // Add page number to URL if not the first page
+    if (page > 1) {
+      searchParams.set('page', page);
+    }
+
+    // Update URL
+    navigate(`/search-page?${searchParams.toString()}`);
+
     onFilterSearch(page);
   };
 
@@ -83,6 +121,7 @@ const SearchPage = ({
         onClearAll={() => {
           onClearAll();
           setIsSearchPerformed(false);
+          navigate('/search-page'); // Clear URL parameters
         }}
       />
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-7">

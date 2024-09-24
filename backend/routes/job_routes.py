@@ -27,8 +27,12 @@ CORS(job_blueprint, supports_credentials=True, resources={r'/*': {'origins': 'ht
 @timing_decorator
 def get_job_post_page(job_id):
     """Retrieve All Job Details for a specific job post."""
-    try:        
-        job_data = jobs_service.get_job_post_data(job_id)
+    try:
+        user = session.get('user', {})
+        user_id = user.get('uid')
+        user_type = user.get('type')
+        
+        job_data = jobs_service.get_job_post_data(job_id, user_id, user_type)
         if not job_data:
             return jsonify({"error": "Job or company not found"}), 404
         return jsonify(job_data)

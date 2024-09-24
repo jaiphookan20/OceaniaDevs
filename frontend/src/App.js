@@ -26,6 +26,7 @@ import EditJob from "./components/Seeker/EditJob";
 import HashLoader from "react-spinners/HashLoader";
 import { debounce } from 'lodash';  // Make sure to install and import lodash
 import JobBoardProfile from "./components/Misc/JobBoardProfile";
+import RecruiterLandingPage from "./components/Recruiter/RecruiterLandingPage";
 
 const App = () => {
   const [homePageJobs, setHomePageJobs] = useState([]);
@@ -282,33 +283,72 @@ const handleApply = useCallback(async (jobId) => {
 
   
 
-  const handleFilterSearch = useCallback(async (page = 1) => {
-    try {
-      const data = await searchService.filteredSearchJobs({...filters, query: searchQuery, page, page_size: pageSize});
+  // const handleFilterSearch = useCallback(async (page = 1) => {
+  //   try {
+  //     const data = await searchService.filteredSearchJobs({...filters, query: searchQuery, page, page_size: pageSize});
       
-      setAllJobs(data.jobs);
-      setTotalJobs(data.total_jobs);
-      setCurrentPage(page);
+  //     setAllJobs(data.jobs);
+  //     setTotalJobs(data.total_jobs);
+  //     setCurrentPage(page);
 
-      if (searchQuery) {
-        setSearchTitle(`Results for "${searchQuery}"`);
-      } else if (filters.tech_stack.length > 0) {
-        setSearchTitle(`${filters.tech_stack[0].charAt(0).toUpperCase() + filters.tech_stack[0].slice(1)} Jobs`);
-      } else if (filters.specialization) {
-        setSearchTitle(`${filters.specialization} Jobs`);
-      } else {
-        setSearchTitle("Technology Jobs");
-      }
+  //     if (searchQuery) {
+  //       setSearchTitle(`Results for "${searchQuery}"`);
+  //     } else if (filters.tech_stack.length > 0) {
+  //       setSearchTitle(`${filters.tech_stack[0].charAt(0).toUpperCase() + filters.tech_stack[0].slice(1)} Jobs`);
+  //     } else if (filters.specialization) {
+  //       setSearchTitle(`${filters.specialization} Jobs`);
+  //     } else {
+  //       setSearchTitle("Technology Jobs");
+  //     }
 
-      prevFilters.current = {...filters};
+  //     prevFilters.current = {...filters};
 
-    } catch (error) {
-      console.error('Error fetching filtered jobs:', error);
-      setAllJobs([]);
-      setTotalJobs(0);
-      toast.error("Failed to fetch jobs. Please try again later.");
+  //   } catch (error) {
+  //     console.error('Error fetching filtered jobs:', error);
+  //     setAllJobs([]);
+  //     setTotalJobs(0);
+  //     toast.error("Failed to fetch jobs. Please try again later.");
+  //   }
+  // }, [filters, searchQuery, pageSize]);
+
+  const handleFilterSearch = useCallback(async (page = 1, newFilters = null, newQuery = null) => {
+  try {
+    const filtersToUse = newFilters || filters;
+    const queryToUse = newQuery !== null ? newQuery : searchQuery;
+    
+    const data = await searchService.filteredSearchJobs({
+      ...filtersToUse, 
+      query: queryToUse, 
+      page, 
+      page_size: pageSize
+    });
+    
+    setAllJobs(data.jobs);
+    setTotalJobs(data.total_jobs);
+    setCurrentPage(page);
+
+    if (newFilters) setFilters(newFilters);
+    if (newQuery !== null) setSearchQuery(newQuery);
+
+    if (queryToUse) {
+      setSearchTitle(`Results for "${queryToUse}"`);
+    } else if (filtersToUse.tech_stack.length > 0) {
+      setSearchTitle(`${filtersToUse.tech_stack[0].charAt(0).toUpperCase() + filtersToUse.tech_stack[0].slice(1)} Jobs`);
+    } else if (filtersToUse.specialization) {
+      setSearchTitle(`${filtersToUse.specialization} Jobs`);
+    } else {
+      setSearchTitle("Technology Jobs");
     }
-  }, [filters, searchQuery, pageSize]);
+
+    prevFilters.current = {...filtersToUse};
+
+  } catch (error) {
+    console.error('Error fetching filtered jobs:', error);
+    setAllJobs([]);
+    setTotalJobs(0);
+    toast.error("Failed to fetch jobs. Please try again later.");
+  }
+}, [filters, searchQuery, pageSize]);
 
   const fetchSavedJobs = async () => {
     try {
@@ -595,6 +635,7 @@ const handleApply = useCallback(async (jobId) => {
         />
         {/* <Route path="/profile" element={<DeveloperProfile />} /> */}
         <Route path="/profile" element={<JobBoardProfile />} />
+        <Route path="/recruiter-page" element={<RecruiterLandingPage />} />
         <Route
           path="/saved-jobs"
           element={
