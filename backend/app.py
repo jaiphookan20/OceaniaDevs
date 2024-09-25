@@ -7,7 +7,7 @@ from routes.job_routes import job_blueprint
 from routes.recruiter_routes import recruiter_blueprint
 from routes.seeker_routes import seeker_blueprint
 from matching.similarity_search_routes import simsearch_blueprint
-from extensions import db, bcrypt, migrate, cache
+from extensions import db, bcrypt, migrate, mail, cache
 from routes.auth_routes import webapp_secret_key
 import logging
 from flask_cors import CORS
@@ -24,7 +24,6 @@ from flask_admin import Admin, AdminIndexView
 from flask_admin.contrib.sqla import ModelView
 from flask import render_template
 
-
 load_dotenv()
 
 class SecureModelView(ModelView):
@@ -35,10 +34,7 @@ class SecureModelView(ModelView):
         return render_template('admin/unauthorized.html'), 403
 
 def create_app():
-    # app = Flask(__name__)
     app = Flask(__name__, template_folder='templates')
-    CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
-    app.config['CORS_HEADERS'] = 'Content-Type'
 
     # Set up logging
     logging.basicConfig(level=logging.DEBUG)
@@ -49,14 +45,13 @@ def create_app():
     file_handler.setFormatter(formatter)
     app.logger.addHandler(file_handler)
 
+    # Configuration settings
+    app.config['CORS_HEADERS'] = 'Content-Type'
     app.logger.info(f"AUTH0_DOMAIN: {os.getenv('AUTH0_DOMAIN')}")
     app.logger.info(f"AUTH0_CLIENT_ID: {os.getenv('AUTH0_CLIENT_ID')}")
     app.logger.info(f"AUTH0_CLIENT_SECRET: {os.getenv('AUTH0_CLIENT_SECRET')}")
-
-    # Define the upload subdirectory
-    UPLOAD_FOLDER = os.path.join('uploads', 'upload_company_logo')
-    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    app.config['UPLOAD_FOLDER'] = os.path.join('uploads', 'upload_company_logo')
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
     # Database configuration
     DB_HOST = os.environ.get('DB_HOST', 'localhost')
@@ -68,7 +63,15 @@ def create_app():
     REDIS_HOST = os.environ.get('REDIS_HOST', 'redis')
     REDIS_PORT = int(os.environ.get('REDIS_PORT', 6379))
 
-    # Use test database if in testing environment
+    # Flask-Mail configuration
+    app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+    app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
+    app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'true').lower() in ['true', '1', 't']
+    app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+    app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', 'noreply@yourdomain.com')
+
+    # Database URI configuration
     if os.getenv("FLASK_ENV") == "testing":
         app.logger.info('Running Test DB')
         app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}_test'
@@ -76,16 +79,45 @@ def create_app():
         app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
 
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    # Session configuration
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', webapp_secret_key)
+    app.config['SESSION_TYPE'] = 'redis'
+    app.config['SESSION_PERMANENT'] = True
+    app.config['SESSION_USE_SIGNER'] = True
+    app.config['SESSION_REDIS'] = Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
+    app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # Sessions last for one day
+
+    # Redis Caching Configuration
+    app.config['CACHE_TYPE'] = 'RedisCache'
+    app.config['CACHE_REDIS_HOST'] = REDIS_HOST
+    app.config['CACHE_REDIS_PORT'] = REDIS_PORT
+    app.config['CACHE_REDIS_DB'] = 0
+    app.config['CACHE_REDIS_URL'] = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
+    app.config['CACHE_DEFAULT_TIMEOUT'] = 300
+
     app.config.update(
         SESSION_COOKIE_SECURE=False,  # Set to False since we're not using HTTPS
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE='Lax',
     )
 
-    # Initialize extensions with the app
+    # Initialize extensions
+    CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
     db.init_app(app)
     bcrypt.init_app(app)
     migrate.init_app(app, db)
+    mail.init_app(app)
+
+    # Initialize cache with error handling
+    try:
+        app.logger.debug(f"Cache configuration before init: {app.config}")
+        cache.init_app(app)
+        app.logger.info("Cache initialized successfully")
+    except Exception as e:
+        app.logger.error(f"Failed to initialize cache: {str(e)}")
+
+    Session(app)
 
     # Register ENUM types
     def create_enums():
@@ -104,27 +136,8 @@ def create_app():
     app.register_blueprint(seeker_blueprint)
     app.register_blueprint(simsearch_blueprint)
 
-    # Flask-Session configuration
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', webapp_secret_key)
-    app.config['SESSION_TYPE'] = 'redis'
-    app.config['SESSION_PERMANENT'] = True
-    app.config['SESSION_USE_SIGNER'] = True
-    app.config['SESSION_REDIS'] = Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
-    app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # Sessions last for one day
-
-    # Redis Caching Configuration
-    app.config['CACHE_TYPE'] = 'RedisCache'
-    app.config['CACHE_REDIS_HOST'] = REDIS_HOST
-    app.config['CACHE_REDIS_PORT'] = REDIS_PORT
-    app.config['CACHE_REDIS_DB'] = 0
-    app.config['CACHE_REDIS_URL'] = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
-    app.config['CACHE_DEFAULT_TIMEOUT'] = 300
-
-    cache.init_app(app)
-    Session(app)
-
     with app.app_context():
-        init_auth(app);
+        init_auth(app)
 
     # Test Redis connection
     try:
@@ -192,11 +205,9 @@ def create_app():
     def before_request():
         app.logger.debug(f"Received request: {request.method} {request.path}")
         app.logger.info(f"Request method: {request.method}")
-        # app.logger.info(f"Session before request: {session}")
 
     @app.after_request
     def after_request(response):
-        # app.logger.info(f"Session after request: {session}")
         return response
 
     @app.errorhandler(RedisError)
@@ -215,4 +226,3 @@ def create_app():
 if __name__ == '__main__':
     app = create_app()
     app.run(debug=True)
-
