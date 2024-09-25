@@ -403,7 +403,9 @@ const handleApply = useCallback(async (jobId) => {
     const onboardingPaths = [
       '/employer/add-details',
       '/employer/new/organization-details',
-      '/employer/organization-details'
+      '/employer/organization-details',
+      '/employer/verify-email',
+      '/employer/verify-code'
     ];
     setIsInOnboarding(onboardingPaths.includes(location.pathname));
   }, [location]);

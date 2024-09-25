@@ -23,7 +23,7 @@ const RecruiterOnboarding = () => {
     };
   }, []);
 
-  const nextStep = () => {
+  const handleStepComplete = () => {
     setStep(prevStep => {
       const newStep = prevStep + 1;
       setCompletedSteps(prev => [...prev, prevStep]);
@@ -39,15 +39,13 @@ const RecruiterOnboarding = () => {
   const renderStep = () => {
     switch (step) {
       case 1:
-        return <RecruiterPersonalDetails onComplete={nextStep} />;
+        return <RecruiterPersonalDetails onComplete={handleStepComplete} />;
       case 2:
-        return <FindEmployerForm onComplete={nextStep} onCreateNew={goToCreateEmployer} />;
+        return <FindEmployerForm onComplete={handleStepComplete} />;
       case 3:
-        return <RegisterNewEmployer onComplete={nextStep} />;
-      // case 4:
-      //   return <Navigate to="/employer/post-job-ai" />;
+        return <RegisterNewEmployer onComplete={handleStepComplete} />;
       default:
-        return <Navigate to="/" />;
+        return null;
     }
   };
 

@@ -4,6 +4,7 @@ from sqlalchemy import event, text
 from sqlalchemy.schema import DDL
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import UniqueConstraint
+from urllib.parse import urlparse
 
 # Define all ENUM types
 state_enum = ENUM('VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA', name='state_enum', create_type=False)
@@ -68,6 +69,9 @@ class Recruiter(db.Model):
     is_direct_recruiter = db.Column(db.Boolean)
     created_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
+    email_verified = db.Column(db.Boolean, default=False)  # New field for email verification status
+    verification_code = db.Column(db.String(6))
+    verification_code_expiry = db.Column(db.DateTime)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -98,6 +102,26 @@ class Company(db.Model):
 
     def __str__(self):
         return self.name
+
+    def get_email_domain(self):
+        if self.website_url:
+            # Remove any leading/trailing whitespace and force to lowercase
+            url = self.website_url.strip().lower()
+            
+            # Add 'https://' if no protocol is specified
+            if not url.startswith(('http://', 'https://')):
+                url = 'https://' + url
+            
+            parsed_url = urlparse(url)
+            domain = parsed_url.netloc or parsed_url.path
+            
+            # Remove 'www.' and any subdomains
+            parts = domain.split('.')
+            if len(parts) > 2:
+                domain = '.'.join(parts[-2:])
+            
+            return domain
+        return None
 
 class Job(db.Model):
     __tablename__ = 'jobs'
