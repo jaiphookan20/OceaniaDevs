@@ -539,3 +539,49 @@ def update_existing_jobs_technologies():
     except Exception as e:
         current_app.logger.error(f"Error in update_existing_jobs_technologies: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500
+
+@recruiter_blueprint.route('/api/verify_recruiter_email', methods=['POST'])
+def verify_recruiter_email():
+    data = request.json
+    company_id = data.get('company_id')
+    email = data.get('email')
+
+    current_app.logger.info(f"Verifying email: {email} for company_id: {company_id}")
+
+    if not company_id or not email:
+        return jsonify({"error": "Missing company_id or email"}), 400
+
+    recruiter_service = RecruiterService()
+    is_valid, message = recruiter_service.verify_recruiter_email_domain(company_id, email)
+
+    current_app.logger.info(f"Verification result: {is_valid}, Message: {message}")
+
+    if is_valid:
+        recruiter_id = session['user']['recruiter_id']
+        try:
+            if recruiter_service.send_verification_email(recruiter_id, email):
+                return jsonify({"message": "Verification email sent"}), 200
+            else:
+                return jsonify({"error": "Failed to send verification email"}), 500
+        except Exception as e:
+            current_app.logger.error(f"Error sending verification email: {str(e)}")
+            return jsonify({"error": "Failed to send verification email"}), 500
+    else:
+        return jsonify({"error": message}), 400
+
+@recruiter_blueprint.route('/api/verify_code', methods=['POST'])
+def verify_code():
+    data = request.json
+    code = data.get('code')
+
+    if not code:
+        return jsonify({"error": "Missing verification code"}), 400
+
+    recruiter_id = session['user']['recruiter_id']
+    recruiter_service = RecruiterService()
+    is_valid, message = recruiter_service.verify_code(recruiter_id, code)
+
+    if is_valid:
+        return jsonify({"message": message}), 200
+    else:
+        return jsonify({"error": message}), 400

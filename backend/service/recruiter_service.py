@@ -17,6 +17,10 @@ import time
 from extensions import cache
 import config
 from datetime import datetime, timedelta
+import random
+from urllib.parse import urlparse
+from flask_mail import Message
+from extensions import mail
 
 class RecruiterService:
     def __init__(self):
@@ -161,7 +165,7 @@ class RecruiterService:
             db.session.rollback()
             return False
 
-    # def process_job_description_openai(self, title, description):
+    def process_job_description_openai(self, title, description):
         messages = [
             {
                 "role": "system",
@@ -476,11 +480,34 @@ class RecruiterService:
             db.session.rollback()
             current_app.logger.error(f"Unexpected error in remove_job: {str(e)}")
             return {'success': False, 'error': 'unexpected_error'}
+        
+    # Still not working correctly
+    def _get_email_domain(self, company_id):
+        company = Company.query.get(company_id)
+        if company and company.website_url:
+            url = company.website_url.strip().lower()
+            if not url.startswith(('http://', 'https://')):
+                url = 'https://' + url
+            
+            parsed_url = urlparse(url)
+            domain = parsed_url.netloc or parsed_url.path
+            
+            parts = domain.split('.')
+            if len(parts) > 2:
+                if parts[-1] in ['com', 'org', 'net', 'edu', 'gov', 'mil']:
+                    domain = '.'.join(parts[-3:])
+                else:
+                    domain = '.'.join(parts[-2:])
+            
+            return domain.replace('www.', '')
+        return None
     
-    @cache.cached(timeout=3600)
+    # @cache.cached(timeout=3600)
     def get_all_companies(self):
         try:
             companies = Company.query.all()
+
+
             company_data = [{
                 "company_id": company.company_id,
                 "name": company.name,
@@ -488,7 +515,9 @@ class RecruiterService:
                 "logo_url": f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
                 "size": company.size,
                 "address": company.address,
-                "job_count": self.get_job_count_for_company(company.company_id)
+                "job_count": self.get_job_count_for_company(company.company_id),
+                "website_url": company.website_url,
+                "domain": self._get_email_domain(company.company_id),
             } for company in companies]
             current_app.logger.info(f"Retrieved {len(companies)} companies")
             return company_data
@@ -828,5 +857,60 @@ class RecruiterService:
             current_app.logger.error(f"Database error in update_existing_jobs_technologies: {str(e)}")
             db.session.rollback()
             return []
+
+    def verify_recruiter_email_domain(self, company_id, email):
+        company = Company.query.get(company_id)
+        if not company:
+            return False, "Company not found"
+        
+        company_domain = self._get_email_domain(company_id)
+        recruiter_domain = email.split('@')[-1]
+        
+        if recruiter_domain.lower() == company_domain.lower():
+            return True, "Domain verified"
+        else:
+            return False, f"Domain mismatch. Expected {company_domain}, got {recruiter_domain}"
+
+    def generate_verification_code(self, recruiter_id):
+        recruiter = Recruiter.query.get(recruiter_id)
+        if not recruiter:
+            return None
+
+        code = ''.join(random.choices('0123456789', k=6))
+        recruiter.verification_code = code
+        recruiter.verification_code_expiry = datetime.utcnow() + timedelta(minutes=10)
+        db.session.commit()
+
+        return code
+
+    def send_verification_email(self, recruiter_id, email):
+        code = self.generate_verification_code(recruiter_id)
+        if not code:
+            return False
+
+        # msg = Message("Verify your email", recipients=[email])
+        msg = Message("Verify your email", recipients=["jaiphookan20@gmail.com"])
+        msg.body = f"Your verification code is: {code}"
+        mail.send(msg)
+
+        return True
+
+    def verify_code(self, recruiter_id, code):
+        recruiter = Recruiter.query.get(recruiter_id)
+        if not recruiter:
+            return False, "Recruiter not found"
+
+        if recruiter.verification_code != code:
+            return False, "Invalid code"
+
+        if datetime.utcnow() > recruiter.verification_code_expiry:
+            return False, "Code expired"
+
+        recruiter.email_verified = True
+        recruiter.verification_code = None
+        recruiter.verification_code_expiry = None
+        db.session.commit()
+
+        return True, "Email verified successfully"
 
  
