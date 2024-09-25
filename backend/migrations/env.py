@@ -2,8 +2,8 @@ import logging
 from logging.config import fileConfig
 import sys
 import time
-from sqlalchemy import text
 from flask import current_app
+
 from alembic import context
 
 # this is the Alembic Config object, which provides
@@ -74,61 +74,70 @@ def run_migrations_offline():
 
 
 def run_migrations_online():
-    """Run migrations in 'online' mode."""
-    try:
-        connectable = get_engine()
-        with connectable.connect() as connection:
-            config_args = current_app.extensions['migrate'].configure_args.copy()
-            config_args.setdefault('compare_type', True)
-            config_args.setdefault('render_as_batch', True)
+    """Run migrations in 'online' mode.
+
+    In this scenario we need to create an Engine
+    and associate a connection with the context.
+
+    """
+
+    # this callback is used to prevent an auto-migration from being generated
+    # when there are no changes to the schema
+    # reference: http://alembic.zzzcomputing.com/en/latest/cookbook.html
+    def process_revision_directives(context, revision, directives):
+        if getattr(config.cmd_opts, 'autogenerate', False):
+            script = directives[0]
+            if script.upgrade_ops.is_empty():
+                directives[:] = []
+                logger.info('No changes in schema detected.')
+
+    conf_args = current_app.extensions['migrate'].configure_args
+    if conf_args.get("process_revision_directives") is None:
+        conf_args["process_revision_directives"] = process_revision_directives
+
+    connectable = get_engine()
+
+    with connectable.connect() as connection:
+        context.configure(
+            connection=connection,
+            target_metadata=get_metadata(),
+            **conf_args
+        )
+
+        with context.begin_transaction():
+            context.run_migrations()
             
-            context.configure(
-                connection=connection,
-                target_metadata=get_metadata(),
-                **config_args
-            )
+# def check_migration_safety():
+#     """Check if it's safe to run migrations."""
+#     try:
+#         engine = get_engine()
+#         with engine.connect() as connection:
+#             # Check for active transactions
+#             result = connection.execute(text("SELECT count(*) FROM pg_stat_activity WHERE state = 'active' AND pid != pg_backend_pid()")).scalar()
+#             if result > 0:
+#                 logger.warning(f"There are {result} active transactions. Migration might interfere with ongoing operations.")
+#                 return False
 
-            with context.begin_transaction():
-                context.run_migrations()
-    except Exception as e:
-        if 'already exists' in str(e):
-            logger.warning(f"Object already exists, skipping: {str(e)}")
-        else:
-            logger.error(f"Error during migration: {e}")
-            raise
+#         return True
+#     except Exception as e:
+#         logger.error(f"Error during migration safety check: {e}")
+#         return False
 
-def check_migration_safety():
-    """Check if it's safe to run migrations."""
-    try:
-        engine = get_engine()
-        with engine.connect() as connection:
-            # Check for active transactions
-            result = connection.execute(text("SELECT count(*) FROM pg_stat_activity WHERE state = 'active' AND pid != pg_backend_pid()")).scalar()
-            if result > 0:
-                logger.warning(f"There are {result} active transactions. Migration might interfere with ongoing operations.")
-                return False
+#         return True
+#     except Exception as e:
+#         logger.error(f"Error during migration safety check: {e}")
+#         return False
 
-        return True
-    except Exception as e:
-        logger.error(f"Error during migration safety check: {e}")
-        return False
-
-        return True
-    except Exception as e:
-        logger.error(f"Error during migration safety check: {e}")
-        return False
-
-# Call this function before running migrations
-if not check_migration_safety():
-    logger.error("Migration safety check failed. Aborting.")
-    sys.exit(1)
-
+# # Call this function before running migrations
+# if not check_migration_safety():
+#     logger.error("Migration safety check failed. Aborting.")
+#     sys.exit(1)
 
 if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
-
+    
 # Add a small delay after migrations
-time.sleep(5)
-logger.info("Waiting 5 seconds for database operations to complete...")
+# time.sleep(5)
+# logger.info("Waiting 5 seconds for database operations to complete...")
