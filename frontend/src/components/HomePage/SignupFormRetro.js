@@ -3,8 +3,8 @@ import Logo from './Logo';
 
 const SignupFormRetro = () => {
   return (
-    <div className="m-8 max-w-6xl mx-auto border border-slate-500 shadow shadow-md" style={{fontFamily: "Retro, san-serif"}}>
-      <div className="bg-violet-900 text-white p-3 flex justify-between items-center">
+    <div className="m-8 max-w-6xl mx-auto border border-teal-600 shadow shadow-md" style={{fontFamily: "Retro, san-serif"}}>
+      <div className="bg-teal-400 text-white p-3 flex justify-between items-center border-b border-teal-600">
         <div className='flex justify-start items-center'>
             <Logo height={40}/>
             <span className="text-5xl">WARNING: Unfair Advantage</span>
@@ -26,7 +26,7 @@ const SignupFormRetro = () => {
             placeholder="alanturing@enigma.com"
             className="flex-grow bg-white border border-slate-700 px-8 py-4 text-4xl hover:cursor-pointer"
           />
-          <button className="bg-violet-900 text-white px-8 py-4 ml-2 text-4xl hover:bg-teal-800 hover:cursor-pointer">
+          <button className="bg-teal-400 text-white px-8 py-4 ml-2 text-4xl border border-teal-600 hover:bg-teal-800 hover:cursor-pointer">
             JOIN US
           </button>
         </div>
