@@ -16,6 +16,7 @@ from sqlalchemy.exc import SQLAlchemyError
 import time
 from extensions import cache
 import config
+from datetime import datetime, timedelta
 
 class RecruiterService:
     def __init__(self):
@@ -565,7 +566,9 @@ class RecruiterService:
                 current_app.logger.warning(f"Company with id {company_id} not found")
                 return None
             
-            jobs = Job.query.filter_by(company_id=company_id).all()
+            # Get non-expired jobs and order by creation date
+            thirty_days_ago = datetime.now() - timedelta(days=30)
+            jobs = Job.query.filter_by(company_id=company_id).filter(Job.created_at >= thirty_days_ago).order_by(Job.created_at.desc()).all()
             job_count = len(jobs)
             
            # Collect all unique technologies for all jobs of this company
@@ -676,7 +679,7 @@ class RecruiterService:
 
         try:
             response = self.openai_client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4o-mini", 
                 messages=messages,
                 response_format={"type": "json_object"}
             )
