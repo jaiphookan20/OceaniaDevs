@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - search
+      - main
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -39,8 +39,10 @@ jobs:
           known_hosts: ${{ secrets.KNOWN_HOSTS }}
           if_key_exists: replace
 
-      - name: Remove existing known hosts entry
-        run: ssh-keygen -f "/home/runner/.ssh/known_hosts" -R "${{ secrets.LIGHTSAIL_HOST }}"
+      - name: Setup new known_hosts file
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.LIGHTSAIL_HOST }} > ~/.ssh/known_hosts
 
       - name: Add new host key
         run: ssh-keyscan -H ${{ secrets.LIGHTSAIL_HOST }} >> /home/runner/.ssh/known_hosts
