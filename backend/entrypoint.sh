@@ -8,13 +8,17 @@ while ! nc -z $DB_HOST 5432; do
 done
 echo "PostgreSQL started"
 
-# Add a delay to ensure database is fully initialized
-echo "Waiting for database initialization..."
-sleep 10
+# Run database migrations
+echo "Running database migrations..."
+flask db init
+flask db migrate
+flask db upgrade
 
-echo "Applying any pending migrations..."
-flask db upgrade || echo "Migration failed, but continuing..."
+# Run a custom command to create tables and enums
+echo "Creating tables and enums..."
+flask create-tables
 
+# Start the application
 echo "Starting the application..."
 exec gunicorn --config gunicorn_config.py "app:create_app()"
 

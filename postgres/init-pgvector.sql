@@ -1,6 +1,15 @@
 -- Connect to the job_board database
 \c job_board;
 
+-- At the beginning of the file
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'jobs') THEN
+        RAISE EXCEPTION 'Table "jobs" does not exist. Exiting init-pgvector.sql';
+    END IF;
+END
+$$;
+
 -- Create extensions
 CREATE EXTENSION IF NOT EXISTS vector;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;

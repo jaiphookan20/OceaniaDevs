@@ -119,15 +119,27 @@ def create_app():
 
     Session(app)
 
+    @app.cli.command("create-tables")
+    def create_tables():
+        with app.app_context():
+            app.logger.info("Creating database tables and enums.")
+            for enum in [state_enum, country_enum, job_type_enum, industry_enum, salary_range_enum]:
+                enum.create(bind=db.engine, checkfirst=True)
+            db.create_all()
+        app.logger.info("Database tables and enums created successfully.")
+
+# Remove this line
+# create_enums()
+
     # Register ENUM types
     def create_enums():
         with app.app_context():
-            db.create_all()
             app.logger.info("Database tables created successfully.")
             for enum in [state_enum, country_enum, job_type_enum, industry_enum, salary_range_enum]:
                 enum.create(bind=db.engine, checkfirst=True)
+            db.create_all()
 
-    create_enums()
+    # create_enums()
 
     # Register blueprints
     app.register_blueprint(auth_blueprint)
