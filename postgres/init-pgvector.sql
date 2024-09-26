@@ -106,6 +106,135 @@ BEGIN
     END IF;
 END$$;
 
+-- Create tables if they don't exist
+CREATE TABLE IF NOT EXISTS seekers (
+    uid SERIAL PRIMARY KEY,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(128),
+    city VARCHAR(255),
+    state state_enum,
+    country country_enum,
+    datetimestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS companies (
+    company_id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    website_url VARCHAR(255),
+    country country_enum,
+    size VARCHAR(100),
+    address VARCHAR(255),
+    description TEXT,
+    logo_url VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    industry industry_enum,
+    state state_enum,
+    city VARCHAR(255),
+    type VARCHAR(255),
+    name_vector TSVECTOR
+);
+
+CREATE TABLE IF NOT EXISTS recruiters (
+    recruiter_id SERIAL PRIMARY KEY,
+    company_id INTEGER REFERENCES companies(company_id),
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    position VARCHAR(255),
+    email VARCHAR(255) NOT NULL,
+    password VARCHAR(255),
+    city VARCHAR(255),
+    state state_enum,
+    country country_enum,
+    is_direct_recruiter BOOLEAN,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    email_verified BOOLEAN DEFAULT FALSE,
+    verification_code VARCHAR(6),
+    verification_code_expiry TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS jobs (
+    job_id SERIAL PRIMARY KEY,
+    recruiter_id INTEGER REFERENCES recruiters(recruiter_id),
+    company_id INTEGER REFERENCES companies(company_id),
+    title VARCHAR(255) NOT NULL,
+    city VARCHAR(255),
+    state VARCHAR(255),
+    country VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expiry_date DATE DEFAULT (CURRENT_DATE + INTERVAL '30 days'),
+    jobpost_url VARCHAR(255),
+    description TEXT,
+    overview TEXT,
+    responsibilities TEXT,
+    requirements TEXT,
+    work_location work_location_enum,
+    work_rights VARCHAR[],
+    job_arrangement job_arrangement_enum,
+    specialization specialization_enum,
+    job_type job_type_enum DEFAULT 'normal',
+    industry industry_enum NOT NULL,
+    min_experience_years INTEGER,
+    experience_level experience_level_enum,
+    tech_stack VARCHAR[],
+    salary_range salary_range_enum,
+    salary_type salary_type_enum DEFAULT 'annual',
+    contract_duration contract_duration_enum DEFAULT 'Not Listed',
+    daily_range daily_range_enum DEFAULT 'Not Listed',
+    hourly_range hourly_range_enum DEFAULT 'Not Listed',
+    citizens_or_pr_only BOOLEAN DEFAULT FALSE,
+    security_clearance_required BOOLEAN DEFAULT FALSE,
+    search_vector TSVECTOR,
+    embedding vector(1536)
+);
+
+CREATE TABLE IF NOT EXISTS technologies (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR UNIQUE NOT NULL,
+    name_vector TSVECTOR
+);
+
+CREATE TABLE IF NOT EXISTS technology_aliases (
+    alias VARCHAR PRIMARY KEY,
+    technology_id INTEGER REFERENCES technologies(id) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS job_technologies (
+    job_id INTEGER REFERENCES jobs(job_id),
+    technology_id INTEGER REFERENCES technologies(id),
+    PRIMARY KEY (job_id, technology_id)
+);
+
+CREATE TABLE IF NOT EXISTS candidates (
+    candidate_id SERIAL PRIMARY KEY,
+    name VARCHAR(255),
+    years_experience INTEGER,
+    position VARCHAR(255),
+    work_experience VARCHAR(800),
+    favorite_languages VARCHAR[],
+    technologies VARCHAR[],
+    embedding vector(1536)
+);
+
+CREATE TABLE IF NOT EXISTS applications (
+    applicationid SERIAL PRIMARY KEY,
+    userid INTEGER REFERENCES seekers(uid),
+    jobid INTEGER REFERENCES jobs(job_id),
+    datetimestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(50) DEFAULT 'Applied'
+);
+
+CREATE TABLE IF NOT EXISTS bookmarks (
+    bookmarksid SERIAL PRIMARY KEY,
+    userid INTEGER REFERENCES seekers(uid),
+    jobid INTEGER REFERENCES jobs(job_id),
+    datetimestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create or replace functions for search vector updates
 CREATE OR REPLACE FUNCTION jobs_search_vector_update() RETURNS trigger AS $$
 DECLARE

@@ -10,11 +10,11 @@ echo "PostgreSQL started"
 
 # Run database migrations
 echo "Running database migrations..."
-flask db init
+flask db init || true
 flask db migrate
 flask db upgrade
 
-# Run a custom command to create tables and enums
+# Create tables and enums
 echo "Creating tables and enums..."
 flask create-tables
 
