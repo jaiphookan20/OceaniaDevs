@@ -187,6 +187,10 @@ def create_app():
             app.logger.info("User not in session")
         return jsonify({"status": "API is running", "user_logged_in": user_logged_in})
     
+    @app.route('/health')
+    def health_check():
+        return 'OK', 200
+    
     # Serve HTML files from 'templates'
     @app.route('/<path:name>')
     def serve_html(name):

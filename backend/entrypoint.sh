@@ -10,8 +10,8 @@ echo "PostgreSQL started"
 
 # Run database migrations
 echo "Running database migrations..."
-flask db init || true
-flask db migrate
+flask db init || echo "Migrations already initialized"
+flask db migrate || echo "No changes detected"
 flask db upgrade
 
 # Create tables and enums

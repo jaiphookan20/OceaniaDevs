@@ -27,6 +27,11 @@ services:
       redis:
         condition: service_started
     command: ["./entrypoint.sh"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://backen:4040/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   postgres:
     build:
