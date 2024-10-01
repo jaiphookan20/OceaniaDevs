@@ -3,12 +3,7 @@ import { ChevronDown, Upload } from 'lucide-react';
 import settingsIcon from "../../assets/settings-icon.svg";
 import { toast } from 'react-hot-toast';
 
-const australianCities = [
-  'Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adelaide', 'Gold Coast',
-  'Newcastle', 'Canberra', 'Geelong', 'Hobart', 'Townsville', 'Cairns', 'Darwin'
-];
-
-export default function RecruiterSettings() {
+const RecruiterSettings = () => {
   const [personalInfo, setPersonalInfo] = useState({
     firstName: '',
     lastName: '',
@@ -19,14 +14,11 @@ export default function RecruiterSettings() {
 
   const [employerInfo, setEmployerInfo] = useState({
     employerName: '',
-    country: '',
     employerSize: '',
     website: '',
-    address: '',
     description: '',
     type: '',
-    city: '',
-    state: '',
+    location: '',
     industry: '',
   });
 
@@ -67,7 +59,12 @@ export default function RecruiterSettings() {
   const handleEmployerInfoChange = (e) => {
     const { name, value } = e.target;
     if (name === 'description' && value.length > 200) return;
-    setEmployerInfo({ ...employerInfo, [name]: value });
+    if (name === 'location') {
+      const [city, state] = value.split(', ');
+      setEmployerInfo({ ...employerInfo, city, state, [name]: value });
+    } else {
+      setEmployerInfo({ ...employerInfo, [name]: value });
+    }
   };
 
   const handleLogoUpload = (event) => {
@@ -205,58 +202,40 @@ export default function RecruiterSettings() {
             </div>
           </div>
           <button type="submit" disabled={loading} className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-            {loading ? 'Saving...' : 'Save profile'}
+            {loading ? 'Saving...' : 'Save personal info'}
           </button>
         </form>
 
         <form onSubmit={handleSubmitEmployerInfo} className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold mb-4">Employer Settings</h2>
-          <div className="space-y-4">
+          <h2 className="text-xl font-semibold mb-4">Employer Information</h2>
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Employer name</label>
               <input
                 type="text"
                 name="employerName"
                 value={employerInfo.employerName}
-                readOnly
-                className="w-full p-2 border border-gray-300 rounded-md bg-gray-100"
+                onChange={handleEmployerInfoChange}
+                className="w-full p-2 border border-gray-300 rounded-md"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                <div className="relative">
-                  <select
-                    name="country"
-                    value={employerInfo.country}
-                    onChange={handleEmployerInfoChange}
-                    className="w-full p-2 border border-gray-300 rounded-md appearance-none"
-                  >
-                    <option value="Australia">Australia</option>
-                    <option value="New Zealand">New Zealand</option>
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Employer size</label>
-                <div className="relative">
-                  <select
-                    name="employerSize"
-                    value={employerInfo.employerSize}
-                    onChange={handleEmployerInfoChange}
-                    className="w-full p-2 border border-gray-300 rounded-md appearance-none"
-                  >
-                    <option value="1-50 employees">1-50 employees</option>
-                    <option value="51-200 employees">51-200 employees</option>
-                    <option value="201-500 employees">201-500 employees</option>
-                    <option value="501-1,000 employees">501-1,000 employees</option>
-                    <option value="1,001-5,000 employees">1,001-5,000 employees</option>
-                    <option value="5001-10,000 employees">5001-10,000 employees</option>
-                    <option value="10,001+ employees">10,001+ employees</option>
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Employer size</label>
+              <div className="relative">
+                <select
+                  name="employerSize"
+                  value={employerInfo.employerSize}
+                  onChange={handleEmployerInfoChange}
+                  className="w-full p-2 border border-gray-300 rounded-md appearance-none"
+                >
+                  <option value="">Select company size</option>
+                  <option value="0-9">0-9</option>
+                  <option value="10-49">10-49</option>
+                  <option value="50-249">50-249</option>
+                  <option value="250-999">250-999</option>
+                  <option value="1000+">1000+</option>
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               </div>
             </div>
             <div>
@@ -269,16 +248,6 @@ export default function RecruiterSettings() {
                 className="w-full p-2 border border-gray-300 rounded-md"
               />
             </div>
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Employer address</label>
-              <input
-                type="text"
-                name="address"
-                value={employerInfo.address}
-                onChange={handleEmployerInfoChange}
-                className="w-full p-2 border border-gray-300 rounded-md"
-              />
-            </div> */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Agency or Company</label>
               <div className="relative">
@@ -288,50 +257,40 @@ export default function RecruiterSettings() {
                   onChange={handleEmployerInfoChange}
                   className="w-full p-2 border border-gray-300 rounded-md appearance-none"
                 >
+                  <option value="">Select type</option>
                   <option value="Agency">Agency</option>
                   <option value="Company">Company</option>
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                <div className="relative">
-                  <select
-                    name="city"
-                    value={employerInfo.city}
-                    onChange={handleEmployerInfoChange}
-                    className="w-full p-2 border border-gray-300 rounded-md appearance-none"
-                  >
-                    <option value="">Select a city</option>
-                    {australianCities.map(city => (
-                      <option key={city} value={city}>{city}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                <div className="relative">
-                  <select
-                    name="state"
-                    value={employerInfo.state}
-                    onChange={handleEmployerInfoChange}
-                    className="w-full p-2 border border-gray-300 rounded-md appearance-none"
-                  >
-                    <option value="VIC">VIC</option>
-                    <option value="NSW">NSW</option>
-                    <option value="QLD">QLD</option>
-                    <option value="WA">WA</option>
-                    <option value="SA">SA</option>
-                    <option value="TAS">TAS</option>
-                    <option value="ACT">ACT</option>
-                    <option value="NT">NT</option>
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+              <div className="relative">
+                <select
+                  name="location"
+                  value={employerInfo.location}
+                  onChange={handleEmployerInfoChange}
+                  className="w-full p-2 border border-gray-300 rounded-md appearance-none"
+                >
+                  <option value="">Select location</option>
+                  <option value="Sydney, NSW">Sydney, NSW</option>
+                  <option value="Melbourne, VIC">Melbourne, VIC</option>
+                  <option value="Brisbane, QLD">Brisbane, QLD</option>
+                  <option value="Perth, WA">Perth, WA</option>
+                  <option value="Adelaide, SA">Adelaide, SA</option>
+                  <option value="Gold Coast, QLD">Gold Coast, QLD</option>
+                  <option value="Newcastle, NSW">Newcastle, NSW</option>
+                  <option value="Canberra, ACT">Canberra, ACT</option>
+                  <option value="Sunshine Coast, QLD">Sunshine Coast, QLD</option>
+                  <option value="Wollongong, NSW">Wollongong, NSW</option>
+                  <option value="Hobart, TAS">Hobart, TAS</option>
+                  <option value="Geelong, VIC">Geelong, VIC</option>
+                  <option value="Townsville, QLD">Townsville, QLD</option>
+                  <option value="Cairns, QLD">Cairns, QLD</option>
+                  <option value="Darwin, NT">Darwin, NT</option>
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               </div>
             </div>
             <div>
@@ -343,14 +302,14 @@ export default function RecruiterSettings() {
                   onChange={handleEmployerInfoChange}
                   className="w-full p-2 border border-gray-300 rounded-md appearance-none"
                 >
-                  <option value="">Select an industry</option>
+                  <option value="">Select industry</option>
                   <option value="Government">Government</option>
                   <option value="Banking & Financial Services">Banking & Financial Services</option>
                   <option value="Fashion">Fashion</option>
                   <option value="Mining">Mining</option>
                   <option value="Healthcare">Healthcare</option>
                   <option value="IT - Software Development">IT - Software Development</option>
-                  <option value="IT - Data Analytics">IT - Analytics</option>
+                  <option value="IT - Data Analytics">IT - Data Analytics</option>
                   <option value="IT - Cybersecurity">IT - Cybersecurity</option>
                   <option value="IT - Cloud Computing">IT - Cloud Computing</option>
                   <option value="IT - Artificial Intelligence">IT - Artificial Intelligence</option>
@@ -375,7 +334,7 @@ export default function RecruiterSettings() {
                 <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               </div>
             </div>
-            <div>
+            <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Employer description</label>
               <textarea
                 name="description"
@@ -414,11 +373,12 @@ export default function RecruiterSettings() {
             </div>
           </div>
           <button type="submit" disabled={loading} className="mt-6 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-            {loading ? 'Saving...' : 'Save settings'}
+            {loading ? 'Saving...' : 'Save employer info'}
           </button>
         </form>
       </div>
     </div>
   );
-}
-                  
+};
+
+export default RecruiterSettings;

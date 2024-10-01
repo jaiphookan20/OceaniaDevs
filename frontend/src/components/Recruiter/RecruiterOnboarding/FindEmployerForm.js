@@ -73,7 +73,10 @@ const FindEmployerForm = ({ onComplete }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ code: verificationCode }),
+        body: JSON.stringify({ 
+          code: verificationCode,
+          company_id: selectedEmployer.company_id
+        }),
         credentials: "include",
       });
       const data = await response.json();
@@ -112,7 +115,7 @@ const FindEmployerForm = ({ onComplete }) => {
                 <button
                   type="button"
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="w-full pl-3 pr-10 py-2 mt-1 bg-slate-300 border border-gray-300 rounded-md shadow-sm focus:outline-none hover:bg-violet-500 hover:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="w-full pl-3 pr-10 py-2 mt-1 bg-violet-500 text-white border border-gray-300 rounded-md shadow-sm focus:outline-none hover:bg-violet-700 hover:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 >
                   {selectedEmployer ? selectedEmployer.name : "Select your employer"}
                 </button>
@@ -157,7 +160,9 @@ const FindEmployerForm = ({ onComplete }) => {
       case "email":
         return (
           <form onSubmit={handleEmailSubmit} className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
-            <h2 className="mb-6 text-3xl font-bold text-center">Let's verify you work at {selectedEmployer.name}</h2>
+            <img src={selectedEmployer.logo_url} className="h-12 w-12 mx-auto mb-4" alt={selectedEmployer.name} />
+            <h2 className="mb-6 text-3xl font-bold text-slate-500 text-center">Let's verify you work at</h2>
+            <h2 className="mb-6 text-3xl font-bold text-center">{selectedEmployer.name}</h2>
             <p className="mb-4">One last step! We'll use your work email to confirm you're an employee at {selectedEmployer.name}. Please enter it below.</p>
             <div className="mb-4 flex">
               <input
@@ -170,21 +175,57 @@ const FindEmployerForm = ({ onComplete }) => {
               <span className="p-2 bg-gray-100 border rounded-r">@{selectedEmployer.domain}</span>
             </div>
             <button type="submit" className="w-full bg-purple-600 text-white p-2 rounded mt-4">Continue</button>
+            <button type="button" onClick={() => setStep("search")} className="w-full bg-gray-300 text-gray-700 p-2 rounded mt-2">Go Back</button>
           </form>
         );
       case "verify":
         return (
           <form onSubmit={handleVerificationSubmit} className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
-            <h2 className="mb-6 text-3xl font-bold text-center">Enter verification code</h2>
-            <p className="mb-4">We've sent a 6-digit code to your email. Please enter it below to verify your account.</p>
-            <input
-              type="text"
-              value={verificationCode}
-              onChange={(e) => setVerificationCode(e.target.value)}
-              placeholder="Enter 6-digit code"
-              className="w-full p-2 border rounded mb-4"
-            />
+            <h2 className="mb-6 text-3xl font-bold text-center">Check your work email</h2>
+            <p className="mb-4">We sent a 6-digit code to {workEmail}@{selectedEmployer.domain}.</p>
+            <div className="flex justify-center mb-4">
+              {[...Array(6)].map((_, index) => (
+                <input
+                  key={index}
+                  type="text"
+                  maxLength={1}
+                  value={verificationCode[index] || ''}
+                  onChange={(e) => {
+                    const newCode = verificationCode.split('');
+                    newCode[index] = e.target.value;
+                    setVerificationCode(newCode.join(''));
+                    if (e.target.value && index < 5) {
+                      e.target.nextElementSibling.focus();
+                    }
+                  }}
+                  className="w-12 h-12 text-center text-2xl border rounded mx-1"
+                />
+              ))}
+            </div>
+            <p className="text-sm text-center mb-4">
+              Didn't receive OTP? <button type="button" onClick={handleEmailSubmit} className="text-purple-600 hover:underline">Change email</button> or <button type="button" onClick={handleEmailSubmit} className="text-purple-600 hover:underline">get a new code</button>.
+            </p>
+            <div className="bg-gray-100 border rounded p-4 mb-4">
+              <p className="text-sm"><strong>Your privacy is important</strong></p>
+              <p className="text-sm">We may send you job reports, reminders and messages from us and our partners. You can tailor the emails you receive in settings.</p>
+            </div>
+            <p className="text-sm text-center mb-4">Access your inbox with:</p>
+            <div className="flex justify-center space-x-4 mb-4">
+              <a href="https://mail.google.com" target="_blank" rel="noopener noreferrer">
+                <button type="button" className="bg-white border rounded px-4 py-2 flex items-center">
+                  <img src='https://www.logo.wine/a/logo/Gmail/Gmail-Logo.wine.svg' alt="Gmail" className="w-6 h-6 mr-2" />
+                  Gmail
+                </button>
+              </a>
+              <a href="https://outlook.live.com" target="_blank" rel="noopener noreferrer">
+                <button type="button" className="bg-white border rounded px-4 py-2 flex items-center">
+                  <img src='https://www.logo.wine/a/logo/Outlook_on_the_web/Outlook_on_the_web-Logo.wine.svg' alt="Outlook" className="w-6 h-6 mr-2" />
+                  Outlook
+                </button>
+              </a>
+            </div>
             <button type="submit" className="w-full bg-purple-600 text-white p-2 rounded">Verify</button>
+            <button type="button" onClick={() => setStep("email")} className="w-full bg-gray-300 text-gray-700 p-2 rounded mt-2">Go Back</button>
           </form>
         );
       default:

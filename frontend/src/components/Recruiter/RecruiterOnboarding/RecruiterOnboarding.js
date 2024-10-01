@@ -27,6 +27,10 @@ const RecruiterOnboarding = () => {
     setStep(prevStep => {
       const newStep = prevStep + 1;
       setCompletedSteps(prev => [...prev, prevStep]);
+      if (newStep > 3) {
+        // All steps completed, redirect to dashboard
+        navigate('/recruiter-dashboard');
+      }
       return newStep;
     });
   };
@@ -60,11 +64,11 @@ const RecruiterOnboarding = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      <RecruiterNavbarOnboarding onNavigateAway={handleNavigateAway} />
+      {/* <RecruiterNavbarOnboarding onNavigateAway={handleNavigateAway} /> */}
       <div className="flex-grow flex flex-col items-center justify-start pt-10" >
         <div className="w-full max-w-4xl px-4">
           <h1 className="text-4xl font-semibold text-slate-600 mb-8 text-center">Recruiter Onboarding</h1>
-          <div className="bg-white shadow-lg rounded-lg p-8 mb-8">
+          {/* <div className="bg-white shadow-lg rounded-lg p-8 mb-8">
             <div className="flex justify-between items-center mb-8">
               {[1, 2, 3].map((stepNumber) => (
                 <div key={stepNumber} className="flex flex-col items-center">
@@ -91,7 +95,7 @@ const RecruiterOnboarding = () => {
                 ></div>
               </div>
             </div>
-          </div>
+          </div> */}
           <div className="bg-white shadow-lg rounded-lg p-8">
             {renderStep()}
           </div>

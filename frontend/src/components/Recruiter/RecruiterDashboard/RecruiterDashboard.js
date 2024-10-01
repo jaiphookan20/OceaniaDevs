@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import RecruiterJobSection from "./RecruiterJobSection";
 import { useNavigate } from "react-router-dom";
+import RecruiterNoActiveJobsCard from "./RecruiterNoActiveJobsCard";
+import RecruiterDashboardHeader from "./RecruiterDashboardHeader";
+import RecruiterOnboardingIncompleteCard from "../RecruiterOnboarding/RecruiterOnboardingIncompleteCard";
 
 const RecruiterDashboard = () => {
   const [activeJobs, setActiveJobs] = useState([]);
   const [expiredJobs, setExpiredJobs] = useState([]);
+  const [onboardingComplete, setOnboardingComplete] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,17 +54,42 @@ const RecruiterDashboard = () => {
     }
   };
 
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      try {
+        const response = await fetch('/api/check_onboarding_status', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setOnboardingComplete(data.onboardingComplete);
+        } else {
+          console.error('Failed to fetch onboarding status');
+        }
+      } catch (error) {
+        console.error('Error checking onboarding status:', error);
+      }
+    };
+  
+    checkOnboardingStatus();
+  }, []);
+
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto p-6">
+    <RecruiterDashboardHeader title="Recruiter Dashboard" />
+    {!onboardingComplete ? (
+      <RecruiterOnboardingIncompleteCard />
+    ) : (
       <RecruiterJobSection
-        title="Recruiter Dashboard"
         activeJobs={activeJobs}
         expiredJobs={expiredJobs}
         onEdit={handleEdit}
         onView={(jobId) => navigate(`/job_post/${jobId}`)}
         onRemove={handleRemove}
       />
-    </div>
+    )}
+  </div>
   );
 };
 
