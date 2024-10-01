@@ -573,15 +573,28 @@ def verify_recruiter_email():
 def verify_code():
     data = request.json
     code = data.get('code')
+    company_id = data.get('company_id')
 
-    if not code:
-        return jsonify({"error": "Missing verification code"}), 400
+    if not code or not company_id:
+        return jsonify({"error": "Missing verification code or company ID"}), 400
 
     recruiter_id = session['user']['recruiter_id']
     recruiter_service = RecruiterService()
-    is_valid, message = recruiter_service.verify_code(recruiter_id, code)
+    is_valid, message = recruiter_service.verify_code(recruiter_id, code, company_id)
 
     if is_valid:
         return jsonify({"message": message}), 200
     else:
         return jsonify({"error": message}), 400
+
+@recruiter_blueprint.route('/api/check_onboarding_status', methods=['GET'])
+def check_onboarding_status():
+    if 'user' not in session or session['user']['type'] != 'recruiter':
+        current_app.logger.warning("Unauthorized access attempt in check_onboarding_status")
+        return jsonify({"error": "Unauthorized access"}), 401
+    
+    recruiter_service = RecruiterService()
+    recruiter_id = session['user']['recruiter_id']
+    
+    onboarding_complete = recruiter_service.has_completed_onboarding(recruiter_id)
+    return jsonify({"onboardingComplete": onboarding_complete})
