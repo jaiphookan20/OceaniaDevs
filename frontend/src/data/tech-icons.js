@@ -107,4 +107,6 @@ export const icons = {
   snowflake: require('../assets/tech-logos/snowflake.svg').default,
   dbt: require('../assets/tech-logos/dbt.svg').default,
   oracle: require('../assets/tech-logos/oracle.svg').default,
+  mobx: require('../assets/tech-logos/mobx.webp').default,
+  cloudflare: require('../assets/tech-logos/cloudflare.svg').default,
 };
