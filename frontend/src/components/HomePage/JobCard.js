@@ -8,9 +8,6 @@ import { icons } from "../../data/tech-icons";
 
 
 const JobCard = ({ job, onSave, onApply, onView, isInSession, userData, userJobStatuses, onUnsave}) => {
-  // const [isSaved, setIsSaved] = useState(false);
-  // const [isApplied, setIsApplied] = useState(false);
-   // Add a default value for userJobStatuses
    const isSaved = userJobStatuses.saved_jobs.includes(job.job_id);
   const isApplied = userJobStatuses.applied_jobs.includes(job.job_id);
 
@@ -19,7 +16,7 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession, userData, userJobS
 
   const navigate = useNavigate();
 
-  // useEffect(() => {
+    // useEffect(() => {
   //   if (isInSession) {
   //     checkIfJobIsSaved();
   //     checkIfJobIsApplied();
@@ -27,31 +24,31 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession, userData, userJobS
   // }, [isInSession, job.job_id]);
 
   /* checkIfJobIsSaved and checkIfJobIsApplied functions should only be called when 'seeker' is logged in and not when recruiter*/
-  const checkIfJobIsSaved = async () => {
-    try {
-      const response = await fetch(`/api/is_job_saved/${job.job_id}`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-      const data = await response.json();
-      setIsSaved(data.is_saved);
-    } catch (error) {
-      console.error("Error checking if job is saved:", error);
-    }
-  };
+  // const checkIfJobIsSaved = async () => {
+  //   try {
+  //     const response = await fetch(`/api/is_job_saved/${job.job_id}`, {
+  //       method: 'GET',
+  //       credentials: 'include',
+  //     });
+  //     const data = await response.json();
+  //     setIsSaved(data.is_saved);
+  //   } catch (error) {
+  //     console.error("Error checking if job is saved:", error);
+  //   }
+  // };
 
-  const checkIfJobIsApplied = async () => {
-    try {
-      const response = await fetch(`/api/is_job_applied/${job.job_id}`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-      const data = await response.json();
-      setIsApplied(data.is_applied);
-    } catch (error) {
-      console.error("Error checking if job is applied:", error);
-    }
-  };
+  // const checkIfJobIsApplied = async () => {
+  //   try {
+  //     const response = await fetch(`/api/is_job_applied/${job.job_id}`, {
+  //       method: 'GET',
+  //       credentials: 'include',
+  //     });
+  //     const data = await response.json();
+  //     setIsApplied(data.is_applied);
+  //   } catch (error) {
+  //     console.error("Error checking if job is applied:", error);
+  //   }
+  // };
 
   // const handleSaveToggle = async () => {
   //   if (!isInSession) {
@@ -85,7 +82,13 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession, userData, userJobS
 
   const handleSaveToggle = () => {
     if (!isInSession) {
-      toast.error("Sign in first to save a job.");
+      // toast.error("Sign in first to save a job.");
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+      if (userData && userData.type =="recruiter") {
+      toast.error("Cannot Save as a Recruiter");
       return;
     }
 
@@ -95,10 +98,7 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession, userData, userJobS
       onSave(job.job_id);
     }
   };
-
  
-
-
   // const handleApply = async () => {
   //   if (!isInSession) {
   //     setIsLoginModalOpen(true);
@@ -120,13 +120,20 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession, userData, userJobS
   //   }
   // };
 
-  const handleApply = () => {
-    if (!isInSession) {
-      toast.error("Sign in first to apply.");
-      return;
-    }
 
-    onApply(job.job_id);
+
+  const handleApply = (job) => {
+      if (!isInSession) {
+        setIsLoginModalOpen(true);
+        return;
+      }
+
+      if (userData && userData.type =="recruiter") {
+        toast.error("Cannot Apply as a Recruiter");
+        return;
+      }
+
+      onApply(job.job_id);
   };
 
 
@@ -179,6 +186,12 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession, userData, userJobS
                     <span className="bg-cyan-50 text-cyan-700 px-2 py-1 rounded-lg">
                       {job.specialization}
                     </span>
+                    <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg">
+                      {job.job_arrangement}
+                    </span>
+                    <span className="bg-yellow-50 text-yellow-700 px-2 py-1 rounded-lg">
+                      {job.work_location}
+                    </span>
                     {job.salary_range && job.salary_range !== 'Not Listed' && (
                       <span className="flex items-center bg-green-50 text-emerald-700 px-2 py-1 rounded-lg">
                         ${job.salary_range}
@@ -212,7 +225,7 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession, userData, userJobS
                       ? "bg-lime-500 border border-emerald-600 text-white cursor-not-allowed"
                       : "bg-black hover:bg-violet-700 text-white"
                   }`}
-                  onClick={() => onApply(job.job_id)}
+                  onClick={() => handleApply(job)}
                   disabled={isApplied}
                 >
                   {isApplied ? "Applied" : "Apply"}

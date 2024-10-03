@@ -4,7 +4,7 @@ import Logo from './Logo';
 const SignupFormRetro = () => {
   return (
     <div className="m-8 max-w-6xl mx-auto border border-teal-600 shadow shadow-md" style={{fontFamily: "Retro, san-serif"}}>
-      <div className="bg-teal-400 text-white p-3 flex justify-between items-center border-b border-teal-600">
+      <div className="bg-gradient-to-r from-purple-400 via-lime-500 to-fuchsia-400 text-white p-3 flex justify-between items-center border-b border-teal-600">
         <div className='flex justify-start items-center'>
             <Logo height={40}/>
             <span className="text-5xl">WARNING: Unfair Advantage</span>
