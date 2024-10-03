@@ -46,6 +46,9 @@ def get_job_by_id(job_id):
             "work_rights": job_post.work_rights,
             "created_at": job_post.created_at,
             "updated_at": job_post.updated_at,
+            "overview": job_post.overview,
+            "responsibilities": job_post.responsibilities,
+            "requirements": job_post.requirements,
             "company_name": company.name if company else "N/A",
         }
         current_app.logger.info(f"Retrieved job data for job {job_id}")

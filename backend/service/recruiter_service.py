@@ -158,65 +158,65 @@ class RecruiterService:
             db.session.rollback()
             return False
 
-    def process_job_description_openai(self, title, description):
-        messages = [
-            {
-                "role": "system",
-                "content": "You are a highly knowledgeable AI assistant specializing in technology job market analysis. Your task is to analyze job descriptions and output structured data in JSON format."
-            },
-            {
-                "role": "user",
-                "content": f"""Analyze the following job description and title and provide a response in JSON format with these keys: 'overview', 'responsibilities', 'requirements', 'specialization', 'technologies', 'min_experience_years', 'experience_level', 'industry', 'salary_type', 'salary_range', hourly_range', 'daily_range', 'work_location', 'city', 'state', 'country', 'work_rights', 'job_arrangement, 'contract_duration'.
+    # def process_job_description_openai(self, title, description):
+    #     messages = [
+    #         {
+    #             "role": "system",
+    #             "content": "You are a highly knowledgeable AI assistant specializing in technology job market analysis. Your task is to analyze job descriptions and output structured data in JSON format."
+    #         },
+    #         {
+    #             "role": "user",
+    #             "content": f"""Analyze the following job description and title and provide a response in JSON format with these keys: 'overview', 'responsibilities', 'requirements', 'specialization', 'technologies', 'min_experience_years', 'experience_level', 'industry', 'salary_type', 'salary_range', hourly_range', 'daily_range', 'work_location', 'city', 'state', 'country', 'work_rights', 'job_arrangement, 'contract_duration'.
 
-                Instructions for each key:
-                1. 'overview': Summarize the role and company, including all key and salient information relevant to potential candidates. Add any information related to benefits or perks here. Add information verbatim if needed but all of the information is needed.
-                2. 'min_experience_years': Extract the highest number of years of experience mentioned for any skill. Only if mentioned. Otherwise, leave empty.
-                3. 'industry': Identify the end market or industry of the client that the role serves. If client is federal government, industry = 'government'. Use one of the following: ['Government', 'Banking & Financial Services', 'Fashion', 'Mining', 'Healthcare', 'IT - Software Development', 'IT - Data Analytics', 'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 'Marketing & Advertising', 'Media & Communications', 'Non-Profit & NGO', 'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 'Telecommunications', 'Transportation & Logistics'].
-                4. 'responsibilities': List main job duties and expectations. Provide detailed information.
-                5. 'requirements': Enumerate essential qualifications and skills needed. Provide detailed information.
-                6. 'specialization': Classify the job into ONLY ONE of these categories: 'Frontend', 'Backend', 'Cloud & Infrastructure', 'Business Intelligence & Data', 'Machine Learning & AI', 'Full-Stack', 'Mobile', 'Cybersecurity', 'Business Application Development', 'DevOps & IT', 'Project Management', 'QA & Testing'. Note: 'Cloud & Infrastructure' includes Solution Architect roles. You cannot select any other category other than the ones listed.
-                7. 'technologies': List specific software technologies mentioned (e.g., Java, TypeScript, React, AWS). Exclude general terms like 'LLM services', 'Containers', 'CI/CD' or 'REST APIs'.
-                8. 'experience_level': If 'min_experience_years' value is available, classify on basis of the 'min_experience_years' value: if value is between '0-2': 'Junior'; '3-5': 'Mid-Level', '6-10': 'Senior', '10+':'Executive'. If min_experience_years value not available, Classify as you deem fit into one of: 'Junior', 'Mid-Level', 'Senior', or 'Executive'.                
-                9. 'salary_type': If only available, specify the type of salary or payment arrangement (e.g., 'annual', 'hourly', 'daily'). If not listed: 'annual'. Default value: 'annual'.
-                10. 'salary_range': If only available AND salary_type="Annual", extract the salary information and classify it in the bucket it fits in: '40000 - 60000', '60000 - 80000', '80000 - 100000', '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000', '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+'. Otherwise leave empty.
-                11. 'hourly_range': If only available AND salary_type="Hourly", extract the hourly-rate information and classify it in the bucket it fits in: '0 - 20', '20 - 30', '30 - 40', '40 - 50', '50 - 60', '60 - 70', '70 - 80', '80 - 100', '100+'. Otherwise leave empty.
-                12. 'daily_range': If only available AND salary_type="Daily", extract the daily-rate information and classify it in the bucket it fits in: '300 - 400', '400 - 500', '500 - 600', '600 - 700', '700 - 800', '800 - 900', '900 - 1000', '1000 - 1100', '1200+'. Otherwise leave empty.
-                13. 'work_location': Specify the work location as one of: 'Remote', 'Hybrid', 'Office'. Default option: 'Office'.
-                14. 'city': Extract the city where the job is located. Strictly only do so if mentioned, otherwise empty.
-                15. 'state': Extract the state where the job is located. Use one of the following: ['VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA']. Strictly only do so if mentioned, otherwise empty.
-                16. 'country': Extract the country where the job is located. Use one of the following: ['Australia', 'New Zealand'].
-                17. 'work_rights': List any work rights or visa requirements. Strictly only do so if mentioned, otherwise empty.
-                18. 'job_arrangement': Specify the job arrangement as one of: 'Permanent', 'Contract', 'Internship'.
-                19. 'contract_duration': If only the 'job_arrangement' is 'Contract', and if the duration of the contract is provided and available, classify it as belonging to one of the following buckets: '3-6 Months', '6-9 Months', '9-12 Months' or '12 Months+'. Otherwise leave empty.
+    #             Instructions for each key:
+    #             1. 'overview': Summarize the role and company, including all key and salient information relevant to potential candidates. Add any information related to benefits or perks here. Add information verbatim if needed but all of the information is needed.
+    #             2. 'min_experience_years': Extract the lowest number of years of experience mentioned for any skill. Only if mentioned. Otherwise, leave empty. For example, if it's mentioned '3-5 years of experience', extract '3'.
+    #             3. 'industry': Identify the end market or industry of the client that the role serves. If client is federal government, industry = 'government'. Use one of the following: ['Government', 'Banking & Financial Services', 'Fashion', 'Mining', 'Healthcare', 'IT - Software Development', 'IT - Data Analytics', 'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 'Marketing & Advertising', 'Media & Communications', 'Non-Profit & NGO', 'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 'Telecommunications', 'Transportation & Logistics'].
+    #             4. 'responsibilities': List main job duties and expectations. Provide detailed information.
+    #             5. 'requirements': Enumerate essential qualifications and skills needed. Provide detailed information.
+    #             6. 'specialization': Classify the job into ONLY ONE of these categories: 'Frontend', 'Backend', 'Cloud & Infrastructure', 'Business Intelligence & Data', 'Machine Learning & AI', 'Full-Stack', 'Mobile', 'Cybersecurity', 'Business Application Development', 'DevOps & IT', 'Project Management', 'QA & Testing'. Note: 'Cloud & Infrastructure' includes Solution Architect roles. You cannot select any other category other than the ones listed.
+    #             7. 'technologies': List specific software technologies mentioned (e.g., Java, TypeScript, React, AWS). Exclude general terms like 'LLM services', 'Containers', 'CI/CD' or 'REST APIs'.
+    #             8. 'experience_level': If 'min_experience_years' value is available, classify on basis of the 'min_experience_years' value: if value is between '0-2': 'Junior'; '3-5': 'Mid-Level', '6-10': 'Senior', '10+':'Executive'. If min_experience_years value not available, Classify as you deem fit into one of: 'Junior', 'Mid-Level', 'Senior', or 'Executive'.                
+    #             9. 'salary_type': If only available, specify the type of salary or payment arrangement (e.g., 'annual', 'hourly', 'daily'). If not listed: 'annual'. Default value: 'annual'.
+    #             10. 'salary_range': If only available AND salary_type="Annual", extract the salary information and classify it in the bucket it fits in: '40000 - 60000', '60000 - 80000', '80000 - 100000', '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000', '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+'. Otherwise leave empty.
+    #             11. 'hourly_range': If only available AND salary_type="Hourly", extract the hourly-rate information and classify it in the bucket it fits in: '0 - 20', '20 - 30', '30 - 40', '40 - 50', '50 - 60', '60 - 70', '70 - 80', '80 - 100', '100+'. Otherwise leave empty.
+    #             12. 'daily_range': If only available AND salary_type="Daily", extract the daily-rate information and classify it in the bucket it fits in: '300 - 400', '400 - 500', '500 - 600', '600 - 700', '700 - 800', '800 - 900', '900 - 1000', '1000 - 1100', '1200+'. Otherwise leave empty.
+    #             13. 'work_location': Specify the work location as one of: 'Remote', 'Hybrid', 'Office'. Default option: 'Office'.
+    #             14. 'city': Extract the city where the job is located. Strictly only do so if mentioned, otherwise empty.
+    #             15. 'state': Extract the state where the job is located. Use one of the following: ['VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA']. Strictly only do so if mentioned, otherwise empty.
+    #             16. 'country': Extract the country where the job is located. Use one of the following: ['Australia', 'New Zealand'].
+    #             17. 'work_rights': List any work rights or visa requirements. Strictly only do so if mentioned, otherwise empty.
+    #             18. 'job_arrangement': Specify the job arrangement as one of: 'Permanent', 'Contract', 'Internship'.
+    #             19. 'contract_duration': If only the 'job_arrangement' is 'Contract', and if the duration of the contract is provided and available, classify it as belonging to one of the following buckets: '3-6 Months', '6-9 Months', '9-12 Months' or '12 Months+'. Otherwise leave empty.
 
-                Important:
-                - Provide only the JSON object as output, with no additional text.
-                - Ensure all key names are in lowercase.
-                - If information for a key is not available, use an empty string or array as appropriate.
-                - For 'responsibilities' and 'requirements', use arrays of strings.
-                - For 'technologies', use an array of strings, each representing a single technology.
+    #             Important:
+    #             - Provide only the JSON object as output, with no additional text.
+    #             - Ensure all key names are in lowercase.
+    #             - If information for a key is not available, use an empty string or array as appropriate.
+    #             - For 'responsibilities' and 'requirements', use arrays of strings.
+    #             - For 'technologies', use an array of strings, each representing a single technology.
 
-                Title: {title}
-                Job Description: {description}
-                """
-            }
-        ]
+    #             Title: {title}
+    #             Job Description: {description}
+    #             """
+    #         }
+    #     ]
 
-        try:
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=messages,
-                response_format={"type": "json_object"}
-            )
+    #     try:
+    #         response = self.openai_client.chat.completions.create(
+    #             model="gpt-4o-mini",
+    #             messages=messages,
+    #             response_format={"type": "json_object"}
+    #         )
 
-            content = response.choices[0].message.content
-            processed_data = json.loads(content)
-            current_app.logger.info(f"Processed job description for title: {title}")
-            return processed_data
+    #         content = response.choices[0].message.content
+    #         processed_data = json.loads(content)
+    #         current_app.logger.info(f"Processed job description for title: {title}")
+    #         return processed_data
 
-        except Exception as e:
-            current_app.logger.error(f"OpenAI API request failed: {str(e)}")
-            return None
+    #     except Exception as e:
+    #         current_app.logger.error(f"OpenAI API request failed: {str(e)}")
+    #         return None
 
     def process_job_description_openai(self, title, description):
         # First API call: Extract basic job information
@@ -228,10 +228,10 @@ class RecruiterService:
         # Combine the results
         processed_data = {**basic_info, **detailed_info}
 
-        # Third API call: Verify and correct the extracted information
-        verified_data = self._verify_and_correct_job_info(title, description, processed_data)
+        # # Third API call: Verify and correct the extracted information
+        # verified_data = self._verify_and_correct_job_info(title, description, processed_data)
     
-        return verified_data
+        return processed_data
 
     def _extract_basic_job_info(self, title, description):
         messages = [
@@ -259,13 +259,15 @@ class RecruiterService:
                 10. 'security_clearance_required': Set to true if the job description mentions any level of security clearance requirement (Baseline, Negative Vetting 1, Negative Vetting 2, or Positive Vetting). Otherwise, set to false.
 
                 Provide only the JSON object as output, with no additional text.
+                - For 'technologies', use an array of strings, each representing a single technology.
+                
                 """
             }
         ]
     
         # Make API call and process response
         response = self.openai_client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o",
             messages=messages,
             response_format={"type": "json_object"}
         )
@@ -287,8 +289,8 @@ class RecruiterService:
 
                 Instructions:
                 1. 'overview': Summarize the role and company, including all key and salient information relevant to potential candidates. Add any information related to benefits or perks here. Add information verbatim if needed but all of the information is needed. Provide a String response.
-                2. 'responsibilities': List main job duties and expectations. Provide detailed information. Provide a String response.
-                3. 'requirements': Enumerate essential qualifications and skills needed. Provide detailed information. Provide a String response.
+                2. 'responsibilities': List main job duties and expectations. Provide detailed information. 
+                3. 'requirements': Enumerate essential qualifications and skills needed. Provide detailed information. 
                 4. 'salary_type': If only available the type of salary is availabe and mentioned, specify the type of salary or payment arrangement. Choose ONLY one of the following: ['annual', 'hourly', 'daily'].
                 5. 'salary_range': If only the salary is available AND salary_type="annual", extract the salary information and classify it in the bucket it fits in: 'Not Listed', '40000 - 60000', '60000 - 80000', '80000 - 100000', '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000', '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+'. If Unavailable, choose 'Not Listed'.
                 6. 'hourly_range': If only the hourly pay information is available AND salary_type="hourly", extract the hourly-rate information and classify it in the bucket it fits in: 'Not Listed', '0-20', '20-40', '40-60', '60-80', '80-100', '100-120', '120-140', '140-160', '160+'. If Unavailable, choose 'Not Listed'.
@@ -296,14 +298,17 @@ class RecruiterService:
                 8. 'job_arrangement': Specify the job arrangement as ONLY one of: 'Permanent', 'Contract/Temp', 'Part-Time' or 'Internship'. Strictly do not include any other value. Classify as Contract/Temp if the job is a contract or temporary job.
                 9. 'contract_duration': If only the 'job_arrangement' is 'Contract/Temp', and if the duration of the contract is provided and available, classify it as belonging to one of the following buckets: 'Not Listed', '0-3 months', '4-6 months', '7-9 months', '10-12 months' or '12+ months'. If unavailable, choose 'Not Listed'.
 
-                Provide only the JSON object as output, with no additional text.
+                Ensure the following:
+                - Provide only the JSON object as output, with no additional text.
+                - For 'responsibilities' and 'requirements', use arrays of strings.
+                - If information for a key is not available, use an empty string or array as appropriate.
                 """
             }
         ]
         
         # Make API call and process response
         response = self.openai_client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o",
             messages=messages,
             response_format={"type": "json_object"}
         )
@@ -387,7 +392,7 @@ class RecruiterService:
                 current_app.logger.info(f"Processed Data: {processed_data}")
 
                 if processed_data:
-                    # Step 1: Create the new job entry
+                    # Create the new job entry
                     new_job = Job(
                         recruiter_id=job_data.get('recruiter_id'),
                         company_id=job_data.get('company_id'),
@@ -402,14 +407,10 @@ class RecruiterService:
                         city=job_data.get('city') or processed_data.get('city'),
                         state=job_data.get('state') or processed_data.get('state'),
                         country=job_data.get('country') or processed_data.get('country'),
-                        # work_rights=job_data.get('work_rights') or processed_data.get('work_rights'),
-                        overview=processed_data.get('overview') or processed_data.get('overview'),
-                        responsibilities=job_data.get('responsibilities', '') or processed_data.get('responsibilities'),
-                        requirements=job_data.get('requirements', '') or processed_data.get('requirements'),
+                        overview=processed_data.get('overview'),
+                        responsibilities=processed_data.get('responsibilities'),
+                        requirements=processed_data.get('requirements'),
                         job_arrangement=processed_data.get('job_arrangement') or job_data.get('job_arrangement'),
-                        # contract_duration=contract_duration_enum(job_data.get('contract_duration') or processed_data.get('contract_duration') or 'Not Listed'),
-                        # hourly_range=hourly_range_enum(job_data.get('hourly_range') or processed_data.get('hourly_range') or 'Not Listed'),
-                        # daily_range=daily_range_enum(job_data.get('daily_range') or processed_data.get('daily_range') or 'Not Listed'),
                         salary_range=job_data.get('salary_range') or processed_data.get('salary_range') or 'Not Listed',
                         salary_type=processed_data.get('salary_type') or 'annual',
                         contract_duration=processed_data.get('contract_duration') or 'Not Listed',
@@ -421,24 +422,21 @@ class RecruiterService:
 
                     db.session.add(new_job)
                     db.session.commit()  # Commit to generate job_id
-                    
 
-                    # Step 2: Normalize and process technologies from tech_stack
+                    # Process technologies
                     tech_stack = job_data.get('tech_stack') or processed_data.get('technologies')
-                    normalized_technologies = set()  # Use a set to avoid duplicates
+                    normalized_technologies = set()
 
                     if tech_stack:
                         for tech in tech_stack:
-
-                            canonical_name = self.normalize_technology_name(tech);
+                            canonical_name = self.normalize_technology_name(tech)
                             if canonical_name:
                                 normalized_technologies.add(canonical_name)
 
-                        # Step 3: Add normalized technologies to job_technologies table
                         for tech_name in normalized_technologies:
                             technology = Technology.query.filter_by(name=tech_name).first()
                             if technology:
-                                job_tech = JobTechnology(job_id=new_job.job_id, technology_id=technology.id)
+                                job_tech = JobTechnology(job=new_job, technology=technology)
                                 db.session.add(job_tech)
 
                         db.session.commit()
@@ -450,11 +448,9 @@ class RecruiterService:
                     self.invalidate_job_caches(new_job)
                     current_app.logger.info(f"Successfully added job: {title}")
                     return new_job, None
-
                 else:
                     current_app.logger.error("Failed to process job description")
                     return None, "Failed to process job description"
-
             except Exception as e:
                 db.session.rollback()
                 current_app.logger.error(f"Error adding job: {str(e)}")
@@ -611,7 +607,7 @@ class RecruiterService:
             cache.delete_memoized(JobsService.get_home_page_jobs)
             cache.delete_memoized(JobsService.filtered_search_jobs)
             cache.delete_memoized(JobsService.instant_search_jobs)
-            cache.delete_memoized(JobsService.get_jobs_by_specialization, job.specialization)
+            cache.delete_memoized(JobsService.get_home_page_jobs, job.specialization)
             current_app.logger.info(f"Cache invalidated for job {job.job_id}")
         except Exception as e:
             current_app.logger.error(f"Error invalidating cache: {str(e)}")

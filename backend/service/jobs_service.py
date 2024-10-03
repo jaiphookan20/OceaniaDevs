@@ -210,6 +210,13 @@ class JobsService:
                     'specialization': job.specialization,
                     'min_experience_years': job.min_experience_years,
                     'tech_stack': tech_stack,
+                    'job_arrangement': job.job_arrangement,
+                    'work_location': job.work_location,
+                    'contract_duration': job.contract_duration,
+                    'hourly_range': job.hourly_range,
+                    'daily_range': job.daily_range,
+                    'citizens_or_pr_only': job.citizens_or_pr_only,
+                    'security_clearance_required': job.security_clearance_required,
                     'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.company.logo_url)}",
                 }
                 
