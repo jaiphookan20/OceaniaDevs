@@ -156,9 +156,9 @@ const JobPost = ({ onSave, onApply, isInSession, userJobStatuses, onUnsave }) =>
   {[
     { icon: industryIcon, label: "Industry", value: job.industry },
     { icon: experienceIcon, label: "Experience", value: job.experience_level },
-    { icon: salaryIcon, label: "Salary", value: `${job.salary_range} AUD` },
+    { icon: salaryIcon, label: "Salary", value: job.salary_range !== 'Not Listed' ? `${job.salary_range} AUD` : 'Not Listed'},
     { icon: locationIcon, label: "Location", value: job.location },
-    { icon: minExperienceIcon, label: "Min. Experience", value: `${job.min_experience_years}+ Years` },
+    { icon: minExperienceIcon, label: "Min. Experience", value: job.min_experience_years > 0 ? `${job.min_experience_years}+ Years` : 'Not Listed' },
     { icon: specialisationIcon, label: "Specialization", value: job.specialization },
     { icon: workLocationIcon, label: "Work Location", value: job.work_location },
     { icon: jobArrangementIcon, label: "Job Arrangement", value: job.job_arrangement }
@@ -235,7 +235,7 @@ const JobPost = ({ onSave, onApply, isInSession, userJobStatuses, onUnsave }) =>
               <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800">
                 Tech Stack
               </h2>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 mt-4 bg-stone-100 border border-slate-400 rounded-lg">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 mt-4 border border-slate-400 rounded-lg">
                 {techStackIcons.map((tech) => (
                   <div
                     key={tech}
