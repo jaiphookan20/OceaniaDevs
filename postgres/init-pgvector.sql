@@ -1,14 +1,7 @@
 -- Connect to the job_board database
 \c job_board;
 
--- At the beginning of the file
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'jobs') THEN
-        RAISE EXCEPTION 'Table "jobs" does not exist. Exiting init-pgvector.sql';
-    END IF;
-END
-$$;
+
 
 -- Create extensions
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -288,53 +281,53 @@ CREATE TRIGGER technology_name_vector_update
 BEFORE INSERT OR UPDATE ON technologies
 FOR EACH ROW EXECUTE FUNCTION technology_name_vector_update();
 
--- Add vector columns if they don't exist
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'search_vector') THEN
-    ALTER TABLE jobs ADD COLUMN search_vector tsvector;
-  END IF;
+-- -- Add vector columns if they don't exist
+-- DO $$
+-- BEGIN
+--   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'search_vector') THEN
+--     ALTER TABLE jobs ADD COLUMN search_vector tsvector;
+--   END IF;
   
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'companies' AND column_name = 'name_vector') THEN
-    ALTER TABLE companies ADD COLUMN name_vector tsvector;
-  END IF;
+--   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'companies' AND column_name = 'name_vector') THEN
+--     ALTER TABLE companies ADD COLUMN name_vector tsvector;
+--   END IF;
   
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'technologies' AND column_name = 'name_vector') THEN
-    ALTER TABLE technologies ADD COLUMN name_vector tsvector;
-  END IF;
+--   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'technologies' AND column_name = 'name_vector') THEN
+--     ALTER TABLE technologies ADD COLUMN name_vector tsvector;
+--   END IF;
 
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'embedding') THEN
-    ALTER TABLE jobs ADD COLUMN embedding vector(1536);
-  END IF;
+--   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'embedding') THEN
+--     ALTER TABLE jobs ADD COLUMN embedding vector(1536);
+--   END IF;
 
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'candidates' AND column_name = 'embedding') THEN
-    ALTER TABLE candidates ADD COLUMN embedding vector(1536);
-  END IF;
+--   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'candidates' AND column_name = 'embedding') THEN
+--     ALTER TABLE candidates ADD COLUMN embedding vector(1536);
+--   END IF;
 
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'citizens_or_pr_only') THEN
-    ALTER TABLE jobs ADD COLUMN citizens_or_pr_only BOOLEAN DEFAULT FALSE;
-  END IF;
+--   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'citizens_or_pr_only') THEN
+--     ALTER TABLE jobs ADD COLUMN citizens_or_pr_only BOOLEAN DEFAULT FALSE;
+--   END IF;
 
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'security_clearance_required') THEN
-    ALTER TABLE jobs ADD COLUMN security_clearance_required BOOLEAN DEFAULT FALSE;
-  END IF;
+--   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'security_clearance_required') THEN
+--     ALTER TABLE jobs ADD COLUMN security_clearance_required BOOLEAN DEFAULT FALSE;
+--   END IF;
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'salary_type') THEN
-    ALTER TABLE jobs ADD COLUMN salary_type salary_type_enum DEFAULT 'annual';
-  END IF;
+--     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'salary_type') THEN
+--     ALTER TABLE jobs ADD COLUMN salary_type salary_type_enum DEFAULT 'annual';
+--   END IF;
 
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'contract_duration') THEN
-    ALTER TABLE jobs ADD COLUMN contract_duration contract_duration_enum DEFAULT 'Not Listed';
-  END IF;
+--   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'contract_duration') THEN
+--     ALTER TABLE jobs ADD COLUMN contract_duration contract_duration_enum DEFAULT 'Not Listed';
+--   END IF;
 
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'daily_range') THEN
-    ALTER TABLE jobs ADD COLUMN daily_range daily_range_enum DEFAULT 'Not Listed';
-  END IF;
+--   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'daily_range') THEN
+--     ALTER TABLE jobs ADD COLUMN daily_range daily_range_enum DEFAULT 'Not Listed';
+--   END IF;
 
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'hourly_range') THEN
-    ALTER TABLE jobs ADD COLUMN hourly_range hourly_range_enum DEFAULT 'Not Listed';
-  END IF;
-END$$;
+--   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'jobs' AND column_name = 'hourly_range') THEN
+--     ALTER TABLE jobs ADD COLUMN hourly_range hourly_range_enum DEFAULT 'Not Listed';
+--   END IF;
+-- END$$;
 
 -- Create GIN indexes
 \echo 'Creating or verifying GIN indexes...'

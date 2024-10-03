@@ -3,6 +3,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    container_name: backend
     # image: jayphookan/aus-job-board-backend:v1
     env_file:
       - .env

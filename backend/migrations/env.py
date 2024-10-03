@@ -3,8 +3,9 @@ from logging.config import fileConfig
 import sys
 import time
 from flask import current_app
-
+from sqlalchemy import text
 from alembic import context
+from migration_utils import check_migration_safety
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -107,31 +108,15 @@ def run_migrations_online():
         with context.begin_transaction():
             context.run_migrations()
             
-# def check_migration_safety():
-#     """Check if it's safe to run migrations."""
-#     try:
-#         engine = get_engine()
-#         with engine.connect() as connection:
-#             # Check for active transactions
-#             result = connection.execute(text("SELECT count(*) FROM pg_stat_activity WHERE state = 'active' AND pid != pg_backend_pid()")).scalar()
-#             if result > 0:
-#                 logger.warning(f"There are {result} active transactions. Migration might interfere with ongoing operations.")
-#                 return False
+# Call this function before running migrations
+if not check_migration_safety():
+    logger.error("Migration safety check failed. Aborting.")
+    sys.exit(1)
 
-#         return True
-#     except Exception as e:
-#         logger.error(f"Error during migration safety check: {e}")
-#         return False
-
-#         return True
-#     except Exception as e:
-#         logger.error(f"Error during migration safety check: {e}")
-#         return False
-
-# # Call this function before running migrations
-# if not check_migration_safety():
-#     logger.error("Migration safety check failed. Aborting.")
-#     sys.exit(1)
+# Call this function before running migrations
+if not check_migration_safety():
+    logger.error("Migration safety check failed. Aborting.")
+    sys.exit(1)
 
 if context.is_offline_mode():
     run_migrations_offline()

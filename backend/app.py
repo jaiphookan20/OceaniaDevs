@@ -23,7 +23,7 @@ from admin_views import (
 from flask_admin import Admin, AdminIndexView
 from flask_admin.contrib.sqla import ModelView
 from flask import render_template
-
+import sys
 load_dotenv()
 
 class SecureModelView(ModelView):
@@ -47,9 +47,9 @@ def create_app():
 
     # Configuration settings
     app.config['CORS_HEADERS'] = 'Content-Type'
-    app.logger.info(f"AUTH0_DOMAIN: {os.getenv('AUTH0_DOMAIN')}")
-    app.logger.info(f"AUTH0_CLIENT_ID: {os.getenv('AUTH0_CLIENT_ID')}")
-    app.logger.info(f"AUTH0_CLIENT_SECRET: {os.getenv('AUTH0_CLIENT_SECRET')}")
+    # app.logger.info(f"AUTH0_DOMAIN: {os.getenv('AUTH0_DOMAIN')}")
+    # app.logger.info(f"AUTH0_CLIENT_ID: {os.getenv('AUTH0_CLIENT_ID')}")
+    # app.logger.info(f"AUTH0_CLIENT_SECRET: {os.getenv('AUTH0_CLIENT_SECRET')}")
     app.config['UPLOAD_FOLDER'] = os.path.join('uploads', 'upload_company_logo')
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
@@ -111,7 +111,7 @@ def create_app():
 
     # Initialize cache with error handling
     try:
-        app.logger.debug(f"Cache configuration before init: {app.config}")
+        # app.logger.debug(f"Cache configuration before init: {app.config}")
         cache.init_app(app)
         app.logger.info("Cache initialized successfully")
     except Exception as e:
@@ -127,6 +127,16 @@ def create_app():
                 enum.create(bind=db.engine, checkfirst=True)
             db.create_all()
         app.logger.info("Database tables and enums created successfully.")
+
+    @app.cli.command("check_safety")
+    def check_safety_command():
+        from migration_utils import check_migration_safety
+        if check_migration_safety():
+            print("Migration safety check passed.")
+            return True
+        else:
+            print("Migration safety check failed.")
+            return False
 
 # Remove this line
 # create_enums()
@@ -155,7 +165,7 @@ def create_app():
     try:
         redis_client = Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
         redis_client.ping()
-        app.logger.info(f"Successfully connected to Redis at {REDIS_HOST}:{REDIS_PORT}")
+        # app.logger.info(f"Successfully connected to Redis at {REDIS_HOST}:{REDIS_PORT}")
     except Exception as e:
         app.logger.error(f"Failed to connect to Redis at {REDIS_HOST}:{REDIS_PORT}: {str(e)}")
 
