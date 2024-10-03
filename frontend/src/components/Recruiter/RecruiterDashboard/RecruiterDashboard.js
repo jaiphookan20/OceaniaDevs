@@ -4,11 +4,15 @@ import { useNavigate } from "react-router-dom";
 import RecruiterNoActiveJobsCard from "./RecruiterNoActiveJobsCard";
 import RecruiterDashboardHeader from "./RecruiterDashboardHeader";
 import RecruiterOnboardingIncompleteCard from "../RecruiterOnboarding/RecruiterOnboardingIncompleteCard";
+import RecruiterDashboardConfirmationModal from "./RecruiterDashboardConfirmationModal";
 
 const RecruiterDashboard = () => {
   const [activeJobs, setActiveJobs] = useState([]);
   const [expiredJobs, setExpiredJobs] = useState([]);
   const [onboardingComplete, setOnboardingComplete] = useState(true);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [jobToRemove, setJobToRemove] = useState(null);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,24 +40,6 @@ const RecruiterDashboard = () => {
     navigate(`/edit-job/${jobId}`);
   };
 
-  const handleRemove = async (jobId) => {
-    try {
-      const response = await fetch(`/api/remove-job-by-recruiter/${jobId}`, {
-        method: "POST",
-        credentials: "include",
-      });
-      if (response.ok) {
-        console.log(`Job with jobId ${jobId} successfully removed`);
-        setActiveJobs(activeJobs.filter((job) => job.job_id !== jobId));
-        setExpiredJobs(expiredJobs.filter((job) => job.job_id !== jobId));
-      } else {
-        console.error(`Failed to remove jobId ${jobId}`);
-      }
-    } catch (error) {
-      console.error("Error removing job:", error);
-    }
-  };
-
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       try {
@@ -75,21 +61,62 @@ const RecruiterDashboard = () => {
     checkOnboardingStatus();
   }, []);
 
+   // Update the handleRemove function
+   const handleRemove = (jobId) => {
+    setJobToRemove(jobId);
+    setShowConfirmModal(true);
+  };
+
+  const confirmRemove = async () => {
+    if (jobToRemove) {
+      try {
+        const response = await fetch(`/api/remove-job-by-recruiter/${jobToRemove}`, {
+          method: "POST",
+          credentials: "include",
+        });
+        if (response.ok) {
+          console.log(`Job with jobId ${jobToRemove} successfully removed`);
+          setActiveJobs(activeJobs.filter((job) => job.job_id !== jobToRemove));
+          setExpiredJobs(expiredJobs.filter((job) => job.job_id !== jobToRemove));
+        } else {
+          console.error(`Failed to remove jobId ${jobToRemove}`);
+        }
+      } catch (error) {
+        console.error("Error removing job:", error);
+      }
+    }
+    setShowConfirmModal(false);
+    setJobToRemove(null);
+  };
+
+  const cancelRemove = () => {
+    setShowConfirmModal(false);
+    setJobToRemove(null);
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6">
-    <RecruiterDashboardHeader title="Recruiter Dashboard" />
-    {!onboardingComplete ? (
-      <RecruiterOnboardingIncompleteCard />
-    ) : (
-      <RecruiterJobSection
-        activeJobs={activeJobs}
-        expiredJobs={expiredJobs}
-        onEdit={handleEdit}
-        onView={(jobId) => navigate(`/job_post/${jobId}`)}
-        onRemove={handleRemove}
-      />
-    )}
-  </div>
+      <RecruiterDashboardHeader title="Recruiter Dashboard" />
+      {!onboardingComplete ? (
+        <RecruiterOnboardingIncompleteCard />
+      ) : (
+        <>
+          <RecruiterJobSection
+            activeJobs={activeJobs}
+            expiredJobs={expiredJobs}
+            onEdit={handleEdit}
+            onView={(jobId) => navigate(`/job_post/${jobId}`)}
+            onRemove={handleRemove}
+          />
+          <RecruiterDashboardConfirmationModal
+            isOpen={showConfirmModal}
+            onConfirm={confirmRemove}
+            onCancel={cancelRemove}
+            message="Are you sure you want to remove this job?"
+          />
+        </>
+      )}
+    </div>
   );
 };
 
