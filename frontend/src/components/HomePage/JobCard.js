@@ -7,99 +7,133 @@ import newTooltipGif from "../../assets/new-tooltip.gif"
 import { icons } from "../../data/tech-icons";
 
 
-const JobCard = ({ job, onSave, onApply, onView, isInSession, userData }) => {
-  const [isSaved, setIsSaved] = useState(false);
-  const [isApplied, setIsApplied] = useState(false);
+const JobCard = ({ job, onSave, onApply, onView, isInSession, userData, userJobStatuses, onUnsave}) => {
+   const isSaved = userJobStatuses.saved_jobs.includes(job.job_id);
+  const isApplied = userJobStatuses.applied_jobs.includes(job.job_id);
+
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  // test
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (isInSession) {
-      checkIfJobIsSaved();
-      checkIfJobIsApplied();
-    }
-  }, [isInSession, job.job_id]);
+    // useEffect(() => {
+  //   if (isInSession) {
+  //     checkIfJobIsSaved();
+  //     checkIfJobIsApplied();
+  //   }
+  // }, [isInSession, job.job_id]);
 
   /* checkIfJobIsSaved and checkIfJobIsApplied functions should only be called when 'seeker' is logged in and not when recruiter*/
-  const checkIfJobIsSaved = async () => {
-    try {
-      const response = await fetch(`/api/is_job_saved/${job.job_id}`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-      const data = await response.json();
-      setIsSaved(data.is_saved);
-    } catch (error) {
-      console.error("Error checking if job is saved:", error);
-    }
-  };
+  // const checkIfJobIsSaved = async () => {
+  //   try {
+  //     const response = await fetch(`/api/is_job_saved/${job.job_id}`, {
+  //       method: 'GET',
+  //       credentials: 'include',
+  //     });
+  //     const data = await response.json();
+  //     setIsSaved(data.is_saved);
+  //   } catch (error) {
+  //     console.error("Error checking if job is saved:", error);
+  //   }
+  // };
 
-  const checkIfJobIsApplied = async () => {
-    try {
-      const response = await fetch(`/api/is_job_applied/${job.job_id}`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-      const data = await response.json();
-      setIsApplied(data.is_applied);
-    } catch (error) {
-      console.error("Error checking if job is applied:", error);
-    }
-  };
+  // const checkIfJobIsApplied = async () => {
+  //   try {
+  //     const response = await fetch(`/api/is_job_applied/${job.job_id}`, {
+  //       method: 'GET',
+  //       credentials: 'include',
+  //     });
+  //     const data = await response.json();
+  //     setIsApplied(data.is_applied);
+  //   } catch (error) {
+  //     console.error("Error checking if job is applied:", error);
+  //   }
+  // };
 
-  const handleSaveToggle = async () => {
+  // const handleSaveToggle = async () => {
+  //   if (!isInSession) {
+  //     setIsLoginModalOpen(true);
+  //     return;
+  //   }
+
+  //   if (userData && userData.type =="recruiter") {
+  //     toast.error("Cannot Save as a Recruiter");
+  //     return;
+  //   }
+
+  //   try {
+  //     if (isSaved) {
+  //       await fetch(`/api/unsave_job/${job.job_id}`, {
+  //         method: 'DELETE',
+  //         credentials: 'include',
+  //       });
+  //       setIsSaved(false);
+  //       toast.success("Job Unsaved.");
+  //     } else {
+  //       await onSave(job.job_id);
+  //       setIsSaved(true);
+  //       toast.success("Job Saved.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error toggling job save status:", error);
+  //     toast.error("Failed to save/unsave job.");
+  //   }
+  // };
+
+  const handleSaveToggle = () => {
     if (!isInSession) {
+      // toast.error("Sign in first to save a job.");
       setIsLoginModalOpen(true);
       return;
     }
 
-    if (userData && userData.type =="recruiter") {
+      if (userData && userData.type =="recruiter") {
       toast.error("Cannot Save as a Recruiter");
       return;
     }
 
-    try {
-      if (isSaved) {
-        await fetch(`/api/unsave_job/${job.job_id}`, {
-          method: 'DELETE',
-          credentials: 'include',
-        });
-        setIsSaved(false);
-        toast.success("Job Unsaved.");
-      } else {
-        await onSave(job.job_id);
-        setIsSaved(true);
-        toast.success("Job Saved.");
-      }
-    } catch (error) {
-      console.error("Error toggling job save status:", error);
-      toast.error("Failed to save/unsave job.");
+    if (isSaved) {
+      onUnsave(job.job_id);
+    } else {
+      onSave(job.job_id);
     }
   };
+ 
+  // const handleApply = async () => {
+  //   if (!isInSession) {
+  //     setIsLoginModalOpen(true);
+  //     return;
+  //   }
+
+  //   if (userData && userData.type =="recruiter") {
+  //     toast.error("Cannot Apply as a Recruiter");
+  //     return;
+  //   }
+
+  //   try {
+  //     navigate(`/job_post/${job.job_id}`);
+  //     // setIsApplied(true);
+  //     // toast.success("Application submitted successfully!");
+  //   } catch (error) {
+  //     console.error("Error applying to job:", error);
+  //     toast.error("Failed to apply to job.");
+  //   }
+  // };
 
 
-  const handleApply = async () => {
-    if (!isInSession) {
-      setIsLoginModalOpen(true);
-      return;
-    }
 
-    if (userData && userData.type =="recruiter") {
-      toast.error("Cannot Apply as a Recruiter");
-      return;
-    }
+  const handleApply = (job) => {
+      if (!isInSession) {
+        setIsLoginModalOpen(true);
+        return;
+      }
 
-    try {
-      navigate(`/job_post/${job.job_id}`);
-      // setIsApplied(true);
-      // toast.success("Application submitted successfully!");
-    } catch (error) {
-      console.error("Error applying to job:", error);
-      toast.error("Failed to apply to job.");
-    }
+      if (userData && userData.type =="recruiter") {
+        toast.error("Cannot Apply as a Recruiter");
+        return;
+      }
+
+      onApply(job.job_id);
   };
 
 
@@ -117,7 +151,7 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession, userData }) => {
 
   return (
     <>
-      <div className="relative flex items-center justify-between bg-zinc-50/50 p-4 border-b border-grey-200 mb-2 rounded-lg shadow-md shadow-slate-200/50 cursor-pointer hover:bg-slate-100 hover:shadow-xl h-[100px] overflow-hidden">
+      <div className="relative flex items-center justify-between bg-zinc-50/50 p-4 border-b border-grey-200 mb-2 rounded-lg shadow-lg shadow-slate-200 cursor-pointer hover:bg-slate-100 hover:shadow-xl h-[100px] overflow-hidden">
         <div className="w-full h-full">
           {currentSlide === 0 ? (
             // First slide content
@@ -152,6 +186,12 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession, userData }) => {
                     <span className="bg-cyan-50 text-cyan-700 px-2 py-1 rounded-lg">
                       {job.specialization}
                     </span>
+                    <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg">
+                      {job.job_arrangement}
+                    </span>
+                    <span className="bg-yellow-50 text-yellow-700 px-2 py-1 rounded-lg">
+                      {job.work_location}
+                    </span>
                     {job.salary_range && job.salary_range !== 'Not Listed' && (
                       <span className="flex items-center bg-green-50 text-emerald-700 px-2 py-1 rounded-lg">
                         ${job.salary_range}
@@ -169,7 +209,7 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession, userData }) => {
                 </div>
               </div>
               <div className="flex space-x-2">
-                <button
+              <button
                   className={`px-4 py-2 border border-gray-300 rounded-md ${
                     isSaved
                       ? "bg-fuchsia-600 hover:bg-fuchsia-700 text-white"
@@ -185,8 +225,7 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession, userData }) => {
                       ? "bg-lime-500 border border-emerald-600 text-white cursor-not-allowed"
                       : "bg-black hover:bg-violet-700 text-white"
                   }`}
-                  
-                  onClick={handleApply}
+                  onClick={() => handleApply(job)}
                   disabled={isApplied}
                 >
                   {isApplied ? "Applied" : "Apply"}

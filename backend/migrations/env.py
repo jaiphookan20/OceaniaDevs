@@ -1,9 +1,11 @@
 import logging
 from logging.config import fileConfig
-
+import sys
+import time
 from flask import current_app
-
+from sqlalchemy import text
 from alembic import context
+from migration_utils import check_migration_safety
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -105,9 +107,22 @@ def run_migrations_online():
 
         with context.begin_transaction():
             context.run_migrations()
+            
+# Call this function before running migrations
+if not check_migration_safety():
+    logger.error("Migration safety check failed. Aborting.")
+    sys.exit(1)
 
+# Call this function before running migrations
+if not check_migration_safety():
+    logger.error("Migration safety check failed. Aborting.")
+    sys.exit(1)
 
 if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+    
+# Add a small delay after migrations
+# time.sleep(5)
+# logger.info("Waiting 5 seconds for database operations to complete...")

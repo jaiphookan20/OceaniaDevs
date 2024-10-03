@@ -3,6 +3,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    container_name: backend
     env_file:
       - .env
     volumes:
@@ -11,22 +12,27 @@ services:
     environment:
       - FLASK_APP=app.py
       - DB_HOST=postgres
-      # - DB_NAME=${DB_NAME}
-      # - DB_USER=${DB_USER}
-      # - DB_PASSWORD=${DB_PASSWORD}
-      # - REDIS_HOST=redis
-      # - REDIS_PORT=6379
-      # - SECRET_KEY=${SECRET_KEY}
-      # - AUTH0_DOMAIN=${AUTH0_DOMAIN}
-      # - AUTH0_CLIENT_ID=${AUTH0_CLIENT_ID}
-      # - AUTH0_CLIENT_SECRET=${AUTH0_CLIENT_SECRET}
-      # - APP_SECRET_KEY=${APP_SECRET_KEY}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - SECRET_KEY=${SECRET_KEY}
+      - AUTH0_DOMAIN=${AUTH0_DOMAIN}
+      - AUTH0_CLIENT_ID=${AUTH0_CLIENT_ID}
+      - AUTH0_CLIENT_SECRET=${AUTH0_CLIENT_SECRET}
+      - APP_SECRET_KEY=${APP_SECRET_KEY}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_started
     command: ["./entrypoint.sh"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://backen:4040/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   postgres:
     build:

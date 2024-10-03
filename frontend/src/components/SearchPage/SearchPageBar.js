@@ -21,10 +21,13 @@ const SearchPageBar = ({
   const workLocationRef = useRef(null);
   const jobArrangementRef = useRef(null);
 
-  // Highlight: Updated function to fetch suggestions with company logo
+  // Highlight: Updated function to fetch suggestions
   const fetchSuggestions = useCallback(
     debounce(async (value) => {
-      if (value.length < 2) return;
+      if (value.length < 2) {
+        setSuggestions([]);
+        return;
+      }
       try {
         const response = await fetch(`/api/search_suggestions?query=${value}`);
         const data = await response.json();
@@ -36,7 +39,7 @@ const SearchPageBar = ({
     []
   );
 
-  // Highlight: Autosuggest input props
+  // Highlight: Updated Autosuggest input props
   const inputProps = {
     placeholder: "Search by Title, Company, Technology ....",
     value: searchQuery,

@@ -1,0 +1,106 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+<h2>Dashboard</h2>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="panel panel-info">
+            <div class="panel-heading">Total Jobs</div>
+            <div class="panel-body">{{ total_jobs }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="panel panel-success">
+            <div class="panel-heading">Total Applications</div>
+            <div class="panel-body">{{ total_applications }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="panel panel-warning">
+            <div class="panel-heading">Total Seekers</div>
+            <div class="panel-body">{{ total_seekers }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="panel panel-danger">
+            <div class="panel-heading">Total Recruiters</div>
+            <div class="panel-body">{{ total_recruiters }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <h3>Today's Statistics</h3>
+        <ul class="list-group">
+            <li class="list-group-item">New Seekers: {{ daily_stats.new_seekers }}</li>
+            <li class="list-group-item">New Recruiters: {{ daily_stats.new_recruiters }}</li>
+            <li class="list-group-item">Jobs Posted: {{ daily_stats.jobs_posted }}</li>
+            <li class="list-group-item">Jobs Saved: {{ daily_stats.jobs_saved }}</li>
+            <li class="list-group-item">Jobs Applied: {{ daily_stats.jobs_applied }}</li>
+        </ul>
+    </div>
+    <div class="col-md-4">
+        <h3>This Week's Statistics</h3>
+        <ul class="list-group">
+            <li class="list-group-item">New Seekers: {{ weekly_stats.new_seekers }}</li>
+            <li class="list-group-item">New Recruiters: {{ weekly_stats.new_recruiters }}</li>
+            <li class="list-group-item">Jobs Posted: {{ weekly_stats.jobs_posted }}</li>
+            <li class="list-group-item">Jobs Saved: {{ weekly_stats.jobs_saved }}</li>
+            <li class="list-group-item">Jobs Applied: {{ weekly_stats.jobs_applied }}</li>
+        </ul>
+    </div>
+    <div class="col-md-4">
+        <h3>This Month's Statistics</h3>
+        <ul class="list-group">
+            <li class="list-group-item">New Seekers: {{ monthly_stats.new_seekers }}</li>
+            <li class="list-group-item">New Recruiters: {{ monthly_stats.new_recruiters }}</li>
+            <li class="list-group-item">Jobs Posted: {{ monthly_stats.jobs_posted }}</li>
+            <li class="list-group-item">Jobs Saved: {{ monthly_stats.jobs_saved }}</li>
+            <li class="list-group-item">Jobs Applied: {{ monthly_stats.jobs_applied }}</li>
+        </ul>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <h3>Recent Jobs</h3>
+        <ul class="list-group">
+            {% for job in recent_jobs %}
+            <li class="list-group-item">{{ job.title }} - {{ job.company.name if job.company else 'N/A' }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="col-md-6">
+        <h3>Recent Applications</h3>
+        <ul class="list-group">
+            {% for app in recent_applications %}
+            <li class="list-group-item">
+                {% if app.seeker %}
+                    {{ app.seeker.first_name }} {{ app.seeker.last_name }}
+                {% else %}
+                    Unknown Seeker
+                {% endif %}
+                -
+                {% if app.job %}
+                    {{ app.job.title }}
+                {% else %}
+                    Unknown Job
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <h3>Top Companies by Job Postings</h3>
+        <ul class="list-group">
+            {% for company in top_companies %}
+            <li class="list-group-item">{{ company.name }} - {{ company.job_count }} jobs</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

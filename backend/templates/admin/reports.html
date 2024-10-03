@@ -1,0 +1,5 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+<h1>Reports</h1>
+<a href="{{ url_for('reportview.generate_job_report') }}" class="btn btn-primary">Generate Job Report</a>
+{% endblock %}

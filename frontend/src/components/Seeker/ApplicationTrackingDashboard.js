@@ -156,7 +156,7 @@ const ApplicationTrackingDashboard = () => {
                       id="search"
                       name="search"
                       className="block w-full pl-10 pr-10 py-4 border border-gray-500 rounded-full leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-md"
-                      placeholder="Search applications"
+                      placeholder="Search by company name"
                       type="search"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}

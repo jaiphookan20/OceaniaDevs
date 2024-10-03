@@ -27,14 +27,29 @@ CORS(job_blueprint, supports_credentials=True, resources={r'/*': {'origins': 'ht
 @timing_decorator
 def get_job_post_page(job_id):
     """Retrieve All Job Details for a specific job post."""
-    try:        
-        job_data = jobs_service.get_job_post_data(job_id)
+    try:
+        user = session.get('user', {})
+        user_id = user.get('uid')
+        user_type = user.get('type')
+        
+        job_data = jobs_service.get_job_post_data(job_id, user_id, user_type)
         if not job_data:
             return jsonify({"error": "Job or company not found"}), 404
         return jsonify(job_data)
     except Exception as e:
         current_app.logger.error(f"Error in get_job_post_page: {str(e)}")
         return jsonify({"error": "An unexpected error occurred"}), 500
+    
+@job_blueprint.route('/api/user_job_statuses', methods=['GET'])
+@requires_auth
+def get_user_job_statuses():
+    try:
+        user_id = session['user']['uid']
+        statuses = jobs_service.get_user_job_statuses(user_id)
+        return jsonify(statuses)
+    except Exception as e:
+        current_app.logger.error(f"Error in get_user_job_statuses: {str(e)}")
+        return jsonify({"error": "An error occurred while fetching job statuses"}), 500
 
 @job_blueprint.route('/api/filtered_search_jobs', methods=['GET'])
 @timing_decorator
@@ -42,19 +57,20 @@ def filtered_search_jobs():
     """Search and filter jobs based on various criteria."""
     try:
         filter_params = {
-        'specialization': request.args.get('specialization'),
-        'experience_level': request.args.get('experience_level'),
-        'min_experience_years': request.args.get('min_experience_years'),
-        'work_location': request.args.get('work_location'),
-        'industry': request.args.get('industry'),
-        'salary_range': request.args.get('salary_range'),
-        'city': request.args.get('city'),
-        'tech_stack': request.args.get('tech_stack'),
-        'job_arrangement': request.args.get('job_arrangement')
-    }
+            'specialization': request.args.get('specialization'),
+            'experience_level': request.args.get('experience_level'),
+            'min_experience_years': request.args.get('min_experience_years'),
+            'work_location': request.args.get('work_location'),
+            'industry': request.args.get('industry'),
+            'salary_range': request.args.get('salary_range'),
+            'city': request.args.get('city'),
+            'tech_stack': request.args.get('tech_stack'),
+            'job_arrangement': request.args.get('job_arrangement'),
+            'query': request.args.get('query')
+        }
         page = request.args.get('page', default=1, type=int)
         page_size = request.args.get('page_size', default=10, type=int)
-
+        
         results, total_jobs = jobs_service.filtered_search_jobs(filter_params, page, page_size)
 
         return jsonify({
@@ -116,15 +132,15 @@ def get_technologies():
         current_app.logger.error(f"Error in get_technologies: {str(e)}")
         return jsonify({"error": "An error occurred while retrieving technologies"}), 500
 
-@job_blueprint.route('/api/apply_to_job', methods=['POST'])
+@job_blueprint.route('/api/apply_job', methods=['POST'])
 @requires_auth
-def apply_to_job():
+def apply_job():
     """Allow a seeker to apply for a job."""
     if 'user' not in session:
         return jsonify({"error": "Unauthorized access"}), 401
     
     if session['user']['type'] == "recruiter":
-        return jsonify({"error": "Unauthorized access: Cannot Apply to Job as a Recruiter"}), 401
+        return jsonify({"error": "Unauthorized access: Cannot Apply for Job as a Recruiter"}), 401
     
     job_id = request.json.get('jobid')
     if not isinstance(job_id, int):
@@ -135,10 +151,13 @@ def apply_to_job():
         return jsonify({"error": "No UserId found"}), 400
     
     try:
-        jobs_service.apply_to_job(seeker_id, job_id)
-        return jsonify({"message": "Job application submitted successfully"})
-    except Exception as e:
+        jobs_service.apply_job(seeker_id, job_id)
+        return jsonify({"message": "Application submitted successfully"})
+    except ValueError as e:
         return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        current_app.logger.error(f"Error in apply_job: {str(e)}")
+        return jsonify({"error": "An unexpected error occurred. Please try again later."}), 500
 
 
 @job_blueprint.route('/api/bookmark_job', methods=['POST'])

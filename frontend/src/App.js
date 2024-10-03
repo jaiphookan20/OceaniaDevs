@@ -26,6 +26,7 @@ import EditJob from "./components/Seeker/EditJob";
 import HashLoader from "react-spinners/HashLoader";
 import { debounce } from 'lodash';  // Make sure to install and import lodash
 import JobBoardProfile from "./components/Misc/JobBoardProfile";
+import RecruiterLandingPage from "./components/Recruiter/RecruiterLandingPage";
 
 const App = () => {
   const [homePageJobs, setHomePageJobs] = useState([]);
@@ -39,6 +40,7 @@ const App = () => {
   const [specialization, setSpecialization] = useState("");
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState([]);
+  const [userJobStatuses, setUserJobStatuses] = useState({ saved_jobs: [], applied_jobs: [] });
   
   const [filters, setFilters] = useState({
     specialization: "",
@@ -68,6 +70,26 @@ const App = () => {
     fetchAllJobs(); 
     checkSession();
   }, []);
+
+  useEffect(() => {
+    if (isInSession) {
+      fetchUserJobStatuses();
+    }
+  }, [isInSession]);
+
+  const fetchUserJobStatuses = async () => {
+    try {
+      const response = await fetch('/api/user_job_statuses', {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUserJobStatuses(data);
+      }
+    } catch (error) {
+      console.error('Error fetching user job statuses:', error);
+    }
+  };
 
   const checkSession = async () => {
     try {
@@ -139,75 +161,96 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
 };
 
 
-  const handleSave = async (jobId) => {
-    try {
-      if (!isInSession) {
-        toast.error("Sign in first to save a job.");
-      } else {
-          const response = await fetch(`/api/bookmark_job`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({ jobid: jobId }),
-          });
-          const result = await response.json();
-          toast.success(result.message);
-        }
-    } catch (error) {
-      console.error("Error saving job:", error);
-      toast.error("Failed to save job.");
-    }
-  };
+const handleSave = useCallback(async (jobId) => {
+  if (!isInSession) {
+    toast.error("Please sign in to save a job.");
+    return;
+  }
 
-  const handleApply = async (jobId) => {
-    try {
-      if (!isInSession) {
-        toast.error("Sign in first to apply.");
-      } else {
-        const response = await fetch(`/api/apply_to_job`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({ jobid: jobId }),
-        });
-        const result = await response.json();
-        toast.success("Boom!");
-        navigate(`/job_post/${jobId}`);
-      }
-    } catch (error) {
-      console.error("Error applying to job:", error);
-      toast.error("Failed to apply to job.");
+  try {
+    const response = await fetch(`/api/bookmark_job`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ jobid: jobId }),
+    });
+    if (response.ok) {
+      setUserJobStatuses(prev => ({
+        ...prev,
+        saved_jobs: [...prev.saved_jobs, jobId]
+      }));
+      toast.success("Job saved successfully");
+    } else {
+      toast.error("Failed to save job");
     }
-  };
+  } catch (error) {
+    console.error("Error saving job:", error);
+    toast.error("Failed to save job");
+  }
+}, [isInSession]);
+
+const handleUnsave = useCallback(async (jobId) => {
+  if (!isInSession) {
+    toast.error("Please sign in to unsave a job.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/unsave_job/${jobId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    if (response.ok) {
+      setUserJobStatuses(prev => ({
+        ...prev,
+        saved_jobs: prev.saved_jobs.filter(id => id !== jobId)
+      }));
+      toast.success("Job unsaved successfully");
+    } else {
+      toast.error("Failed to unsave job");
+    }
+  } catch (error) {
+    console.error("Error unsaving job:", error);
+    toast.error("Failed to unsave job");
+  }
+}, [isInSession]);
+
+const handleApply = useCallback(async (jobId) => {
+  if (!isInSession) {
+    toast.error("Please sign in to apply for a job.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/apply_job`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ jobid: jobId }),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      setUserJobStatuses(prev => ({
+        ...prev,
+        applied_jobs: [...prev.applied_jobs, jobId]
+      }));
+      toast.success(data.message || "Application submitted successfully");
+    } else {
+      toast.error(data.error || "Failed to submit application");
+    }
+  } catch (error) {
+    console.error("Error applying to job:", error);
+    toast.error("Failed to submit application. Please try again later.");
+  }
+}, [isInSession]);
 
   const handleView = (jobId) => {
     navigate(`/job_post/${jobId}`);
   };
 
-  const debouncedSearch = debounce(async (searchValue, fetchAllJobs, setSearchTitle, setAllJobs, setTotalJobs, pageSize) => {
-    setSearchTitle(searchValue || "Technology");
-    if (searchValue.trim() === "") {
-      const allJobsData = await fetchAllJobs();
-      setAllJobs(allJobsData.jobs);
-      setTotalJobs(allJobsData.total_jobs);
-    } else {
-      const data = await searchService.instantSearchJobs(searchValue, 1, pageSize);
-      setAllJobs(data.results);
-      setTotalJobs(data.total);
-    }
-  }, 700);
-  
   const handleSearch = (event) => {
     const searchValue = event.target.value;
-    console.log('Input changed:', searchValue);
     setSearchQuery(searchValue);
-    if (searchQuery.length >= 3) {
-      debouncedSearch(searchValue, fetchAllJobs, setSearchTitle, setAllJobs, setTotalJobs, pageSize);
-    }
   };
   
 
@@ -240,47 +283,72 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
 
   
 
-  const handleFilterSearch = useCallback(
-    debounce(async (page = 1) => {
-      try {
-        // Check if filters or page have changed since last call
-        if (
-          JSON.stringify(filters) === JSON.stringify(prevFilters.current) &&
-          page === currentPage &&
-          allJobs.length > 0
-        ) {
-          return; // No need to fetch if nothing has changed
-        }
-  
-        // Perform the API call with current filters and page
-        const data = await searchService.filteredSearchJobs({...filters, page, page_size: pageSize});
-        
-        // Update state with fetched data
-        setAllJobs(data.jobs);
-        setTotalJobs(data.total_jobs);
-        setCurrentPage(page);
-  
-        // Update search title based on active filters
-        if (filters.tech_stack.length > 0) {
-          setSearchTitle(`${filters.tech_stack[0].charAt(0).toUpperCase() + filters.tech_stack[0].slice(1)} Jobs`);
-        } else if (filters.specialization) {
-          setSearchTitle(`${filters.specialization} Jobs`);
-        } else {
-          setSearchTitle("Technology Jobs");
-        }
-  
-        // Update prevFilters ref to current filters for future comparison
-        prevFilters.current = {...filters};
-  
-      } catch (error) {
-        console.error('Error fetching filtered jobs:', error);
-        setAllJobs([]);
-        setTotalJobs(0);
-        toast.error("Failed to fetch jobs. Please try again later.");
-      }
-    }, 300),  // 300ms debounce to prevent rapid successive calls
-    [filters, pageSize, currentPage, allJobs.length]
-  );
+  // const handleFilterSearch = useCallback(async (page = 1) => {
+  //   try {
+  //     const data = await searchService.filteredSearchJobs({...filters, query: searchQuery, page, page_size: pageSize});
+      
+  //     setAllJobs(data.jobs);
+  //     setTotalJobs(data.total_jobs);
+  //     setCurrentPage(page);
+
+  //     if (searchQuery) {
+  //       setSearchTitle(`Results for "${searchQuery}"`);
+  //     } else if (filters.tech_stack.length > 0) {
+  //       setSearchTitle(`${filters.tech_stack[0].charAt(0).toUpperCase() + filters.tech_stack[0].slice(1)} Jobs`);
+  //     } else if (filters.specialization) {
+  //       setSearchTitle(`${filters.specialization} Jobs`);
+  //     } else {
+  //       setSearchTitle("Technology Jobs");
+  //     }
+
+  //     prevFilters.current = {...filters};
+
+  //   } catch (error) {
+  //     console.error('Error fetching filtered jobs:', error);
+  //     setAllJobs([]);
+  //     setTotalJobs(0);
+  //     toast.error("Failed to fetch jobs. Please try again later.");
+  //   }
+  // }, [filters, searchQuery, pageSize]);
+
+  const handleFilterSearch = useCallback(async (page = 1, newFilters = null, newQuery = null) => {
+  try {
+    const filtersToUse = newFilters || filters;
+    const queryToUse = newQuery !== null ? newQuery : searchQuery;
+    
+    const data = await searchService.filteredSearchJobs({
+      ...filtersToUse, 
+      query: queryToUse, 
+      page, 
+      page_size: pageSize
+    });
+    
+    setAllJobs(data.jobs);
+    setTotalJobs(data.total_jobs);
+    setCurrentPage(page);
+
+    if (newFilters) setFilters(newFilters);
+    if (newQuery !== null) setSearchQuery(newQuery);
+
+    if (queryToUse) {
+      setSearchTitle(`Results for "${queryToUse}"`);
+    } else if (filtersToUse.tech_stack.length > 0) {
+      setSearchTitle(`${filtersToUse.tech_stack[0].charAt(0).toUpperCase() + filtersToUse.tech_stack[0].slice(1)} Jobs`);
+    } else if (filtersToUse.specialization) {
+      setSearchTitle(`${filtersToUse.specialization} Jobs`);
+    } else {
+      setSearchTitle("Technology Jobs");
+    }
+
+    prevFilters.current = {...filtersToUse};
+
+  } catch (error) {
+    console.error('Error fetching filtered jobs:', error);
+    setAllJobs([]);
+    setTotalJobs(0);
+    toast.error("Failed to fetch jobs. Please try again later.");
+  }
+}, [filters, searchQuery, pageSize]);
 
   const fetchSavedJobs = async () => {
     try {
@@ -318,22 +386,14 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
     }
   };
 
-  // const handlePageChange = (newPage) => {
-  //   setCurrentPage(newPage);
-  //   // fetchAllJobs(newPage);
-  //   handleFilterSearch(newPage);
-  // };
-
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
     if (searchQuery.trim() !== "") {
-      // If there's a search query, use instant search pagination
       searchService.instantSearchJobs(searchQuery, newPage, pageSize).then(data => {
         setAllJobs(data.results);
         setTotalJobs(data.total);
       });
     } else {
-      // Otherwise, use filtered search pagination
       handleFilterSearch(newPage);
     }
   };
@@ -343,7 +403,9 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
     const onboardingPaths = [
       '/employer/add-details',
       '/employer/new/organization-details',
-      '/employer/organization-details'
+      '/employer/organization-details',
+      '/employer/verify-email',
+      '/employer/verify-code'
     ];
     setIsInOnboarding(onboardingPaths.includes(location.pathname));
   }, [location]);
@@ -411,10 +473,10 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      return data.bookmarked_jobs || []; // Ensure we always return an array
+      return data.bookmarked_jobs || [];
     } catch (error) {
       console.error("Error fetching more saved jobs:", error);
-      return []; // Return an empty array in case of error
+      return [];
     }
   };
 
@@ -431,10 +493,10 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      return data.applied_jobs || []; // Ensure we always return an array
+      return data.applied_jobs || [];
     } catch (error) {
       console.error("Error fetching more applied jobs:", error);
-      return []; // Return an empty array in case of error
+      return [];
     }
   };
 
@@ -494,6 +556,8 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
                       isInSession={isInSession}
                       onViewAll={() => handleViewAllRoles(specialization)}
                       userData={userData}
+                      onUnsave={handleUnsave}
+                      userJobStatuses={userJobStatuses}
                     />
                   ))}
                 </div>
@@ -522,8 +586,10 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
               onFilterSearch={handleFilterSearch}
               isInSession={isInSession}
               specialization={specialization}
-              onClearAll={handleClearAll}  // Pass the new handleClearAll function
+              onClearAll={handleClearAll}
               onTechFilter={handleTechFilter}
+              onUnsave={handleUnsave}
+              userJobStatuses={userJobStatuses}
             />
           }
         />
@@ -567,10 +633,11 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
         <Route path="/edit-job/:jobId" element={<EditJob />} />z
         <Route
           path="/job_post/:jobId"
-          element={<JobPost onSave={handleSave} onApply={handleApply} isInSession={isInSession} />}
+          element={<JobPost onSave={handleSave} onApply={handleApply} isInSession={isInSession} userJobStatuses={userJobStatuses} onUnsave={handleUnsave} />}
         />
         {/* <Route path="/profile" element={<DeveloperProfile />} /> */}
         <Route path="/profile" element={<JobBoardProfile />} />
+        <Route path="/recruiter-page" element={<RecruiterLandingPage />} />
         <Route
           path="/saved-jobs"
           element={
@@ -581,7 +648,6 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
                   jobs={savedJobs}
                   onApply={handleApply}
                   onView={handleView}
-                  // fetchMoreJobs={fetchSavedJobs}
                   fetchMoreJobs={fetchMoreSavedJobs}
                   onRemove={removeBookmark}
                   isSavedJobs={true}

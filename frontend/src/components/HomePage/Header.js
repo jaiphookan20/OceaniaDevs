@@ -16,45 +16,45 @@ import blankImage from "../../assets/header-blank-image-slate.png";
 
 const Header = () => {
   return (
-    <header className="text-center py-12 mb-2 rounded-lg max-w-8xl mx-auto bg-slate-50/50">
+    <header className="text-center py-12 mb-2 rounded-sm max-w-6xl mx-auto bg-gradient-to-r from-purple-400 via-lime-500 to-fuchsia-400">
       {/* bg-[#c3f53c] */}
       <div className="flex justify-between items-center">
         {/* <div className="flex justify-center items-center space-x-4"> */}
-        <div className="grid grid-cols-3 grid-rows-2 gap-4">
-          <img src={blueSpikesIcon} className="w-32 h-32" />
-          {/* <img src={face2} className="w-32 h-32" /> */}
-          <img src={blankImage} className="w-32 h-32" />
-          {/* <img src={face2} className="w-32 h-32" /> */}
-          <img src={orangeSpikesIcon} className="w-32 h-32" />
-          <img src={blankImage} className="w-32 h-32" />
-          <img src={purpleFlowerIcon} className="w-32 h-32" />
-          {/* <img src={face4} className="w-32 h-32" /> */}
-          <img src={blankImage} className="w-32 h-32" />
-          {/* <img src={hero5} className="w-32 h-32" /> */}
-        </div>
-        <div className="text-center rounded-md">
+        {/* <div className="grid grid-cols-3 grid-rows-2 gap-4">
+          <img src={blueSpikesIcon} className="w-20 h-28" />
+          <img src={face2} className="w-20 h-28" />
+          <img src={blankImage} className="w-20 h-28" />
+          <img src={face2} className="w-20 h-28" />
+          <img src={orangeSpikesIcon} className="w-20 h-28" />
+          <img src={blankImage} className="w-20 h-28" />
+          <img src={purpleFlowerIcon} className="w-20 h-28" />
+          <img src={face4} className="w-20 h-28" />
+          <img src={blankImage} className="w-20 h-28" />
+          <img src={hero5} className="w-20 h-28" />
+        </div> */}
+        <div className="mx-auto text-center rounded-lg">
           <div className="flex">
-          <h1 className="text-6xl font-bold text-slate-600 ">
-            {/* <h1 className="text-6xl font-bold text-lime-100 "> */}
+          <h1 className="text-7xl font-bold text-white ">
+            {/* <h1 className="text-6xl font-bold text-lime-500 "> */}
               Find your next
             </h1>
             <h1 className="text-6xl font-bold text-lime-400">:</h1>
           </div>
-          <p className="text-green-800 mt-5 text-1xl text-slate-400 font-semibold">
+          <p className="text-green-800 mt-5 text-1xl text-white font-semibold">
           {/* <p className="text-green-800 mt-5 text-1xl text-lime-200 font-semibold"> */}
             THE BEST TECHNOLOGY JOBS, DOWN UNDER
           </p>
         </div>
-        <div className="grid grid-cols-3 grid-rows-2 gap-2">
-          <img src={orangeSpikesIcon} className="w-32 h-32" />
-          {/* <img src={face3} className="w-32 h-32" /> */}
-          <img src={blankImage} className="w-32 h-32" />
-          <img src={blueVaseIcon} className="w-32 h-32" />
-          <img src={blankImage} className="w-32 h-32" />
-          <img src={pinkStreamIcon} className="w-32 h-32" />
-          <img src={blankImage} className="w-32 h-32" />
-          {/* <img src={face1} className="w-32 h-32" /> */}
-        </div>
+        {/* <div className="grid grid-cols-3 grid-rows-2 gap-2">
+          <img src={orangeSpikesIcon} className="w-20 h-28" />
+          <img src={face3} className="w-20 h-28" />
+          <img src={blankImage} className="w-20 h-28" />
+          <img src={blueVaseIcon} className="w-20 h-28" />
+          <img src={blankImage} className="w-20 h-28" />
+          <img src={pinkStreamIcon} className="w-20 h-28" />
+          <img src={blankImage} className="w-20 h-28" />
+          <img src={face1} className="w-20 h-28" />
+        </div> */}
       </div>
     </header>
   );
