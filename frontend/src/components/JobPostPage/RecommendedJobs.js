@@ -61,7 +61,7 @@ const RecommendedJobs = ({ jobs }) => {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {jobs.map((job) => (
+        {jobs.length > 0 && jobs.map((job) => (
           <RecommendedJobCard key={job.job_id} job={job} />
         ))}
       </div>

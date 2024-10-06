@@ -92,7 +92,7 @@ const TrendingTechStackGrid = () => {
   
   const handleTechClick = (techName) => {
     console.log("Clicking Logo")
-    navigate(`/search-page?tech=${encodeURIComponent(techName)}`);
+    navigate(`/search-page?tech_stack=${encodeURIComponent(techName)}`);
   };
 
   return (

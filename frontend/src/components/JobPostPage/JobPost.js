@@ -6,14 +6,27 @@ import RecommendedJobs from "./RecommendedJobs";
 import HashLoader from "react-spinners/HashLoader";
 import { useNavigate } from "react-router-dom";
 import { getRelativeTimeString } from '../../utils/time';
+import greenTick from '../../assets/green-tick.svg';
+import industryIcon from '../../assets/jobpost/industry-icon.webp';
+import experienceIcon from '../../assets/jobpost/experience-icon.webp';
+import salaryIcon from '../../assets/jobpost/salary-icon.webp';
+import locationIcon from '../../assets/jobpost/location-icon.webp';
+import minExperienceIcon from '../../assets/jobpost/min-experience-icon.webp';
+import specialisationIcon from '../../assets/jobpost/specialisation-icon.webp';
+import workLocationIcon from '../../assets/jobpost/work-location-icon.webp';
+import jobArrangementIcon from '../../assets/jobpost/job-arrangement-icon.webp';  
 
-const JobPost = ({ onSave, onApply, isInSession }) => {
+const JobPost = ({ onSave, onApply, isInSession, userJobStatuses, onUnsave }) => {
   const { jobId } = useParams();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const technologiesRef = useRef(null);
   const [recommendedJobs, setRecommendedJobs] = useState([]);
+  const [showDescription, setShowDescription] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isApplied, setIsApplied] = useState(false);
+  const [applicationDate, setApplicationDate] = useState(null);
 
   const navigate = useNavigate();
 
@@ -33,7 +46,12 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
     }
   }, [job, jobId]);
   
-  
+  useEffect(() => {
+    if (userJobStatuses && job) {
+      setIsSaved(userJobStatuses.saved_jobs.includes(job.job_id));
+      setIsApplied(userJobStatuses.applied_jobs.includes(job.job_id));
+    }
+  }, [userJobStatuses, job]);
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -42,7 +60,10 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
         const data = await response.json();
         if (response.ok) {
           setJob(data);
-          console.log(job);
+          // Set the application date if the job has been applied to
+          if (data.application_date) {
+            setApplicationDate(new Date(data.application_date));
+          }
         } else {
           setError(data.error);
         }
@@ -125,7 +146,7 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
             <h3 className="text-3xl pt-2 text-slate-500 font-semibold hover:text-slate-700 hover:cursor-pointer" onClick={()=> navigate(`/company/${job.company_id}`)}>
               {job.company}
             </h3>
-            <p className="items-bottom p-2 text-xl text-slate-600 font-semibold">{getRelativeTimeString(job.created_at)}</p>
+            <p className="items-bottom p-2 text-xl text-emerald-700 font-semibold">{getRelativeTimeString(job.created_at)}</p>
           </div>
           <p className="text-gray-500 mt-2 text-xl">
             {job.company_description}
@@ -133,14 +154,14 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
         </div>
         <div className="grid grid-cols-4 gap-6 mt-6 p-4 bg-[#f5f5ec] border-t border-b border-slate-400 rounded-md shadow-sm">
   {[
-    { icon: "https://img.icons8.com/?size=100&id=Z3STIRU4hxMn&format=png&color=000000", label: "Industry", value: job.industry },
-    { icon: "https://img.icons8.com/?size=100&id=3BUZy0U5CdQL&format=png&color=000000", label: "Experience", value: job.experience_level },
-    { icon: "https://img.icons8.com/?size=100&id=tUxN1SSkN8zG&format=png&color=000000", label: "Salary", value: `${job.salary_range} AUD` },
-    { icon: "https://img.icons8.com/?size=100&id=HvkLiNNdKM33&format=png&color=000000", label: "Location", value: job.location },
-    { icon: "https://img.icons8.com/?size=100&id=bnRjsA4q33Cw&format=png&color=000000", label: "Min. Experience", value: `${job.min_experience_years}+ Years` },
-    { icon: "https://img.icons8.com/?size=100&id=KDmZN631Ig1j&format=png&color=000000", label: "Specialization", value: job.specialization },
-    { icon: "https://img.icons8.com/?size=100&id=aUSV1wxr8mk2&format=png&color=000000", label: "Work Location", value: job.work_location },
-    { icon: "https://img.icons8.com/?size=100&id=8Y1SrtCBXvmA&format=png&color=000000", label: "Job Arrangement", value: job.job_arrangement }
+    { icon: industryIcon, label: "Industry", value: job.industry },
+    { icon: experienceIcon, label: "Experience", value: job.experience_level },
+    { icon: salaryIcon, label: "Salary", value: job.salary_range !== 'Not Listed' ? `${job.salary_range} AUD` : 'Not Listed'},
+    { icon: locationIcon, label: "Location", value: job.location },
+    { icon: minExperienceIcon, label: "Min. Experience", value: job.min_experience_years > 0 ? `${job.min_experience_years}+ Years` : 'Not Listed' },
+    { icon: specialisationIcon, label: "Specialization", value: job.specialization },
+    { icon: workLocationIcon, label: "Work Location", value: job.work_location },
+    { icon: jobArrangementIcon, label: "Job Arrangement", value: job.job_arrangement }
   ].map((item, index) => (
     <div key={index} className="flex flex-col items-center p-2 bg-white rounded-md shadow-sm border border-slate-400 transition-all duration-300 hover:shadow-md">
       <img
@@ -157,6 +178,15 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
 </div>
             <div className="flex justify-between items-between pxb-20">
           <div className="w-3/4 pl-8 pr-2">
+          {/* Add this conditional rendering for the applied status */}
+          {isApplied && applicationDate && (
+              <div className="flex justify-start font-semibold text-emerald-600 px-4 py-1 mt-4 rounded-lg relative mb-4" role="alert">
+                <div className="flex text-center items-center">
+                  <img src={greenTick} alt="Green Tick" className="w-4 h-4 mr-2" />
+                  <span className="block sm:inline">Applied on External Website | October 7th</span>
+                </div>
+              </div>
+            )}
             <section className="mt-6">
               <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800" style={{ fontFamily: "Avenir, sans-serif" }}>
                 About the role
@@ -185,11 +215,27 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
                 ))}
               </ul>
             </section>
+            {/* New toggle section for job description */}
+            <section className="mt-6">
+              <h2 
+                className="text-3xl font-semibold mt-4 mb-1 text-slate-800 cursor-pointer flex items-center"
+                style={{ fontFamily: "Avenir, sans-serif" }}
+                onClick={() => setShowDescription(!showDescription)}
+              >
+                Full Job Description
+                <span className="ml-2">{showDescription ? '▲' : '▼'}</span>
+              </h2>
+              {showDescription && (
+                <p className="mt-2 text-slate-600 text-md leading-loose" style={{ fontFamily: "Avenir, sans-serif" }}>
+                  {job.description}
+                </p>
+              )}
+            </section>
             <section ref={technologiesRef} className="mt-6" style={{ fontFamily: "Avenir, sans-serif" }}>
               <h2 className="text-3xl font-semibold mt-4 mb-1 text-slate-800">
                 Tech Stack
               </h2>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 mt-4 bg-stone-100 border border-slate-400 rounded-lg">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 mt-4 border border-slate-400 rounded-lg">
                 {techStackIcons.map((tech) => (
                   <div
                     key={tech}
@@ -207,7 +253,7 @@ const JobPost = ({ onSave, onApply, isInSession }) => {
             </section>
           </div>
           <div className="w-1/4 p-4">
-            <JobPostSideBar job={job} onSave={onSave} onApply={onApply} isInSession={isInSession}/>
+            <JobPostSideBar job={job} onSave={onSave} onApply={onApply} isInSession={isInSession} onUnsave={onUnsave} isSaved={isSaved} isApplied={isApplied} />
           </div>
         </div>
         <RecommendedJobs jobs={recommendedJobs} />

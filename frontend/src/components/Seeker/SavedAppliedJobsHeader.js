@@ -9,7 +9,7 @@ const SavedAndAppliedJobsHeader = ({ title }) => {
     <div>
       {title === "Saved Jobs" ? (
         <header className="mb-4">
-          <div className="flex justify-between">
+          <div className="flex justify-between" style={{fontFamily: "HeyWow"}}>
             <nav className="flex items-center text-sm text-gray-500 mb-4 space-x-1">
               <Link to="/" className="hover:text-gray-700">OceaniaDevs</Link>
               <ChevronRight size={16} className="mx-2" />
@@ -22,7 +22,7 @@ const SavedAndAppliedJobsHeader = ({ title }) => {
               <ChevronRight size={16} className="mx-2" />
             </nav>
           </div>
-          <div className="flex justify-between items-center p-3 space-x-4 border-t border-b border-teal-200">
+          <div className="flex justify-between items-center p-3 space-x-4 border-t border-b border-slate-200">
             <div className="ml-2 rounded-full">
               <div className="sm:flex sm:items-center sm:justify-between p-2">
                 <div>
@@ -49,7 +49,7 @@ const SavedAndAppliedJobsHeader = ({ title }) => {
               <ChevronRight size={16} className="mx-2" />
             </nav>
           </div>
-        <div className="flex justify-between items-center p-3 space-x-4 border-t border-b border-teal-200">
+        <div className="flex justify-between items-center p-3 space-x-4 border-t border-b border-slate-200">
           <div className="ml-2 rounded-full">
             <div className="sm:flex sm:items-center sm:justify-between p-2">
               <div>

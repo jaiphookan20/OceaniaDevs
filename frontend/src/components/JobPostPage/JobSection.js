@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import JobCard from "../HomePage/JobCard";
 
-const JobSection = ({ title, jobs, onSave, onApply, onView, company, isInSession, onViewAll, userData }) => {
+const JobSection = ({ title, jobs, onSave, onApply, onView, company, isInSession, onViewAll, userData, userJobStatuses, onUnsave }) => {
   const navigate = useNavigate();
 
   return (
@@ -29,6 +29,8 @@ const JobSection = ({ title, jobs, onSave, onApply, onView, company, isInSession
             onView={onView}
             isInSession={isInSession}
             userData={userData}
+            userJobStatuses={userJobStatuses}
+            onUnsave={onUnsave}
           />
         ))}
       </div>

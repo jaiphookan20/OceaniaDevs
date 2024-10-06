@@ -1,53 +1,56 @@
-import React, { useState } from 'react';
-import RecruiterJobCard from './RecruiterJobCard';
-import RecruiterDashboardHeader from './RecruiterDashboardHeader';
+import React, { useState } from "react";
+import RecruiterJobCard from "./RecruiterJobCard";
+import RecruiterNoActiveJobsCard from "./RecruiterNoActiveJobsCard";
 
-const RecruiterJobSection = ({ title, activeJobs, expiredJobs, onEdit, onView, onRemove }) => {
-  const [activeTab, setActiveTab] = useState('active');
+const RecruiterJobSection = ({ activeJobs, expiredJobs, onEdit, onView, onRemove }) => {
+  const [showActive, setShowActive] = useState(true);
 
   return (
-    <div className="mb-10">
-      <RecruiterDashboardHeader title={title} />
-      <div className="flex justify-start items-center mb-4 space-x-4">
+    <div>
+      <div className="flex justify-start mb-4">
         <button
-          className={`px-4 py-2 rounded-lg ${
-            activeTab === 'active' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700'
+          className={`mr-4 px-4 py-2 rounded ${
+            showActive ? "bg-purple-600 text-white" : "bg-gray-200 text-gray-700"
           }`}
-          onClick={() => setActiveTab('active')}
+          onClick={() => setShowActive(true)}
         >
           Active Jobs ({activeJobs.length})
         </button>
         <button
-          className={`px-4 py-2 rounded-lg ${
-            activeTab === 'expired' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700'
+          className={`px-4 py-2 rounded ${
+            !showActive ? "bg-purple-600 text-white" : "bg-gray-200 text-gray-700"
           }`}
-          onClick={() => setActiveTab('expired')}
+          onClick={() => setShowActive(false)}
         >
           Expired Jobs ({expiredJobs.length})
         </button>
       </div>
-      <div className="bg-white rounded-lg shadow-md">
-        {activeTab === 'active' &&
-          activeJobs.map((job, index) => (
+
+      {showActive ? (
+        activeJobs.length > 0 ? (
+          activeJobs.map((job) => (
             <RecruiterJobCard
-              key={index}
+              key={job.job_id}
               job={job}
-              onEdit={onEdit}
-              onView={onView}
-              onRemove={onRemove}
+              onEdit={() => onEdit(job.job_id)}
+              onView={() => onView(job.job_id)}
+              onRemove={() => onRemove(job.job_id)}
             />
-          ))}
-        {activeTab === 'expired' &&
-          expiredJobs.map((job, index) => (
-            <RecruiterJobCard
-              key={index}
-              job={job}
-              onEdit={onEdit}
-              onView={onView}
-              onRemove={onRemove}
-            />
-          ))}
-      </div>
+          ))
+        ) : (
+          <RecruiterNoActiveJobsCard />
+        )
+      ) : (
+        expiredJobs.map((job) => (
+          <RecruiterJobCard
+            key={job.job_id}
+            job={job}
+            onEdit={() => onEdit(job.job_id)}
+            onView={() => onView(job.job_id)}
+            onRemove={() => onRemove(job.job_id)}
+          />
+        ))
+      )}
     </div>
   );
 };
