@@ -8,7 +8,7 @@ services:
       args:
         - FLASK_ENV=staging
     env_file:
-      - .env.staging
+      - .env
     environment:
       - FLASK_ENV=staging
       - DB_HOST=${STAGING_DB_HOST}
@@ -16,4 +16,16 @@ services:
       - DB_NAME=${STAGING_DB_NAME}
       - DB_USER=${STAGING_DB_USER}
       - DB_PASSWORD=${STAGING_DB_PASSWORD}
-    
+  
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: aus-job-board-frontend:staging
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${STAGING_DB_NAME}
+      POSTGRES_USER: ${STAGING_DB_USER}
+      POSTGRES_PASSWORD: ${STAGING_DB_PASSWORD}
