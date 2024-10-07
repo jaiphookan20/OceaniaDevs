@@ -9,6 +9,12 @@ DB_USER = os.environ.get('DB_USER')
 DB_PASSWORD = os.environ.get('DB_PASSWORD')
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
+LIGHTSAIL_DB_HOST = os.environ.get('LIGHTSAIL_DB_HOST')
+LIGHTSAIL_DB_PORT = os.environ.get('LIGHTSAIL_DB_PORT')
+LIGHTSAIL_DB_NAME = os.environ.get('LIGHTSAIL_DB_NAME')
+LIGHTSAIL_DB_USER = os.environ.get('LIGHTSAIL_DB_USER')
+LIGHTSAIL_DB_PASSWORD = os.environ.get('LIGHTSAIL_DB_PASSWORD')
+
 AUTH0_CLIENT_ID = os.environ.get('AUTH0_CLIENT_ID')
 AUTH0_CLIENT_SECRET = os.environ.get('AUTH0_CLIENT_SECRET')
 AUTH0_DOMAIN = os.environ.get('AUTH0_DOMAIN')
