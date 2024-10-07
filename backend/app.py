@@ -59,6 +59,12 @@ def create_app():
     DB_USER = os.environ.get('DB_USER', 'jai')
     DB_PASSWORD = os.environ.get('DB_PASSWORD', 'techboard')
 
+    LIGHTSAIL_DB_HOST = os.environ.get('LIGHTSAIL_DB_HOST')
+    LIGHTSAIL_DB_PORT = os.environ.get('LIGHTSAIL_DB_PORT')
+    LIGHTSAIL_DB_NAME = os.environ.get('LIGHTSAIL_DB_NAME')
+    LIGHTSAIL_DB_USER = os.environ.get('LIGHTSAIL_DB_USER')
+    LIGHTSAIL_DB_PASSWORD = os.environ.get('LIGHTSAIL_DB_PASSWORD')
+
     # Redis configuration
     REDIS_HOST = os.environ.get('REDIS_HOST', 'redis')
     REDIS_PORT = int(os.environ.get('REDIS_PORT', 6379))
@@ -71,14 +77,16 @@ def create_app():
     app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
     app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', 'noreply@yourdomain.com')
 
-    # Database URI configuration
-    if os.getenv("FLASK_ENV") == "testing":
-        app.logger.info('Running Test DB')
-        app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}_test'
+    # Database configuration
+    if os.getenv("FLASK_ENV") == "production":
+        app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{LIGHTSAIL_DB_USER}:{LIGHTSAIL_DB_PASSWORD}@{LIGHTSAIL_DB_HOST}:{LIGHTSAIL_DB_PORT}/{LIGHTSAIL_DB_NAME}'
     else:
+        DB_HOST = os.environ.get('DB_HOST', 'localhost')
+        DB_NAME = os.environ.get('DB_NAME', 'job_board')
+        DB_USER = os.environ.get('DB_USER', 'jai')
+        DB_PASSWORD = os.environ.get('DB_PASSWORD', 'techboard')
         app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
-
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Session configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', webapp_secret_key)

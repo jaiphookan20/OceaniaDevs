@@ -34,7 +34,7 @@ const JobPostCompanySideProfile = ({ job }) => {
           <p className="text-sm font-medium text-gray-700">Sydney, NSW</p>
         </div>
         <button className="mt-5 w-full bg-black hover:bg-violet-700 text-white font-md py-1 px-3 rounded" style={{fontFamily: "Roobert-Regular, san-serif"}}
-        onClick={()=>navigate(`/job_post/${job.job_id}`)}
+        onClick={()=>navigate(`/company/${job.company_id}`)}
         >
           View company profile
         </button>
