@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -e  # Exit immediately if a command exits with a non-zero status
 set -o pipefail  # Return value of a pipeline is the value of the last command to exit with a non-zero status
 
@@ -9,8 +8,14 @@ TEST_CONTAINER="postgres_test"
 
 docker run --name $TEST_CONTAINER -e POSTGRES_USER=$DB_USER -e POSTGRES_PASSWORD=$DB_PASSWORD -e POSTGRES_DB=$DB_NAME -d postgres:15
 
-LATEST_BACKUP=$(ls -t $BACKUP_DIR/pg_dump_*.sql.gz | head -n1)
+LATEST_BACKUP=$(ls -t $BACKUP_DIR/pg_dump_*.sql.gz 2>/dev/null | head -n1)
 
+if [ -z "$LATEST_BACKUP" ]; then
+    echo "No backup files found in $BACKUP_DIR"
+    exit 1
+fi
+
+echo "Using backup file: $LATEST_BACKUP"
 gunzip < $LATEST_BACKUP | docker exec -i $TEST_CONTAINER psql -U $DB_USER -d $DB_NAME
 
 # Run comprehensive tests
