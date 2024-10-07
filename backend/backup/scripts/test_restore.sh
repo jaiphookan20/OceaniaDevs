@@ -1,21 +1,20 @@
 #!/bin/bash
 
+set -e  # Exit immediately if a command exits with a non-zero status
+set -o pipefail  # Return value of a pipeline is the value of the last command to exit with a non-zero status
+
 source /home/ubuntu/OceaniaDevs/backend/backup/config.env
 
 TEST_CONTAINER="postgres_test"
 
-if [ "$FLASK_ENV" = "staging" ]; then
-    POSTGRES_DB="${POSTGRES_DB}_staging"
-fi
-
-docker run --name $TEST_CONTAINER -e POSTGRES_USER=$POSTGRES_USER -e POSTGRES_DB=$POSTGRES_DB -d postgres:latest
+docker run --name $TEST_CONTAINER -e POSTGRES_USER=$DB_USER -e POSTGRES_PASSWORD=$DB_PASSWORD -e POSTGRES_DB=$DB_NAME -d postgres:15
 
 LATEST_BACKUP=$(ls -t $BACKUP_DIR/pg_dump_*.sql.gz | head -n1)
 
-gunzip < $LATEST_BACKUP | docker exec -i $TEST_CONTAINER psql -U $POSTGRES_USER -d $POSTGRES_DB
+gunzip < $LATEST_BACKUP | docker exec -i $TEST_CONTAINER psql -U $DB_USER -d $DB_NAME
 
 # Run comprehensive tests
-docker exec -i $TEST_CONTAINER psql -U $POSTGRES_USER -d $POSTGRES_DB <<EOF
+docker exec -i $TEST_CONTAINER psql -U $DB_USER -d $DB_NAME <<EOF > test_results.txt
 -- Check if all expected tables exist
 SELECT 'Missing table: ' || table_name
 FROM (
@@ -87,12 +86,14 @@ EOF
 docker stop $TEST_CONTAINER
 docker rm $TEST_CONTAINER
 
-
 # Check if any errors were reported
-if [ -s error_output.txt ]; then
+if grep -q "Missing" test_results.txt; then
     echo "Errors detected during backup test:"
-    cat error_output.txt
+    cat test_results.txt
     exit 1
 else
     echo "Backup test completed successfully."
+    cat test_results.txt
 fi
+
+rm test_results.txt
