@@ -14,7 +14,9 @@ const SearchPageJobSection = ({
   isInSession,
   filters,
   searchQuery,
-  isSearchPerformed // New prop to indicate if search has been performed
+  isSearchPerformed, // New prop to indicate if search has been performed
+  userJobStatuses,
+  onUnsave
 }) => {
   if (!jobs) {
     return (
@@ -94,6 +96,8 @@ const SearchPageJobSection = ({
             onApply={onApply}
             onView={onView}
             isInSession={isInSession}
+            userJobStatuses={userJobStatuses}
+            onUnsave={onUnsave}
           />
         ))}
       </div>

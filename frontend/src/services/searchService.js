@@ -19,22 +19,13 @@ const searchService = {
     }
   },
   
-    searchCompanies: async (filters) => {
-      const queryParams = new URLSearchParams(filters);
-      const response = await fetch(`/api/filter-companies?${queryParams}`);
-      return response.json();
-    },
-  
-    // instantSearchJobs: async (query) => {
-    //   const response = await fetch(`/api/instant_search_jobs?query=${query}`);
-    //   return response.json();
-    // }
+  searchCompanies: async (filters) => {
+    const queryParams = new URLSearchParams(filters);
+    const response = await fetch(`/api/filter-companies?${queryParams}`);
+    return response.json();
+  },
 
-    instantSearchJobs: async (query, page = 1, pageSize = 10) => {
-      const response = await fetch(`/api/instant_search_jobs?query=${query}&page=${page}&page_size=${pageSize}`);
-      return response.json();
-    }
-  };
-  
-  export default searchService;
-  
+  // Highlight: Remove instantSearchJobs method as it's no longer needed
+};
+
+export default searchService;

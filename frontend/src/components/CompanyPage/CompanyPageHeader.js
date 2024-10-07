@@ -30,7 +30,7 @@ const CompanyPageHeader = ({ heading, subheading, logoSrc, company}) => {
         <div className="flex items-center justify-between">        
           <div className="flex items-center">
               <span className="text-gray-900 font-semibold mr-2">Industry</span>
-              <span className="bg-violet-100 text-violet-600 font-semibold px-2 py-1 text-sm rounded">IT-Software Development</span>
+              <span className="bg-violet-100 text-violet-600 font-semibold px-2 py-1 text-sm rounded">{company.industry}</span>
             </div>
             <div className="flex items-center">
               <span className="text-gray-900 font-semibold mr-2">Jobs</span>
@@ -38,7 +38,7 @@ const CompanyPageHeader = ({ heading, subheading, logoSrc, company}) => {
             </div>
             <div className="flex items-center">
               <span className="text-gray-900 font-semibold mr-2">HQ</span>
-              <span className="bg-teal-100 text-teal-700 font-semibold px-2 py-1 rounded text-sm">{company.address}</span>
+              <span className="bg-teal-100 text-teal-700 font-semibold px-2 py-1 rounded text-sm">{company.city}, {company.state}</span>
             </div>
             <div className="flex items-center">
               {/* <span className="text-gray-900 font-semibold mr-2">HQ</span>

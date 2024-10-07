@@ -219,7 +219,7 @@ const Navbar = () => {
                   </Link>
                   {userType === "recruiter" ? (
                     <>
-                      <Link
+                      {/* <Link
                         to="/employer/add-details"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         role="menuitem"
@@ -232,7 +232,7 @@ const Navbar = () => {
                         role="menuitem"
                       >
                         Register Employer
-                      </Link>
+                      </Link> */}
                       <Link
                         to="/recruiter-dashboard"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -262,9 +262,7 @@ const Navbar = () => {
                         <BookCheck className="mr-3 h-5 w-5" />
                         Applied Jobs
                       </Link>
-                    </>
-                  )}
-                  <Link to="/job-alerts" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                    <Link to="/job-alerts" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
                     <Activity className="mr-3 h-5 w-5" />
                     Job Alerts
                   </Link>
@@ -272,6 +270,8 @@ const Navbar = () => {
                     <Settings className="mr-3 h-5 w-5" />
                     Settings
                   </Link>
+                   </> 
+                  )}
                   <div className="border-t border-gray-100 my-1"></div>
                   <button onClick={handleLogout} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
                     <LogOut className="mr-3 h-5 w-5" />

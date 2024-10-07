@@ -1,0 +1,20 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+<h1>Statistics</h1>
+<h2>Overall Statistics</h2>
+<p>Total Seekers: {{ total_seekers }}</p>
+<p>Total Recruiters: {{ total_recruiters }}</p>
+<p>Total Jobs: {{ total_jobs }}</p>
+<p>Total Applications: {{ total_applications }}</p>
+
+<h2>Recent Activity (Last 30 Days)</h2>
+<p>New Job Postings: {{ recent_jobs }}</p>
+<p>New Applications: {{ recent_applications }}</p>
+
+<h2>Top 5 Companies by Job Postings</h2>
+<ol>
+{% for company in top_companies %}
+    <li>{{ company.name }} ({{ company.job_count }} jobs)</li>
+{% endfor %}
+</ol>
+{% endblock %}

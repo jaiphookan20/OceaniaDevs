@@ -1,5 +1,5 @@
 from extensions import db, bcrypt
-from models import Job, Recruiter, Company, TechnologyAlias, Technology, JobTechnology, Application, Bookmark
+from models import Job, Recruiter, Company, TechnologyAlias, Technology, JobTechnology, Application, Bookmark, salary_type_enum, contract_duration_enum, daily_range_enum, hourly_range_enum
 from service.jobs_service import JobsService    
 from flask import session, jsonify, current_app, request
 from utils.categorize import categorize_words
@@ -16,6 +16,11 @@ from sqlalchemy.exc import SQLAlchemyError
 import time
 from extensions import cache
 import config
+from datetime import datetime, timedelta
+import random
+from urllib.parse import urlparse
+from flask_mail import Message
+from extensions import mail
 
 class RecruiterService:
     def __init__(self):
@@ -89,11 +94,9 @@ class RecruiterService:
             if recruiter and recruiter.company_id:
                 company = Company.query.get(recruiter.company_id)
                 if company:
-                    company.country = data.get('country', company.country)
                     company.size = data.get('employerSize', company.size)
-                    company.website_url = data.get('website', company.website_url)
-                    company.address = data.get('address', company.address)
-                    company.description = data.get('description', company.description)[:200]
+                    company.website_url = data.get('employerWebsite', company.website_url)
+                    company.description = data.get('employerDescription', company.description)[:200]
                     company.type = data.get('type', company.type)
                     company.city = data.get('city', company.city)
                     company.state = data.get('state', company.state)
@@ -128,22 +131,17 @@ class RecruiterService:
                 logo_path = os.path.join(current_app.config['UPLOAD_FOLDER'], logo_filename)
                 logo_file.save(logo_path)
 
-            name = data.get('employerName');
-            website_url= data.get('employerWebsite');
-            country= data.get('country');
-            size = data.get('employerSize');
-            address= data.get('employerAddress');
-            description= data.get('employerDescription');
-            logo_url= logo_path;
-            
             new_company = Company(
-                name=name,
-                website_url=website_url,
-                country = country,
-                size = size,
-                address = address,
-                description = description,
-                logo_url = logo_url
+                name=data.get('employerName'),
+                website_url=data.get('employerWebsite'),
+                size=data.get('employerSize'),
+                description=data.get('employerDescription'),
+                # location=data.get('location'),
+                logo_url=logo_path,
+                type=data.get('type'),
+                industry=data.get('industry'),
+                city=data.get('city'),
+                state=data.get('state')
             )
 
             db.session.add(new_company)
@@ -161,64 +159,64 @@ class RecruiterService:
             return False
 
     # def process_job_description_openai(self, title, description):
-        messages = [
-            {
-                "role": "system",
-                "content": "You are a highly knowledgeable AI assistant specializing in technology job market analysis. Your task is to analyze job descriptions and output structured data in JSON format."
-            },
-            {
-                "role": "user",
-                "content": f"""Analyze the following job description and title and provide a response in JSON format with these keys: 'overview', 'responsibilities', 'requirements', 'specialization', 'technologies', 'min_experience_years', 'experience_level', 'industry', 'salary_type', 'salary_range', hourly_range', 'daily_range', 'work_location', 'city', 'state', 'country', 'work_rights', 'job_arrangement, 'contract_duration'.
+    #     messages = [
+    #         {
+    #             "role": "system",
+    #             "content": "You are a highly knowledgeable AI assistant specializing in technology job market analysis. Your task is to analyze job descriptions and output structured data in JSON format."
+    #         },
+    #         {
+    #             "role": "user",
+    #             "content": f"""Analyze the following job description and title and provide a response in JSON format with these keys: 'overview', 'responsibilities', 'requirements', 'specialization', 'technologies', 'min_experience_years', 'experience_level', 'industry', 'salary_type', 'salary_range', hourly_range', 'daily_range', 'work_location', 'city', 'state', 'country', 'work_rights', 'job_arrangement, 'contract_duration'.
 
-                Instructions for each key:
-                1. 'overview': Summarize the role and company, including all key and salient information relevant to potential candidates. Add any information related to benefits or perks here. Add information verbatim if needed but all of the information is needed.
-                2. 'min_experience_years': Extract the highest number of years of experience mentioned for any skill. Only if mentioned. Otherwise, leave empty.
-                3. 'industry': Identify the end market or industry of the client that the role serves. If client is federal government, industry = 'government'. Use one of the following: ['Government', 'Banking & Financial Services', 'Fashion', 'Mining', 'Healthcare', 'IT - Software Development', 'IT - Data Analytics', 'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 'Marketing & Advertising', 'Media & Communications', 'Non-Profit & NGO', 'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 'Telecommunications', 'Transportation & Logistics'].
-                4. 'responsibilities': List main job duties and expectations. Provide detailed information.
-                5. 'requirements': Enumerate essential qualifications and skills needed. Provide detailed information.
-                6. 'specialization': Classify the job into ONLY ONE of these categories: 'Frontend', 'Backend', 'Cloud & Infrastructure', 'Business Intelligence & Data', 'Machine Learning & AI', 'Full-Stack', 'Mobile', 'Cybersecurity', 'Business Application Development', 'DevOps & IT', 'Project Management', 'QA & Testing'. Note: 'Cloud & Infrastructure' includes Solution Architect roles. You cannot select any other category other than the ones listed.
-                7. 'technologies': List specific software technologies mentioned (e.g., Java, TypeScript, React, AWS). Exclude general terms like 'LLM services', 'Containers', 'CI/CD' or 'REST APIs'.
-                8. 'experience_level': If 'min_experience_years' value is available, classify on basis of the 'min_experience_years' value: if value is between '0-2': 'Junior'; '3-5': 'Mid-Level', '6-10': 'Senior', '10+':'Executive'. If min_experience_years value not available, Classify as you deem fit into one of: 'Junior', 'Mid-Level', 'Senior', or 'Executive'.                
-                9. 'salary_type': If only available, specify the type of salary or payment arrangement (e.g., 'Annual', 'Hourly', 'Daily').
-                10. 'salary_range': If only available AND salary_type="Annual", extract the salary information and classify it in the bucket it fits in: '40000 - 60000', '60000 - 80000', '80000 - 100000', '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000', '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+'. Otherwise leave empty.
-                11. 'hourly_range': If only available AND salary_type="Hourly", extract the hourly-rate information and classify it in the bucket it fits in: '0 - 20', '20 - 30', '30 - 40', '40 - 50', '50 - 60', '60 - 70', '70 - 80', '80 - 100', '100+'. Otherwise leave empty.
-                12. 'daily_range': If only available AND salary_type="Daily", extract the daily-rate information and classify it in the bucket it fits in: '300 - 400', '400 - 500', '500 - 600', '600 - 700', '700 - 800', '800 - 900', '900 - 1000', '1000 - 1100', '1200+'. Otherwise leave empty.
-                13. 'work_location': Specify the work location as one of: 'Remote', 'Hybrid', 'Office'. Default option: 'Office'.
-                14. 'city': Extract the city where the job is located. Strictly only do so if mentioned, otherwise empty.
-                15. 'state': Extract the state where the job is located. Use one of the following: ['VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA']. Strictly only do so if mentioned, otherwise empty.
-                16. 'country': Extract the country where the job is located. Use one of the following: ['Australia', 'New Zealand'].
-                17. 'work_rights': List any work rights or visa requirements. Strictly only do so if mentioned, otherwise empty.
-                18. 'job_arrangement': Specify the job arrangement as one of: 'Permanent', 'Contract', 'Internship'.
-                19. 'contract_duration': If only the 'job_arrangement' is 'Contract', and if the duration of the contract is provided and available, classify it as belonging to one of the following buckets: '3-6 Months', '6-9 Months', '9-12 Months' or '12 Months+'. Otherwise leave empty.
+    #             Instructions for each key:
+    #             1. 'overview': Summarize the role and company, including all key and salient information relevant to potential candidates. Add any information related to benefits or perks here. Add information verbatim if needed but all of the information is needed.
+    #             2. 'min_experience_years': Extract the lowest number of years of experience mentioned for any skill. Only if mentioned. Otherwise, leave empty. For example, if it's mentioned '3-5 years of experience', extract '3'.
+    #             3. 'industry': Identify the end market or industry of the client that the role serves. If client is federal government, industry = 'government'. Use one of the following: ['Government', 'Banking & Financial Services', 'Fashion', 'Mining', 'Healthcare', 'IT - Software Development', 'IT - Data Analytics', 'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 'Marketing & Advertising', 'Media & Communications', 'Non-Profit & NGO', 'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 'Telecommunications', 'Transportation & Logistics'].
+    #             4. 'responsibilities': List main job duties and expectations. Provide detailed information.
+    #             5. 'requirements': Enumerate essential qualifications and skills needed. Provide detailed information.
+    #             6. 'specialization': Classify the job into ONLY ONE of these categories: 'Frontend', 'Backend', 'Cloud & Infrastructure', 'Business Intelligence & Data', 'Machine Learning & AI', 'Full-Stack', 'Mobile', 'Cybersecurity', 'Business Application Development', 'DevOps & IT', 'Project Management', 'QA & Testing'. Note: 'Cloud & Infrastructure' includes Solution Architect roles. You cannot select any other category other than the ones listed.
+    #             7. 'technologies': List specific software technologies mentioned (e.g., Java, TypeScript, React, AWS). Exclude general terms like 'LLM services', 'Containers', 'CI/CD' or 'REST APIs'.
+    #             8. 'experience_level': If 'min_experience_years' value is available, classify on basis of the 'min_experience_years' value: if value is between '0-2': 'Junior'; '3-5': 'Mid-Level', '6-10': 'Senior', '10+':'Executive'. If min_experience_years value not available, Classify as you deem fit into one of: 'Junior', 'Mid-Level', 'Senior', or 'Executive'.                
+    #             9. 'salary_type': If only available, specify the type of salary or payment arrangement (e.g., 'annual', 'hourly', 'daily'). If not listed: 'annual'. Default value: 'annual'.
+    #             10. 'salary_range': If only available AND salary_type="Annual", extract the salary information and classify it in the bucket it fits in: '40000 - 60000', '60000 - 80000', '80000 - 100000', '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000', '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+'. Otherwise leave empty.
+    #             11. 'hourly_range': If only available AND salary_type="Hourly", extract the hourly-rate information and classify it in the bucket it fits in: '0 - 20', '20 - 30', '30 - 40', '40 - 50', '50 - 60', '60 - 70', '70 - 80', '80 - 100', '100+'. Otherwise leave empty.
+    #             12. 'daily_range': If only available AND salary_type="Daily", extract the daily-rate information and classify it in the bucket it fits in: '300 - 400', '400 - 500', '500 - 600', '600 - 700', '700 - 800', '800 - 900', '900 - 1000', '1000 - 1100', '1200+'. Otherwise leave empty.
+    #             13. 'work_location': Specify the work location as one of: 'Remote', 'Hybrid', 'Office'. Default option: 'Office'.
+    #             14. 'city': Extract the city where the job is located. Strictly only do so if mentioned, otherwise empty.
+    #             15. 'state': Extract the state where the job is located. Use one of the following: ['VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA']. Strictly only do so if mentioned, otherwise empty.
+    #             16. 'country': Extract the country where the job is located. Use one of the following: ['Australia', 'New Zealand'].
+    #             17. 'work_rights': List any work rights or visa requirements. Strictly only do so if mentioned, otherwise empty.
+    #             18. 'job_arrangement': Specify the job arrangement as one of: 'Permanent', 'Contract', 'Internship'.
+    #             19. 'contract_duration': If only the 'job_arrangement' is 'Contract', and if the duration of the contract is provided and available, classify it as belonging to one of the following buckets: '3-6 Months', '6-9 Months', '9-12 Months' or '12 Months+'. Otherwise leave empty.
 
-                Important:
-                - Provide only the JSON object as output, with no additional text.
-                - Ensure all key names are in lowercase.
-                - If information for a key is not available, use an empty string or array as appropriate.
-                - For 'responsibilities' and 'requirements', use arrays of strings.
-                - For 'technologies', use an array of strings, each representing a single technology.
+    #             Important:
+    #             - Provide only the JSON object as output, with no additional text.
+    #             - Ensure all key names are in lowercase.
+    #             - If information for a key is not available, use an empty string or array as appropriate.
+    #             - For 'responsibilities' and 'requirements', use arrays of strings.
+    #             - For 'technologies', use an array of strings, each representing a single technology.
 
-                Title: {title}
-                Job Description: {description}
-                """
-            }
-        ]
+    #             Title: {title}
+    #             Job Description: {description}
+    #             """
+    #         }
+    #     ]
 
-        try:
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=messages,
-                response_format={"type": "json_object"}
-            )
+    #     try:
+    #         response = self.openai_client.chat.completions.create(
+    #             model="gpt-4o-mini",
+    #             messages=messages,
+    #             response_format={"type": "json_object"}
+    #         )
 
-            content = response.choices[0].message.content
-            processed_data = json.loads(content)
-            current_app.logger.info(f"Processed job description for title: {title}")
-            return processed_data
+    #         content = response.choices[0].message.content
+    #         processed_data = json.loads(content)
+    #         current_app.logger.info(f"Processed job description for title: {title}")
+    #         return processed_data
 
-        except Exception as e:
-            current_app.logger.error(f"OpenAI API request failed: {str(e)}")
-            return None
+    #     except Exception as e:
+    #         current_app.logger.error(f"OpenAI API request failed: {str(e)}")
+    #         return None
 
     def process_job_description_openai(self, title, description):
         # First API call: Extract basic job information
@@ -226,9 +224,13 @@ class RecruiterService:
         
         # Second API call: Extract detailed job requirements and responsibilities
         detailed_info = self._extract_detailed_job_info(title, description, basic_info)
-        
+
         # Combine the results
         processed_data = {**basic_info, **detailed_info}
+
+        # # Third API call: Verify and correct the extracted information
+        # verified_data = self._verify_and_correct_job_info(title, description, processed_data)
+    
         return processed_data
 
     def _extract_basic_job_info(self, title, description):
@@ -239,7 +241,7 @@ class RecruiterService:
             },
             {
                 "role": "user",
-                "content": f"""Analyze the following job description and title. Provide a response in JSON format with these keys: 'specialization', 'industry', 'salary_type', 'salary_range', 'work_location', 'city', 'state', 'country', 'job_arrangement'.
+                "content": f"""Analyze the following job description and title. Provide a response in JSON format with these keys: 'specialization', 'technologies', 'industry', 'work_location', 'min_experience_years', 'experience_level', 'city', 'state', 'job_arrangement', 'citizens_or_pr_only', 'security_clearance_required'.
 
                 Title: {title}
                 Job Description: {description}
@@ -253,16 +255,19 @@ class RecruiterService:
                 6. 'experience_level': Classify as you deem fit into one of: 'Junior', 'Mid-Level', 'Senior', or 'Executive' based on the experience requirements defined in the role and/or title.
                 7. 'city': Extract the city where the job is located. Strictly only do so if mentioned, otherwise empty.
                 8. 'state': Extract the state where the job is located. Use one of the following: ['VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA']. Strictly only do so if mentioned, otherwise empty.
-                9. 'job_arrangement': Specify the job arrangement as ONLY one of: 'Permanent', 'Contract/Temp', 'Part-Time' or 'Internship'. Strictly do not include any other value.
+                9. 'citizens_or_pr_only': Set to true if the job description explicitly states that only Australian citizens or permanent residents can apply. Otherwise, set to false.
+                10. 'security_clearance_required': Set to true if the job description mentions any level of security clearance requirement (Baseline, Negative Vetting 1, Negative Vetting 2, or Positive Vetting). Otherwise, set to false.
 
                 Provide only the JSON object as output, with no additional text.
+                - For 'technologies', use an array of strings, each representing a single technology.
+                
                 """
             }
         ]
     
         # Make API call and process response
         response = self.openai_client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o",
             messages=messages,
             response_format={"type": "json_object"}
         )
@@ -276,120 +281,180 @@ class RecruiterService:
             },
             {
                 "role": "user",
-                "content": f"""Analyze the following job description and title. Provide a response in JSON format with these keys: 'overview', 'responsibilities', 'requirements', 'technologies', 'min_experience_years', 'experience_level', 'hourly_range', 'daily_range', 'work_rights', 'contract_duration'.
+                "content": f"""Analyze the following job description and title. Provide a response in JSON format with these keys: 'overview', 'responsibilities', 'requirements', 'technologies', 'salary_type', 'salary_range', 'hourly_range', 'daily_range', 'job_arrangement','contract_duration'.
 
                 Title: {title}
                 Job Description: {description}
                 Basic Info: {json.dumps(basic_info)}
 
                 Instructions:
-                1. 'overview': Summarize the role and company, including all key and salient information relevant to potential candidates. Add any information related to benefits or perks here. Add information verbatim if needed but all of the information is needed.
-                2. 'responsibilities': List main job duties and expectations. Provide detailed information.
-                3. 'requirements': Enumerate essential qualifications and skills needed. Provide detailed information.
-                4. 'salary_type': If only available, specify the type of salary or payment arrangement (e.g., 'Annual', 'Hourly', 'Daily').
-                5. 'salary_range': If only available AND salary_type="Annual", extract the salary information and classify it in the bucket it fits in: '40000 - 60000', '60000 - 80000', '80000 - 100000', '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000', '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+'. Otherwise leave empty.
-                6. 'hourly_range': If only available AND salary_type="Hourly", extract the hourly-rate information and classify it in the bucket it fits in: '0 - 20', '20 - 30', '30 - 40', '40 - 50', '50 - 60', '60 - 70', '70 - 80', '80 - 100', '100+'. Otherwise leave empty.
-                7. 'daily_range': If only available AND salary_type="Daily", extract the daily-rate information and classify it in the bucket it fits in: '300 - 400', '400 - 500', '500 - 600', '600 - 700', '700 - 800', '800 - 900', '900 - 1000', '1000 - 1100', '1200+'. Otherwise leave empty.
-                8. 'work_rights': List any work rights or visa requirements. Strictly only do so if mentioned, otherwise empty.
-                9. contract_duration': If only the 'job_arrangement' is 'Contract', and if the duration of the contract is provided and available, classify it as belonging to one of the following buckets: '3-6 Months', '6-9 Months', '9-12 Months' or '12 Months+'. Otherwise leave empty.
+                1. 'overview': Summarize the role and company, including all key and salient information relevant to potential candidates. Add any information related to benefits or perks here. Add information verbatim if needed but all of the information is needed. Provide a String response.
+                2. 'responsibilities': List main job duties and expectations. Provide detailed information. 
+                3. 'requirements': Enumerate essential qualifications and skills needed. Provide detailed information. 
+                4. 'salary_type': If only available the type of salary is availabe and mentioned, specify the type of salary or payment arrangement. Choose ONLY one of the following: ['annual', 'hourly', 'daily'].
+                5. 'salary_range': If only the salary is available AND salary_type="annual", extract the salary information and classify it in the bucket it fits in: 'Not Listed', '40000 - 60000', '60000 - 80000', '80000 - 100000', '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000', '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+'. If Unavailable, choose 'Not Listed'.
+                6. 'hourly_range': If only the hourly pay information is available AND salary_type="hourly", extract the hourly-rate information and classify it in the bucket it fits in: 'Not Listed', '0-20', '20-40', '40-60', '60-80', '80-100', '100-120', '120-140', '140-160', '160+'. If Unavailable, choose 'Not Listed'.
+                7. 'daily_range': If only the daily pay information is available AND salary_type="daily", extract the daily-rate information and classify it in the bucket it fits in: 'Not Listed', '0-200', '200-400', '400-600', '600-800', '800-1000', '1000-1200', '1200-1400', '1400-1600', '1600+'. If Unavailable, choose 'Not Listed'.
+                8. 'job_arrangement': Specify the job arrangement as ONLY one of: 'Permanent', 'Contract/Temp', 'Part-Time' or 'Internship'. Strictly do not include any other value. Classify as Contract/Temp if the job is a contract or temporary job.
+                9. 'contract_duration': If only the 'job_arrangement' is 'Contract/Temp', and if the duration of the contract is provided and available, classify it as belonging to one of the following buckets: 'Not Listed', '0-3 months', '4-6 months', '7-9 months', '10-12 months' or '12+ months'. If unavailable, choose 'Not Listed'.
 
-                Provide only the JSON object as output, with no additional text.
+                Ensure the following:
+                - Provide only the JSON object as output, with no additional text.
+                - For 'responsibilities' and 'requirements', use arrays of strings.
+                - If information for a key is not available, use an empty string or array as appropriate.
                 """
             }
         ]
         
         # Make API call and process response
         response = self.openai_client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o",
             messages=messages,
             response_format={"type": "json_object"}
         )
         return json.loads(response.choices[0].message.content)
 
-    def add_job_programmatically(self, job_data):
-        try:
-            title = job_data.get('title')
-            description = job_data.get('description')
+    def _verify_and_correct_job_info(self, title, description, processed_data):
+        # Define the acceptable values for each field
+        field_constraints = {
+            "specialization": ["Frontend", "Backend", "Full-Stack", "Mobile", "Data & ML", "QA & Testing", "Cloud & Infra", "DevOps", "Project Management", "IT Consulting", "Cybersecurity"],
+            "experience_level": ["Junior", "Mid-Level", "Senior", "Executive"],
+            "work_location": ["Remote", "Hybrid", "Office"],
+            "job_arrangement": ["Permanent", "Contract/Temp", "Internship", "Part-Time"],
+            "salary_type": ["annual", "hourly", "daily"],
+            "salary_range": ["Not Listed", "20000 - 40000", "40000 - 60000", "60000 - 80000", "80000 - 100000", "100000 - 120000", "120000 - 140000", "140000 - 160000", "160000 - 180000", "180000 - 200000", "200000 - 220000", "220000 - 240000", "240000 - 260000", "260000+"],
+            "hourly_range": ["Not Listed", "0-20", "20-40", "40-60", "60-80", "80-100", "100-120", "120-140", "140-160", "160+"],
+            "daily_range": ["Not Listed", "0-200", "200-400", "400-600", "600-800", "800-1000", "1000-1200", "1200-1400", "1400-1600", "1600+"],
+            "contract_duration": ["Not Listed", "0-3 months", "4-6 months", "7-9 months", "10-12 months", "12+ months"],
+            "industry": ["Government", "Banking & Financial Services", "Fashion", "Mining", "Healthcare", "IT - Software Development", "IT - Data Analytics", "IT - Cybersecurity", "IT - Cloud Computing", "IT - Artificial Intelligence", "Agriculture", "Automotive", "Construction", "Education", "Energy & Utilities", "Entertainment", "Hospitality & Tourism", "Legal", "Manufacturing", "Marketing & Advertising", "Media & Communications", "Non-Profit & NGO", "Pharmaceuticals", "Real Estate", "Retail & Consumer Goods", "Telecommunications", "Transportation & Logistics"],
+        }
 
-            # Process job description using OpenAI API
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(self.process_job_description_openai, title, description)
-                try:
-                    processed_data = future.result(timeout=180)  # 3 minutes timeout
-                except TimeoutError:
-                    current_app.logger.error("OpenAI API call timed out after 3 minutes")
-                    return None, "OpenAI API call timed out after 3 minutes"
+        messages = [
+            {
+                "role": "system",
+                "content": "You are an AI assistant specialized in verifying and correcting job information. Your task is to ensure the extracted job details are accurate, consistent with the original job description, and conform to the specified field constraints."
+            },
+            {
+                "role": "user",
+                "content": f"""Review the following job title, description, and extracted information. Verify if the extracted information is correct, consistent with the job description, and conforms to the specified field constraints. If any information is incorrect, missing, or doesn't conform to the constraints, provide the correct information. Respond in JSON format with the corrected information.
 
-            current_app.logger.info(f"Processed Data: {processed_data}")
-
-            if processed_data:
-                # Step 1: Create the new job entry
-                new_job = Job(
-                    recruiter_id=job_data.get('recruiter_id'),
-                    company_id=job_data.get('company_id'),
-                    title=title,
-                    description=description,
-                    jobpost_url=job_data.get('jobpost_url'),
-                    specialization=job_data.get('specialization') or processed_data.get('specialization'),
-                    industry=job_data.get('industry') or processed_data.get('industry'),
-                    salary_range=job_data.get('salary_range') or processed_data.get('salary_range') or '80000 - 100000',
-                    salary_type=job_data.get('salary_type') or processed_data.get('salary_type'),
-                    work_location=job_data.get('work_location') or processed_data.get('work_location'),
-                    min_experience_years=job_data.get('min_experience_years') or processed_data.get('min_experience_years') or 0,
-                    experience_level=job_data.get('experience_level') or processed_data.get('experience_level'),
-                    city=job_data.get('city') or processed_data.get('city'),
-                    state=job_data.get('state') or processed_data.get('state'),
-                    country=job_data.get('country') or processed_data.get('country'),
-                    work_rights=job_data.get('work_rights') or processed_data.get('work_rights'),
-                    overview=processed_data.get('overview') or processed_data.get('overview'),
-                    responsibilities=job_data.get('responsibilities', '') or processed_data.get('responsibilities'),
-                    requirements=job_data.get('requirements', '') or processed_data.get('requirements'),
-                    job_arrangement=processed_data.get('job_arrangement') or job_data.get('job_arrangement'),
-                    contract_duration=job_data.get('contract_duration') or processed_data.get('contract_duration'),
-                    hourly_range=job_data.get('hourly_range') or processed_data.get('hourly_range'),
-                    daily_range=job_data.get('daily_range') or processed_data.get('daily_range'),
-                )
-
-                # db.session.add(new_job)
-                # db.session.commit()  # Commit to generate job_id
+                Job Title: {title}
+                Job Description: {description}
                 
+                Extracted Information:
+                {json.dumps(processed_data, indent=2)}
 
-                # Step 2: Normalize and process technologies from tech_stack
-                tech_stack = job_data.get('tech_stack') or processed_data.get('technologies')
-                normalized_technologies = set()  # Use a set to avoid duplicates
+                Field Constraints:
+                {json.dumps(field_constraints, indent=2)}
 
-                if tech_stack:
-                    for tech in tech_stack:
+                Instructions:
+                1. Review each field in the extracted information.
+                2. If a field is correct and conforms to the constraints, keep it as is.
+                3. If a field is incorrect, missing, or doesn't conform to the constraints, provide the correct value based on the job description and the given constraints. ONLY provide the corrected value from the list of acceptable values in 'field_constraints', no additional text.
+                4. If a field is not mentioned in the job description and cannot be inferred, leave it as is or set it to an appropriate default value (e.g., "Not Listed" for salary ranges).
+                5. Ensure all fields from the original extracted information are included in your response, even if unchanged.
+                6. Pay special attention to 'specialization', 'technologies', 'experience_level', and 'salary_range' to ensure they are accurate and conform to the constraints.
 
-                        canonical_name = self.normalize_technology_name(tech);
-                        if canonical_name:
-                            normalized_technologies.add(canonical_name)
+                Provide only the JSON object as output, with no additional text.
+                """
+            }
+        ]
 
-                    # Step 3: Add normalized technologies to job_technologies table
-                    for tech_name in normalized_technologies:
-                        technology = Technology.query.filter_by(name=tech_name).first()
-                        if technology:
-                            job_tech = JobTechnology(job_id=new_job.job_id, technology_id=technology.id)
-                            db.session.add(job_tech)
-
-                    db.session.commit()
-                    current_app.logger.info(f"Job '{title}' added with technologies: {normalized_technologies}")
-                else:
-                    current_app.logger.info(f"Job '{title}' added without technologies")
-
-                # Invalidate caches after adding a new job
-                self.invalidate_job_caches(new_job)
-                current_app.logger.info(f"Successfully added job: {title}")
-                return new_job, None
-
-            else:
-                current_app.logger.error("Failed to process job description")
-                return None, "Failed to process job description"
+        try:
+            response = self.openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=messages,
+                response_format={"type": "json_object"}
+            )
+            verified_data = json.loads(response.choices[0].message.content)
+            current_app.logger.info("Successfully verified and corrected job information")
+            return verified_data
 
         except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f"Error adding job: {str(e)}")
-            return None, f"An error occurred while adding the job: {str(e)}"
+            current_app.logger.error(f"OpenAI API request failed in verification step: {str(e)}")
+            return processed_data  # Return the original processed data if verification fails
+    
+    def add_job_programmatically(self, job_data):
+        with current_app.app_context():
+            try:
+                title = job_data.get('title')
+                description = job_data.get('description')
+
+                # Process job description using OpenAI API
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(self.process_job_description_openai, title, description)
+                    try:
+                        processed_data = future.result(timeout=180)  # 3 minutes timeout
+                    except TimeoutError:
+                        current_app.logger.error("OpenAI API call timed out after 3 minutes")
+                        return None, "OpenAI API call timed out after 3 minutes"
+
+                current_app.logger.info(f"Processed Data: {processed_data}")
+
+                if processed_data:
+                    # Create the new job entry
+                    new_job = Job(
+                        recruiter_id=job_data.get('recruiter_id'),
+                        company_id=job_data.get('company_id'),
+                        title=title,
+                        description=description,
+                        jobpost_url=job_data.get('jobpost_url'),
+                        specialization=job_data.get('specialization') or processed_data.get('specialization'),
+                        industry=job_data.get('industry') or processed_data.get('industry'),
+                        work_location=job_data.get('work_location') or processed_data.get('work_location'),
+                        min_experience_years=job_data.get('min_experience_years') or processed_data.get('min_experience_years') or 0,
+                        experience_level=job_data.get('experience_level') or processed_data.get('experience_level'),
+                        city=job_data.get('city') or processed_data.get('city'),
+                        state=job_data.get('state') or processed_data.get('state'),
+                        country=job_data.get('country') or processed_data.get('country'),
+                        overview=processed_data.get('overview'),
+                        responsibilities=processed_data.get('responsibilities'),
+                        requirements=processed_data.get('requirements'),
+                        job_arrangement=processed_data.get('job_arrangement') or job_data.get('job_arrangement'),
+                        salary_range=job_data.get('salary_range') or processed_data.get('salary_range') or 'Not Listed',
+                        salary_type=processed_data.get('salary_type') or 'annual',
+                        contract_duration=processed_data.get('contract_duration') or 'Not Listed',
+                        daily_range=processed_data.get('daily_range') or 'Not Listed',
+                        hourly_range=processed_data.get('hourly_range') or 'Not Listed',
+                        citizens_or_pr_only=job_data.get('citizens_or_pr_only') or processed_data.get('citizens_or_pr_only', False),
+                        security_clearance_required=job_data.get('security_clearance_required') or processed_data.get('security_clearance_required', False),
+                    )
+
+                    db.session.add(new_job)
+                    db.session.commit()  # Commit to generate job_id
+
+                    # Process technologies
+                    tech_stack = job_data.get('tech_stack') or processed_data.get('technologies')
+                    normalized_technologies = set()
+
+                    if tech_stack:
+                        for tech in tech_stack:
+                            canonical_name = self.normalize_technology_name(tech)
+                            if canonical_name:
+                                normalized_technologies.add(canonical_name)
+
+                        for tech_name in normalized_technologies:
+                            technology = Technology.query.filter_by(name=tech_name).first()
+                            if technology:
+                                job_tech = JobTechnology(job=new_job, technology=technology)
+                                db.session.add(job_tech)
+
+                        db.session.commit()
+                        current_app.logger.info(f"Job '{title}' added with technologies: {normalized_technologies}")
+                    else:
+                        current_app.logger.info(f"Job '{title}' added without technologies")
+
+                    # Invalidate caches after adding a new job
+                    self.invalidate_job_caches(new_job)
+                    current_app.logger.info(f"Successfully added job: {title}")
+                    return new_job, None
+                else:
+                    current_app.logger.error("Failed to process job description")
+                    return None, "Failed to process job description"
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(f"Error adding job: {str(e)}")
+                return None, f"An error occurred while adding the job: {str(e)}"
 
     def normalize_technology_name(self, tech_name):
         """Normalize technology names using the technology_aliases table."""
@@ -407,12 +472,8 @@ class RecruiterService:
             current_app.logger.info(f"No normalized name found for alias: {tech_name}")
             return None    
 
+    # NEED TO UPDATE ON FRONTEND FOR SALARY_TYPE, CONTRACT_DURATION, DAILY_RANGE, and HOURLY_RANGE
     def update_job(self, job_id, data):
-        """
-        Update a job post with given updates.
-        :param job_id: int - The ID of the job to be updated.
-        :param data: dict - A dictionary containing the fields to update with their new values.
-        """
         try:
             job = Job.query.get(job_id)
             if not job:
@@ -420,7 +481,16 @@ class RecruiterService:
                 return None
             
             for key, value in data.items():
-                setattr(job, key, value)
+                if key == 'salary_type':
+                    setattr(job, key, salary_type_enum(value))
+                elif key == 'contract_duration':
+                    setattr(job, key, contract_duration_enum(value))
+                elif key == 'daily_range':
+                    setattr(job, key, daily_range_enum(value))
+                elif key == 'hourly_range':
+                    setattr(job, key, hourly_range_enum(value))
+                else:
+                    setattr(job, key, value)
             
             db.session.commit()
 
@@ -436,7 +506,7 @@ class RecruiterService:
             current_app.logger.error(f"Database error in update_job: {str(e)}")
             db.session.rollback()
             return None
-
+        
     def remove_job(self, job_id, recruiter_id):
         try:
             job = Job.query.filter_by(job_id=job_id, recruiter_id=recruiter_id).first()
@@ -467,11 +537,54 @@ class RecruiterService:
             db.session.rollback()
             current_app.logger.error(f"Unexpected error in remove_job: {str(e)}")
             return {'success': False, 'error': 'unexpected_error'}
-
-    # @cache.cached(timeout=3600)
+        
+    # Still not working correctly
+    def _get_email_domain(self, company_id):
+        # Retrieve the company by its ID
+        company = Company.query.get(company_id)
+        
+        # Check if the company exists and has a website URL
+        if company and company.website_url:
+            # Strip whitespace and convert to lowercase
+            url = company.website_url.strip().lower()
+            
+            # Ensure the URL starts with 'http://' or 'https://'
+            if not url.startswith(('http://', 'https://')):
+                url = 'https://' + url
+            
+            # Parse the URL to extract components
+            parsed_url = urlparse(url)
+            
+            # Get the domain from netloc or path
+            domain = parsed_url.netloc or parsed_url.path
+            
+            # Handle cases where there may be a port number in the domain
+            if ':' in domain:
+                domain = domain.split(':')[0]
+            
+            # Split the domain into parts
+            parts = domain.split('.')
+            
+            # Determine the appropriate domain format based on TLDs
+            if len(parts) > 2:
+                # If the last part is a common TLD, include the last three parts
+                if parts[-1] in ['com', 'org', 'net', 'edu', 'gov', 'mil']:
+                    domain = '.'.join(parts[-3:])
+                else:
+                    # Otherwise, include the last two parts
+                    domain = '.'.join(parts[-2:])
+            
+            # Remove 'www.' if it exists at the start of the domain
+            return domain.replace('www.', '')
+        
+        return None
+    
+    @cache.cached(timeout=3600)
     def get_all_companies(self):
         try:
             companies = Company.query.all()
+
+
             company_data = [{
                 "company_id": company.company_id,
                 "name": company.name,
@@ -479,7 +592,9 @@ class RecruiterService:
                 "logo_url": f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}",
                 "size": company.size,
                 "address": company.address,
-                "job_count": self.get_job_count_for_company(company.company_id)
+                "job_count": self.get_job_count_for_company(company.company_id),
+                "website_url": company.website_url,
+                "domain": self._get_email_domain(company.company_id),
             } for company in companies]
             current_app.logger.info(f"Retrieved {len(companies)} companies")
             return company_data
@@ -492,11 +607,10 @@ class RecruiterService:
             cache.delete_memoized(JobsService.get_home_page_jobs)
             cache.delete_memoized(JobsService.filtered_search_jobs)
             cache.delete_memoized(JobsService.instant_search_jobs)
-            cache.delete_memoized(JobsService.get_jobs_by_specialization, job.specialization)
+            cache.delete_memoized(JobsService.get_home_page_jobs, job.specialization)
             current_app.logger.info(f"Cache invalidated for job {job.job_id}")
         except Exception as e:
             current_app.logger.error(f"Error invalidating cache: {str(e)}")
-
 
     def get_companies_with_pagination(self, page, page_size, search, industries, types):
         try:
@@ -549,6 +663,7 @@ class RecruiterService:
         except SQLAlchemyError as e:
             current_app.logger.error(f"Database error in get_job_count_for_company: {str(e)}")
             return 0
+    
     @cache.memoize(timeout=3600)
     def get_company_details(self, company_id):
         try:
@@ -557,7 +672,9 @@ class RecruiterService:
                 current_app.logger.warning(f"Company with id {company_id} not found")
                 return None
             
-            jobs = Job.query.filter_by(company_id=company_id).all()
+            # Get non-expired jobs and order by creation date
+            thirty_days_ago = datetime.now() - timedelta(days=30)
+            jobs = Job.query.filter_by(company_id=company_id).filter(Job.created_at >= thirty_days_ago).order_by(Job.created_at.desc()).all()
             job_count = len(jobs)
             
            # Collect all unique technologies for all jobs of this company
@@ -578,7 +695,9 @@ class RecruiterService:
                 "size": company.size,
                 "website_url": company.website_url,
                 "total_jobs": job_count,
-                "address": company.address,
+                "city": company.city,
+                "state": company.state,
+                "industry": company.industry,
                 "total_tech_stack": unique_tech_stack,
                 "jobs": [{
                     "job_id": job.job_id,
@@ -668,7 +787,7 @@ class RecruiterService:
 
         try:
             response = self.openai_client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4o-mini", 
                 messages=messages,
                 response_format={"type": "json_object"}
             )
@@ -818,4 +937,72 @@ class RecruiterService:
             db.session.rollback()
             return []
 
- 
+    def verify_recruiter_email_domain(self, company_id, email):
+        company = Company.query.get(company_id)
+        if not company:
+            return False, "Company not found"
+        
+        company_domain = self._get_email_domain(company_id)
+        recruiter_domain = email.split('@')[-1]
+        
+        if recruiter_domain.lower() == company_domain.lower():
+            return True, "Domain verified"
+        else:
+            return False, f"Domain mismatch. Expected {company_domain}, got {recruiter_domain}"
+
+    def generate_verification_code(self, recruiter_id):
+        recruiter = Recruiter.query.get(recruiter_id)
+        if not recruiter:
+            return None
+
+        code = ''.join(random.choices('0123456789', k=6))
+        recruiter.verification_code = code
+        recruiter.verification_code_expiry = datetime.utcnow() + timedelta(minutes=10)
+        db.session.commit()
+
+        return code
+
+    def send_verification_email(self, recruiter_id, email):
+        code = self.generate_verification_code(recruiter_id)
+        if not code:
+            return False
+
+        # msg = Message("Verify your email", recipients=[email])
+        msg = Message("Please verify your email to complete your onboarding process with OceaniaDevs", recipients=[email])
+        msg.body = f"Your verification code is: {code}"
+        mail.send(msg)
+
+        return True
+
+    def verify_code(self, recruiter_id, code, company_id):
+        recruiter = Recruiter.query.get(recruiter_id)
+        if not recruiter:
+            return False, "Recruiter not found"
+
+        if recruiter.verification_code != code:
+            return False, "Invalid code"
+
+        if datetime.utcnow() > recruiter.verification_code_expiry:
+            return False, "Code expired"
+
+        recruiter.email_verified = True
+        recruiter.verification_code = None
+        recruiter.verification_code_expiry = None
+
+        # Associate recruiter with the company
+        company = Company.query.get(company_id)
+        
+        if company:
+            recruiter.company_id = company.company_id
+        else:
+            return False, "Company not found"
+
+        db.session.commit()
+
+        return True, "Email verified successfully and associated with company"
+    
+    def has_completed_onboarding(self, recruiter_id):
+        recruiter = Recruiter.query.get(recruiter_id)
+        if not recruiter:
+            return False
+        return recruiter.company_id is not None and Company.query.get(recruiter.company_id) is not None

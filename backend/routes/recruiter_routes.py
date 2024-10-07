@@ -46,6 +46,9 @@ def get_job_by_id(job_id):
             "work_rights": job_post.work_rights,
             "created_at": job_post.created_at,
             "updated_at": job_post.updated_at,
+            "overview": job_post.overview,
+            "responsibilities": job_post.responsibilities,
+            "requirements": job_post.requirements,
             "company_name": company.name if company else "N/A",
         }
         current_app.logger.info(f"Retrieved job data for job {job_id}")
@@ -539,3 +542,62 @@ def update_existing_jobs_technologies():
     except Exception as e:
         current_app.logger.error(f"Error in update_existing_jobs_technologies: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500
+
+@recruiter_blueprint.route('/api/verify_recruiter_email', methods=['POST'])
+def verify_recruiter_email():
+    data = request.json
+    company_id = data.get('company_id')
+    email = data.get('email')
+
+    current_app.logger.info(f"Verifying email: {email} for company_id: {company_id}")
+
+    if not company_id or not email:
+        return jsonify({"error": "Missing company_id or email"}), 400
+
+    recruiter_service = RecruiterService()
+    is_valid, message = recruiter_service.verify_recruiter_email_domain(company_id, email)
+
+    current_app.logger.info(f"Verification result: {is_valid}, Message: {message}")
+
+    if is_valid:
+        recruiter_id = session['user']['recruiter_id']
+        try:
+            if recruiter_service.send_verification_email(recruiter_id, email):
+                return jsonify({"message": "Verification email sent"}), 200
+            else:
+                return jsonify({"error": "Failed to send verification email"}), 500
+        except Exception as e:
+            current_app.logger.error(f"Error sending verification email: {str(e)}")
+            return jsonify({"error": "Failed to send verification email"}), 500
+    else:
+        return jsonify({"error": message}), 400
+
+@recruiter_blueprint.route('/api/verify_code', methods=['POST'])
+def verify_code():
+    data = request.json
+    code = data.get('code')
+    company_id = data.get('company_id')
+
+    if not code or not company_id:
+        return jsonify({"error": "Missing verification code or company ID"}), 400
+
+    recruiter_id = session['user']['recruiter_id']
+    recruiter_service = RecruiterService()
+    is_valid, message = recruiter_service.verify_code(recruiter_id, code, company_id)
+
+    if is_valid:
+        return jsonify({"message": message}), 200
+    else:
+        return jsonify({"error": message}), 400
+
+@recruiter_blueprint.route('/api/check_onboarding_status', methods=['GET'])
+def check_onboarding_status():
+    if 'user' not in session or session['user']['type'] != 'recruiter':
+        current_app.logger.warning("Unauthorized access attempt in check_onboarding_status")
+        return jsonify({"error": "Unauthorized access"}), 401
+    
+    recruiter_service = RecruiterService()
+    recruiter_id = session['user']['recruiter_id']
+    
+    onboarding_complete = recruiter_service.has_completed_onboarding(recruiter_id)
+    return jsonify({"onboardingComplete": onboarding_complete})

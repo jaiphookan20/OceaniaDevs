@@ -26,7 +26,7 @@ class JobsService:
             return [item.strip() for item in text.split('\n') if item.strip()]
 
     @cache.memoize(timeout=3600) 
-    def get_job_post_data(self, job_id):
+    def get_job_post_data(self, job_id, user_id=None, user_type=None):
         """Retrieve detailed information for a specific job post."""
         try:
             job = Job.query.get(job_id)
@@ -38,7 +38,7 @@ class JobsService:
             technologies = db.session.query(Technology.name).join(JobTechnology).filter(JobTechnology.job_id == job_id).all()
             tech_stack = [tech.name for tech in technologies]
             
-            return {
+            job_data = {
                 'job_id': job.job_id,
                 'title': job.title,
                 'company': company.name,
@@ -69,10 +69,19 @@ class JobsService:
                 'jobpost_url': job.jobpost_url,
                 'created_at': job.created_at,
             }
+
+            # Only include application date for seekers
+            if user_id and user_type == 'seeker':
+                application = Application.query.filter_by(userid=user_id, jobid=job_id).first()
+                if application:
+                    job_data['application_date'] = application.datetimestamp.isoformat()
+
+            return job_data
+        
         except Exception as e:
             current_app.logger.error(f"Error in get_job_post_data: {str(e)}")
             raise
-    
+     
     @cache.memoize(timeout=300)
     def filtered_search_jobs(self, filter_params, page, page_size):
         """Search and filter jobs based on various criteria."""
@@ -81,14 +90,15 @@ class JobsService:
 
             for key, value in filter_params.items():
                 if value:
-                    # Existing filters
                     if key == 'work_location':
                         jobs_query = jobs_query.filter(Job.work_location == value)
-                    if key == 'tech_stack':
-                        jobs_query = jobs_query.join(JobTechnology).join(Technology).filter(Technology.name == value)
+                    elif key == 'tech_stack':
+                        if isinstance(value, list):
+                            jobs_query = jobs_query.join(JobTechnology).join(Technology).filter(Technology.name.in_(value))
+                        else:
+                            jobs_query = jobs_query.join(JobTechnology).join(Technology).filter(Technology.name == value)
                     elif key == 'min_experience_years':
                         jobs_query = jobs_query.filter(Job.min_experience_years >= int(value))
-                    # New filters
                     elif key == 'specialization':
                         jobs_query = jobs_query.filter(Job.specialization == value)
                     elif key == 'experience_level':
@@ -99,6 +109,18 @@ class JobsService:
                         jobs_query = jobs_query.filter(Job.job_arrangement == value)
                     elif key == 'industry':
                         jobs_query = jobs_query.filter(Job.industry == value)
+                    elif key == 'query':
+                        # Add search functionality for the query
+                        search_terms = value.split()
+                        search_query = ' & '.join(term + ':*' for term in search_terms)
+                        tsquery = func.websearch_to_tsquery('english', search_query)
+                        jobs_query = jobs_query.filter(
+                            or_(
+                                Job.search_vector.op('@@')(tsquery),
+                                Job.title.ilike(f'%{search_query}%'),
+                                Company.name.ilike(f'%{search_query}%')
+                            )
+                        ).order_by(func.ts_rank_cd(Job.search_vector, tsquery, 32).desc())
                     else:
                         jobs_query = jobs_query.filter(getattr(Job, key) == value)
 
@@ -109,7 +131,7 @@ class JobsService:
         except Exception as e:
             current_app.logger.error(f"Error in filtered_search_jobs: {str(e)}")
             raise
-    
+
     @cache.memoize(timeout=300)
     def instant_search_jobs(self, query, page, page_size):
         """Perform an instant search on jobs based on a query string, allowing partial matches."""
@@ -142,7 +164,7 @@ class JobsService:
             raise
     
     @cache.memoize(timeout=3600)
-    def get_home_page_jobs(self):
+    def get_home_page_jobs(self, user_statuses=None):
         """Retrieve jobs for the home page, grouped by specialization."""
         try:
             specializations = ['Frontend', 'Backend', 'Full-Stack', 'Mobile', 'Data & ML', 'QA & Testing', 'Cloud & Infra', 'DevOps', 'Project Management', 'IT Consulting', 'Cybersecurity']
@@ -151,22 +173,30 @@ class JobsService:
             for specialization in specializations:
                 jobs = Job.query.join(Company).filter(Job.specialization == specialization).order_by(Job.created_at.desc()).limit(5).all()
                 if jobs:
-                    all_jobs[specialization] = self._format_job_results(jobs)
+                    all_jobs[specialization] = self._format_job_results(jobs, user_statuses)
             
             return all_jobs
         except Exception as e:
             current_app.logger.error(f"Error in get_home_page_jobs: {str(e)}")
             raise
 
-    def _format_job_results(self, jobs):
-        """Format job results for API responses."""
+    def get_user_job_statuses(self, user_id):
+        saved_jobs = db.session.query(Bookmark.jobid).filter(Bookmark.userid == user_id).all()
+        applied_jobs = db.session.query(Application.jobid).filter(Application.userid == user_id).all()
+        return {
+            'saved_jobs': [job.jobid for job in saved_jobs],
+            'applied_jobs': [job.jobid for job in applied_jobs]
+        }
+
+    def _format_job_results(self, jobs, user_statuses=None):
+        """Format job results for API responses, including saved and applied status."""
         try:
             results = []
             for job in jobs:
                 technologies = db.session.query(Technology.name).join(JobTechnology).filter(JobTechnology.job_id == job.job_id).all()
                 tech_stack = [tech.name for tech in technologies]
 
-                results.append({
+                job_data = {
                     'job_id': job.job_id,
                     'company_id': job.company_id,
                     'title': job.title,
@@ -180,8 +210,21 @@ class JobsService:
                     'specialization': job.specialization,
                     'min_experience_years': job.min_experience_years,
                     'tech_stack': tech_stack,
+                    'job_arrangement': job.job_arrangement,
+                    'work_location': job.work_location,
+                    'contract_duration': job.contract_duration,
+                    'hourly_range': job.hourly_range,
+                    'daily_range': job.daily_range,
+                    'citizens_or_pr_only': job.citizens_or_pr_only,
+                    'security_clearance_required': job.security_clearance_required,
                     'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.company.logo_url)}",
-                })
+                }
+                
+                if user_statuses:
+                    job_data['is_saved'] = job.job_id in user_statuses['saved_jobs']
+                    job_data['is_applied'] = job.job_id in user_statuses['applied_jobs']
+                
+                results.append(job_data)
             return results
         except Exception as e:
             current_app.logger.error(f"Error in _format_job_results: {str(e)}")
@@ -197,24 +240,22 @@ class JobsService:
             current_app.logger.error(f"Error in get_technologies: {str(e)}")
             raise
 
-    def apply_to_job(self, seeker_id, job_id):
-        """Allow a seeker to apply for a job."""
+    def apply_job(self, seeker_id, job_id):
+        """Submit a job application."""
         try:
+            # Check if the application already exists
             existing_application = Application.query.filter_by(userid=seeker_id, jobid=job_id).first()
             if existing_application:
-                raise ValueError("You have already applied to this job")
+                raise ValueError("You have already applied for this job")
 
-            job = Job.query.get(job_id)
-            if not job:
-                raise ValueError("Job not found")
-            
+            # Create a new application
             new_application = Application(userid=seeker_id, jobid=job_id)
             db.session.add(new_application)
             db.session.commit()
-        
+            current_app.logger.info(f"Application submitted successfully for seeker {seeker_id} and job {job_id}")
         except Exception as e:
-            current_app.logger.error(f"Error in apply_to_job: {str(e)}")
             db.session.rollback()
+            current_app.logger.error(f"Error in apply_job: {str(e)}")
             raise
 
     def bookmark_job(self, seeker_id, job_id):
@@ -345,8 +386,6 @@ class JobsService:
                 'type': 'Company',
                 'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(company.logo_url)}"
             })
-        for tech in tech_suggestions:
-            suggestions.append({'name': tech.name, 'type': 'Technology'})
 
         return suggestions[:10]  # Limit to top 10 suggestions
 
