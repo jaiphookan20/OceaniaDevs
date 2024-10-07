@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -x  # Enable debugging
 
 source /home/ubuntu/OceaniaDevs/backend/backup/config.env
