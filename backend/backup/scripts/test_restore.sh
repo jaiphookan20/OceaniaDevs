@@ -9,8 +9,14 @@ TEST_CONTAINER="postgres_test"
 
 docker run --name $TEST_CONTAINER -e POSTGRES_USER=$DB_USER -e POSTGRES_PASSWORD=$DB_PASSWORD -e POSTGRES_DB=$DB_NAME -d postgres:15
 
-LATEST_BACKUP=$(ls -t $BACKUP_DIR/pg_dump_*.sql.gz | head -n1)
+LATEST_BACKUP=$(ls -t $BACKUP_DIR/pg_dump_*.sql.gz 2>/dev/null | head -n1)
 
+if [ -z "$LATEST_BACKUP" ]; then
+    echo "No backup files found in $BACKUP_DIR"
+    exit 1
+fi
+
+echo "Using backup file: $LATEST_BACKUP"
 gunzip < $LATEST_BACKUP | docker exec -i $TEST_CONTAINER psql -U $DB_USER -d $DB_NAME
 
 # Run comprehensive tests
@@ -31,7 +37,54 @@ FROM (
 ) AS expected(indexname)
 WHERE indexname NOT IN (SELECT indexname FROM pg_indexes WHERE schemaname = 'public');
 
--- Additional checks (orphaned records, NULL values, etc.) as in the original script
+-- Check for any orphaned records in job_technologies
+SELECT 'Orphaned job_technologies records: ' || COUNT(*)
+FROM job_technologies jt
+LEFT JOIN jobs j ON jt.job_id = j.job_id
+WHERE j.job_id IS NULL;
+
+-- Check for any jobs without associated technologies
+SELECT 'Jobs without technologies: ' || COUNT(*)
+FROM jobs j
+LEFT JOIN job_technologies jt ON j.job_id = jt.job_id
+WHERE jt.job_id IS NULL;
+
+-- Verify that all ENUM types are present
+SELECT 'Missing ENUM type: ' || typname
+FROM (
+  VALUES ('state_enum'), ('country_enum'), ('job_type_enum'), ('industry_enum'),
+         ('salary_range_enum'), ('specialization_enum'), ('experience_level_enum'),
+         ('work_location_enum'), ('job_arrangement_enum'), ('salary_type_enum'),
+         ('contract_duration_enum'), ('daily_range_enum'), ('hourly_range_enum')
+) AS expected(typname)
+WHERE typname NOT IN (SELECT typname FROM pg_type WHERE typtype = 'e');
+
+-- Check for any NULL values in critical columns
+SELECT 'NULL values in jobs.title: ' || COUNT(*) FROM jobs WHERE title IS NULL;
+SELECT 'NULL values in companies.name: ' || COUNT(*) FROM companies WHERE name IS NULL;
+
+-- Verify that search vectors are populated
+SELECT 'Jobs with empty search_vector: ' || COUNT(*) FROM jobs WHERE search_vector IS NULL;
+SELECT 'Companies with empty name_vector: ' || COUNT(*) FROM companies WHERE name_vector IS NULL;
+
+-- Check for any data type mismatches (example for jobs table)
+SELECT column_name, data_type
+FROM information_schema.columns
+WHERE table_name = 'jobs' AND (
+  (column_name = 'job_id' AND data_type != 'integer') OR
+  (column_name = 'title' AND data_type != 'character varying') OR
+  (column_name = 'search_vector' AND data_type != 'tsvector')
+
+-- Check row counts
+SELECT 'Row count mismatch in jobs table: ' || COUNT(*) 
+FROM jobs 
+HAVING COUNT(*) != (SELECT COUNT(*) FROM jobs);
+
+-- Check data integrity
+SELECT 'Data mismatch in jobs table: ' || COUNT(*) 
+FROM jobs 
+WHERE job_id NOT IN (SELECT job_id FROM jobs);
+);
 
 EOF
 

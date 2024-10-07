@@ -6,8 +6,8 @@ source /home/ubuntu/OceaniaDevs/backend/backup/config.env
 
 echo "BACKUP_DIR: $BACKUP_DIR"
 echo "DB_HOST: $DB_HOST"
-echo "POSTGRES_USER: $POSTGRES_USER"
-echo "POSTGRES_DB: $POSTGRES_DB"
+echo "DB_USER: $DB_USER"
+echo "DB_NAME: $DB_NAME"
 
 if [ "$FLASK_ENV" = "staging" ]; then
     POSTGRES_DB="${POSTGRES_DB}_staging"

@@ -5,8 +5,12 @@ set -o pipefail
 
 source /home/ubuntu/OceaniaDevs/backend/backup/config.env
 
-# Create a test volume if it doesn't exist
-docker volume create $VOLUME_NAME || true
+if ! docker volume inspect $VOLUME_NAME > /dev/null 2>&1; then
+    echo "Volume $VOLUME_NAME does not exist. Creating it..."
+    docker volume create $VOLUME_NAME
+else
+    echo "Volume $VOLUME_NAME already exists."
+fi
 
 # Create some test data in the volume
 docker run --rm -v $VOLUME_NAME:/data alpine sh -c "echo 'Test data' > /data/test.txt"
