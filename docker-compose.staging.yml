@@ -24,5 +24,4 @@ services:
     image: aus-job-board-frontend:staging
 
   postgres:
-    image: postgres:15
-    environment:
+    profiles: ["do-not-run-in-staging"]
