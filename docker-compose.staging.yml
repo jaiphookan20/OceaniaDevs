@@ -5,9 +5,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      args:
-        - FLASK_ENV=staging
-    env_file:
+      env_file:
       - .env
     environment:
       - FLASK_ENV=staging
@@ -24,8 +22,4 @@ services:
     image: aus-job-board-frontend:staging
 
   postgres:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: ${STAGING_DB_NAME}
-      POSTGRES_USER: ${STAGING_DB_USER}
-      POSTGRES_PASSWORD: ${STAGING_DB_PASSWORD}
+    profiles: ["do-not-run-in-staging"]
