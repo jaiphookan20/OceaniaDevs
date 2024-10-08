@@ -5,7 +5,9 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      env_file:
+      args:
+        - FLASK_ENV=staging
+    env_file:
       - .env
     environment:
       - FLASK_ENV=staging
@@ -21,6 +23,6 @@ services:
       dockerfile: Dockerfile
     image: aus-job-board-frontend:staging
 
-
   postgres:
-    profiles: ["do-not-run-in-staging"]
+    image: postgres:15
+    environment:
