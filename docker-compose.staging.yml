@@ -21,5 +21,6 @@ services:
       dockerfile: Dockerfile
     image: aus-job-board-frontend:staging
 
+
   postgres:
     profiles: ["do-not-run-in-staging"]
