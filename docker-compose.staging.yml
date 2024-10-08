@@ -5,8 +5,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      args:
-        - FLASK_ENV=staging
     env_file:
       - .env
     environment:
@@ -25,3 +23,5 @@ services:
 
   postgres:
     profiles: ["do-not-run-in-staging"]
+    image: postgres:15
+    command: ["echo", "Postgres is disabled in staging"]
