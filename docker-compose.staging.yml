@@ -26,6 +26,3 @@ services:
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_DB: ${STAGING_DB_NAME}
-      POSTGRES_USER: ${STAGING_DB_USER}
-      POSTGRES_PASSWORD: ${STAGING_DB_PASSWORD}
