@@ -24,8 +24,6 @@ services:
       - AUTH0_CLIENT_SECRET=${AUTH0_CLIENT_SECRET}
       - APP_SECRET_KEY=${APP_SECRET_KEY}
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_started
 
@@ -50,7 +48,7 @@ services:
   #     timeout: 5s
   #     retries: 5
   postgres:
-    # profiles: ["dev"]
+    profiles: ["dev"]
     build:
       context: ./postgres
       dockerfile: Dockerfile
