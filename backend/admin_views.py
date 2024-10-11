@@ -15,6 +15,10 @@ from sqlalchemy.orm import joinedload
 from flask import render_template
 from flask import flash
 from sqlalchemy.exc import IntegrityError
+from backend.scraper_manager import process_all_job_files
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Base class for secure views, ensuring only authorized users can access
 class SecureModelView(ModelView):
@@ -260,3 +264,23 @@ class ReportView(BaseView):
                          attachment_filename='job_report.csv')
 
 
+class JobProcessingView(BaseView):
+    @expose('/')
+    def index(self):
+        return self.render('admin/job_processing.html')
+
+    @expose('/process', methods=['POST'])
+    def process_jobs(self):
+        try:
+            processed_jobs, errors = process_all_job_files()
+            if errors:
+                error_message = "\n".join(errors)
+                flash(f'Job processing completed with {len(errors)} errors. Processed {processed_jobs} jobs successfully. Errors: {error_message}', 'warning')
+                logger.warning(f'Job processing completed with errors: {error_message}')
+            else:
+                flash(f'Job processing completed successfully. Processed {processed_jobs} jobs.', 'success')
+                logger.info(f'Job processing completed successfully. Processed {processed_jobs} jobs.')
+        except Exception as e:
+            flash(f'Error processing jobs: {str(e)}', 'error')
+            logger.error(f'Error in job processing: {str(e)}', exc_info=True)
+        return redirect(url_for('.index'))

@@ -21,6 +21,7 @@ import random
 from urllib.parse import urlparse
 from flask_mail import Message
 from extensions import mail
+import logging
 
 class RecruiterService:
     def __init__(self):
@@ -158,66 +159,6 @@ class RecruiterService:
             db.session.rollback()
             return False
 
-    # def process_job_description_openai(self, title, description):
-    #     messages = [
-    #         {
-    #             "role": "system",
-    #             "content": "You are a highly knowledgeable AI assistant specializing in technology job market analysis. Your task is to analyze job descriptions and output structured data in JSON format."
-    #         },
-    #         {
-    #             "role": "user",
-    #             "content": f"""Analyze the following job description and title and provide a response in JSON format with these keys: 'overview', 'responsibilities', 'requirements', 'specialization', 'technologies', 'min_experience_years', 'experience_level', 'industry', 'salary_type', 'salary_range', hourly_range', 'daily_range', 'work_location', 'city', 'state', 'country', 'work_rights', 'job_arrangement, 'contract_duration'.
-
-    #             Instructions for each key:
-    #             1. 'overview': Summarize the role and company, including all key and salient information relevant to potential candidates. Add any information related to benefits or perks here. Add information verbatim if needed but all of the information is needed.
-    #             2. 'min_experience_years': Extract the lowest number of years of experience mentioned for any skill. Only if mentioned. Otherwise, leave empty. For example, if it's mentioned '3-5 years of experience', extract '3'.
-    #             3. 'industry': Identify the end market or industry of the client that the role serves. If client is federal government, industry = 'government'. Use one of the following: ['Government', 'Banking & Financial Services', 'Fashion', 'Mining', 'Healthcare', 'IT - Software Development', 'IT - Data Analytics', 'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 'Marketing & Advertising', 'Media & Communications', 'Non-Profit & NGO', 'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 'Telecommunications', 'Transportation & Logistics'].
-    #             4. 'responsibilities': List main job duties and expectations. Provide detailed information.
-    #             5. 'requirements': Enumerate essential qualifications and skills needed. Provide detailed information.
-    #             6. 'specialization': Classify the job into ONLY ONE of these categories: 'Frontend', 'Backend', 'Cloud & Infrastructure', 'Business Intelligence & Data', 'Machine Learning & AI', 'Full-Stack', 'Mobile', 'Cybersecurity', 'Business Application Development', 'DevOps & IT', 'Project Management', 'QA & Testing'. Note: 'Cloud & Infrastructure' includes Solution Architect roles. You cannot select any other category other than the ones listed.
-    #             7. 'technologies': List specific software technologies mentioned (e.g., Java, TypeScript, React, AWS). Exclude general terms like 'LLM services', 'Containers', 'CI/CD' or 'REST APIs'.
-    #             8. 'experience_level': If 'min_experience_years' value is available, classify on basis of the 'min_experience_years' value: if value is between '0-2': 'Junior'; '3-5': 'Mid-Level', '6-10': 'Senior', '10+':'Executive'. If min_experience_years value not available, Classify as you deem fit into one of: 'Junior', 'Mid-Level', 'Senior', or 'Executive'.                
-    #             9. 'salary_type': If only available, specify the type of salary or payment arrangement (e.g., 'annual', 'hourly', 'daily'). If not listed: 'annual'. Default value: 'annual'.
-    #             10. 'salary_range': If only available AND salary_type="Annual", extract the salary information and classify it in the bucket it fits in: '40000 - 60000', '60000 - 80000', '80000 - 100000', '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000', '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+'. Otherwise leave empty.
-    #             11. 'hourly_range': If only available AND salary_type="Hourly", extract the hourly-rate information and classify it in the bucket it fits in: '0 - 20', '20 - 30', '30 - 40', '40 - 50', '50 - 60', '60 - 70', '70 - 80', '80 - 100', '100+'. Otherwise leave empty.
-    #             12. 'daily_range': If only available AND salary_type="Daily", extract the daily-rate information and classify it in the bucket it fits in: '300 - 400', '400 - 500', '500 - 600', '600 - 700', '700 - 800', '800 - 900', '900 - 1000', '1000 - 1100', '1200+'. Otherwise leave empty.
-    #             13. 'work_location': Specify the work location as one of: 'Remote', 'Hybrid', 'Office'. Default option: 'Office'.
-    #             14. 'city': Extract the city where the job is located. Strictly only do so if mentioned, otherwise empty.
-    #             15. 'state': Extract the state where the job is located. Use one of the following: ['VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA']. Strictly only do so if mentioned, otherwise empty.
-    #             16. 'country': Extract the country where the job is located. Use one of the following: ['Australia', 'New Zealand'].
-    #             17. 'work_rights': List any work rights or visa requirements. Strictly only do so if mentioned, otherwise empty.
-    #             18. 'job_arrangement': Specify the job arrangement as one of: 'Permanent', 'Contract', 'Internship'.
-    #             19. 'contract_duration': If only the 'job_arrangement' is 'Contract', and if the duration of the contract is provided and available, classify it as belonging to one of the following buckets: '3-6 Months', '6-9 Months', '9-12 Months' or '12 Months+'. Otherwise leave empty.
-
-    #             Important:
-    #             - Provide only the JSON object as output, with no additional text.
-    #             - Ensure all key names are in lowercase.
-    #             - If information for a key is not available, use an empty string or array as appropriate.
-    #             - For 'responsibilities' and 'requirements', use arrays of strings.
-    #             - For 'technologies', use an array of strings, each representing a single technology.
-
-    #             Title: {title}
-    #             Job Description: {description}
-    #             """
-    #         }
-    #     ]
-
-    #     try:
-    #         response = self.openai_client.chat.completions.create(
-    #             model="gpt-4o-mini",
-    #             messages=messages,
-    #             response_format={"type": "json_object"}
-    #         )
-
-    #         content = response.choices[0].message.content
-    #         processed_data = json.loads(content)
-    #         current_app.logger.info(f"Processed job description for title: {title}")
-    #         return processed_data
-
-    #     except Exception as e:
-    #         current_app.logger.error(f"OpenAI API request failed: {str(e)}")
-    #         return None
-
     def process_job_description_openai(self, title, description):
         # First API call: Extract basic job information
         basic_info = self._extract_basic_job_info(title, description)
@@ -228,9 +169,6 @@ class RecruiterService:
         # Combine the results
         processed_data = {**basic_info, **detailed_info}
 
-        # # Third API call: Verify and correct the extracted information
-        # verified_data = self._verify_and_correct_job_info(title, description, processed_data)
-    
         return processed_data
 
     def _extract_basic_job_info(self, title, description):
@@ -374,25 +312,33 @@ class RecruiterService:
             current_app.logger.error(f"OpenAI API request failed in verification step: {str(e)}")
             return processed_data  # Return the original processed data if verification fails
     
-    def add_job_programmatically(self, job_data):
-        with current_app.app_context():
-            try:
+    def add_job_programmatically_admin(self, job_data):
+        try:
+            with db.session.begin_nested():
                 title = job_data.get('title')
                 description = job_data.get('description')
 
-                # Process job description using OpenAI API
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(self.process_job_description_openai, title, description)
-                    try:
-                        processed_data = future.result(timeout=180)  # 3 minutes timeout
-                    except TimeoutError:
-                        current_app.logger.error("OpenAI API call timed out after 3 minutes")
-                        return None, "OpenAI API call timed out after 3 minutes"
+                current_app.logger.info(f"Processing job: {title}")
 
-                current_app.logger.info(f"Processed Data: {processed_data}")
+                openai_input = f"""
+                Job Title: {title}
+                Job Description: {description}
+                Job Teaser: {job_data.get('teaser', '')}
+                Salary: {job_data.get('salary', '')}
+                Sub-Classification: {job_data.get('subClassification', '')}
+                """
+
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(self.process_job_description_openai, title, openai_input)
+                    try:
+                        processed_data = future.result(timeout=180)
+                    except TimeoutError:
+                        current_app.logger.error(f"OpenAI API call timed out for job: {title}")
+                        raise Exception("OpenAI API call timed out after 3 minutes")
+
+                current_app.logger.debug(f"Processed data for job '{title}': {processed_data}")
 
                 if processed_data:
-                    # Create the new job entry
                     new_job = Job(
                         recruiter_id=job_data.get('recruiter_id'),
                         company_id=job_data.get('company_id'),
@@ -421,40 +367,31 @@ class RecruiterService:
                     )
 
                     db.session.add(new_job)
-                    db.session.commit()  # Commit to generate job_id
+                    db.session.flush()  # This will assign an ID to the new job
 
                     # Process technologies
                     tech_stack = job_data.get('tech_stack') or processed_data.get('technologies')
-                    normalized_technologies = set()
-
                     if tech_stack:
-                        for tech in tech_stack:
-                            canonical_name = self.normalize_technology_name(tech)
-                            if canonical_name:
-                                normalized_technologies.add(canonical_name)
+                        self._process_technologies(new_job, tech_stack)
 
-                        for tech_name in normalized_technologies:
-                            technology = Technology.query.filter_by(name=tech_name).first()
-                            if technology:
-                                job_tech = JobTechnology(job=new_job, technology=technology)
-                                db.session.add(job_tech)
-
-                        db.session.commit()
-                        current_app.logger.info(f"Job '{title}' added with technologies: {normalized_technologies}")
-                    else:
-                        current_app.logger.info(f"Job '{title}' added without technologies")
-
-                    # Invalidate caches after adding a new job
-                    self.invalidate_job_caches(new_job)
                     current_app.logger.info(f"Successfully added job: {title}")
                     return new_job, None
                 else:
-                    current_app.logger.error("Failed to process job description")
-                    return None, "Failed to process job description"
-            except Exception as e:
-                db.session.rollback()
-                current_app.logger.error(f"Error adding job: {str(e)}")
-                return None, f"An error occurred while adding the job: {str(e)}"
+                    current_app.logger.error(f"Failed to process job description for: {title}")
+                    raise Exception("Failed to process job description")
+
+        except Exception as e:
+            current_app.logger.error(f"Error adding job '{title}': {str(e)}", exc_info=True)
+            return None, str(e)
+
+    def _process_technologies(self, job, tech_stack):
+        normalized_technologies = set(self.normalize_technology_name(tech) for tech in tech_stack if tech)
+        for tech_name in normalized_technologies:
+            technology = Technology.query.filter_by(name=tech_name).first()
+            if technology:
+                job_tech = JobTechnology(job=job, technology=technology)
+                db.session.add(job_tech)
+        current_app.logger.info(f"Added technologies for job '{job.title}': {normalized_technologies}")
 
     def normalize_technology_name(self, tech_name):
         """Normalize technology names using the technology_aliases table."""

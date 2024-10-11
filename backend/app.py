@@ -24,6 +24,8 @@ from flask_admin import Admin, AdminIndexView
 from flask_admin.contrib.sqla import ModelView
 from flask import render_template
 import sys
+from flask.cli import with_appcontext
+from backend.scraper_manager import run_daily_job_processing
 load_dotenv()
 
 class SecureModelView(ModelView):
@@ -166,6 +168,26 @@ def create_app():
 
     # create_enums()
 
+    @app.cli.command("create-admin-recruiter")
+    @with_appcontext
+    def create_admin_recruiter():
+        from models import Recruiter
+        from extensions import db
+
+        admin_recruiter = Recruiter.query.get(1)
+        if not admin_recruiter:
+            admin_recruiter = Recruiter(
+                recruiter_id=1,
+                email='jaiphookan@gmail.com',
+                first_name='Admin',
+                last_name='Admin',
+            )
+            db.session.add(admin_recruiter)
+            db.session.commit()
+            app.logger.info("Admin recruiter created successfully.")
+        else:
+            app.logger.info("Admin recruiter already exists.")
+
     # Register blueprints
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(job_blueprint)
@@ -261,6 +283,15 @@ def create_app():
     def catch_all(path):
         app.logger.debug(f"Catch-all route hit: {path}")
         return f"You accessed path: {path}"
+    
+    # celery.conf.update(app.config)
+    
+    # class ContextTask(celery.Task):
+    #     def __call__(self, *args, **kwargs):
+    #         with app.app_context():
+    #             return self.run(*args, **kwargs)
+
+    # celery.Task = ContextTask
     
     return app
 

@@ -520,6 +520,38 @@ def add_job_programmatically():
         current_app.logger.error(f"Error in add_job_programmatically: {str(e)}")
         return jsonify({"error": "An unexpected error occurred"}), 500
 
+@recruiter_blueprint.route('/api/add_job_ai_admin', methods=['POST'])
+def add_job_programmatically_admin():
+    try:
+        if 'user' not in session or session['user']['type'] != 'recruiter':
+            current_app.logger.warning("Unauthorized access attempt in add_job_programmatically")
+            return jsonify({"error": "Unauthorized access"}), 401
+
+        recruiter_service = RecruiterService()
+        job_data = request.json
+        recruiter_id = session['user']['recruiter_id']
+        
+        # Fetch the recruiter to get the company_id
+        recruiter = Recruiter.query.get(recruiter_id)
+        if not recruiter or not recruiter.company_id:
+            current_app.logger.warning(f"Recruiter {recruiter_id} has not associated with their Company yet in add_job_programmatically")
+            return jsonify({"error": "Recruiter has not associated with their Company yet"}), 400
+
+        job_data['recruiter_id'] = recruiter_id
+        job_data['company_id'] = recruiter.company_id
+
+        new_job, error = recruiter_service.add_job_programmatically_admin(job_data)
+
+        if new_job:
+            current_app.logger.info(f"Successfully added job {new_job.job_id} programmatically")
+            return jsonify({"message": "Job added successfully", "job_data": new_job.job_id}), 200
+        else:
+            current_app.logger.warning(f"Failed to add job programmatically: {error}")
+            return jsonify({"error": f"Failed to add job: {error}"}), 400
+    except Exception as e:
+        current_app.logger.error(f"Error in add_job_programmatically: {str(e)}")
+        return jsonify({"error": "An unexpected error occurred"}), 500
+
 @recruiter_blueprint.route('/api/recommended_jobs/<int:job_id>', methods=['GET'])
 @timing_decorator
 def get_recommended_jobs(job_id):

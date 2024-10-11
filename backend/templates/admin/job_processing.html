@@ -1,0 +1,19 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+  <h2>Job Processing</h2>
+  <p>Click the button below to start processing job files.</p>
+  <form method="POST" action="{{ url_for('.process_jobs') }}">
+    <input type="submit" value="Process Jobs">
+  </form>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+          {{ message | safe }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+{% endblock %}

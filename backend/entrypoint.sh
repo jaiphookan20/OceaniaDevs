@@ -16,6 +16,9 @@ while ! nc -z $DB_HOST 5432; do
 done
 echo "PostgreSQL started"
 
+# Create admin recruiter
+flask create-admin-recruiter
+
 # Start the application
-echo "Starting the application..."
-exec gunicorn --config gunicorn_config.py "app:create_app()"
+echo "Starting the application...";
+exec gunicorn --config gunicorn_config.py "app:create_app()";
