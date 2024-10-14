@@ -70,8 +70,8 @@ class CompanyView(SecureModelView):
 
 # Custom view for Job model
 class JobView(SecureModelView):
-    column_searchable_list = ['title', 'description']
-    column_exclude_list = ['search_vector']
+    column_searchable_list = ['title', 'job_id']
+    column_exclude_list = ['search_vector', 'description']
     column_filters = ['specialization', 'job_type', 'industry', 'experience_level', 'work_location']
 
 class TechnologiesView(SecureModelView):

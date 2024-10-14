@@ -185,7 +185,7 @@ class RecruiterService:
                 Job Description: {description}
 
                 Instructions:
-                1. 'specialization': Classify the job into ONLY ONE of these categories: 'Frontend', 'Backend', 'Cloud & Infrastructure', 'Business Intelligence & Data', 'Machine Learning & AI', 'Full-Stack', 'Mobile', 'Cybersecurity', 'Business Application Development', 'DevOps & IT', 'Project Management', 'QA & Testing'.
+                1. 'specialization': Classify the job into ONLY ONE of these categories: Frontend', 'Backend', 'Full-Stack', 'Mobile', 'Data & ML', 'QA & Testing', 'Cloud & Infra', 'DevOps', 'Project Management', 'IT Consulting', 'Cybersecurity'.
                 2. 'technologies': List specific software technologies mentioned (e.g., Java, TypeScript, React, AWS). Exclude general terms like 'LLM services', 'Containers', 'CI/CD' or 'REST APIs'.
                 3. 'industry': Identify the end market or industry of the client that the role serves. If client is federal government, industry = 'government'. Use one of the following: ['Government', 'Banking & Financial Services', 'Fashion', 'Mining', 'Healthcare', 'IT - Software Development', 'IT - Data Analytics', 'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 'Marketing & Advertising', 'Media & Communications', 'Non-Profit & NGO', 'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 'Telecommunications', 'Transportation & Logistics'].
                 4. 'work_location': Specify the work location as one of: 'Remote', 'Hybrid', 'Office'. Default option: 'Office'.
