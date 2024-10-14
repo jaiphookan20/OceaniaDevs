@@ -1,7 +1,18 @@
 from app import create_app
 from extensions import db
 from models import Technology, TechnologyAlias
-from flask import current_app
+from flask import Flask
+import logging
+
+# Set up basic logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+def create_app():
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://dbmasteruser:techboard2024@ls-53acb3c0cb2cbe377b5ed78db92fdda1f3db8916.cfe6mimu8bzz.ap-southeast-2.rds.amazonaws.com:5432/Staging-Database'
+    db.init_app(app)
+    return app
 
 def populate_technologies_and_aliases():
     technologies = {
@@ -109,9 +120,12 @@ def populate_technologies_and_aliases():
                 db.session.add(new_alias)
 
     db.session.commit()
-    current_app.logger.info("Technologies and aliases have been populated successfully.")
+    logger.info("Technologies and aliases have been populated successfully.")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
+    logger.info("Starting the process of adding technologies and aliases")
     app = create_app()
     with app.app_context():
         populate_technologies_and_aliases()
+    logger.info("Process completed")
+        
