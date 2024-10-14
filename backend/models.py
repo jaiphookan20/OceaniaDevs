@@ -1,4 +1,4 @@
-from extensions import bcrypt, db
+from extensions import db
 from sqlalchemy.dialects.postgresql import ENUM, TSVECTOR
 from sqlalchemy import event, text
 from sqlalchemy.schema import DDL
@@ -39,17 +39,6 @@ class Seeker(db.Model):
     datetimestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
 
     applications = db.relationship('Application', back_populates='seeker')
-
-    @property
-    def password(self):
-        raise AttributeError('password is not a readable attribute')
-
-    @password.setter
-    def password(self, password):
-        self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
-
-    def verify_password(self, password):
-        return bcrypt.check_password_hash(self.password_hash, password)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"

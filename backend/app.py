@@ -7,7 +7,7 @@ from routes.job_routes import job_blueprint
 from routes.recruiter_routes import recruiter_blueprint
 from routes.seeker_routes import seeker_blueprint
 from matching.similarity_search_routes import simsearch_blueprint
-from extensions import db, bcrypt, migrate, mail, cache
+from extensions import db, migrate, mail, cache
 from routes.auth_routes import webapp_secret_key
 import logging
 from flask_cors import CORS
@@ -25,7 +25,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask import render_template
 import sys
 from flask.cli import with_appcontext
-from backend.scraper_manager import run_daily_job_processing
+# from backend.scraper_manager import run_daily_job_processing
 load_dotenv()
 
 class SecureModelView(ModelView):
@@ -89,13 +89,16 @@ def create_app():
     if os.getenv("FLASK_ENV") == "production":
         app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{LIGHTSAIL_DB_USER}:{LIGHTSAIL_DB_PASSWORD}@{LIGHTSAIL_DB_HOST}:{LIGHTSAIL_DB_PORT}/{LIGHTSAIL_DB_NAME}'
     elif os.getenv("FLASK_ENV") == "staging":
-        app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{STAGING_DB_USER}:{STAGING_DB_PASSWORD}@{STAGING_DB_HOST}:{STAGING_DB_PORT}/{STAGING_DB_NAME}'
+        # app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{STAGING_DB_USER}:{STAGING_DB_PASSWORD}@{STAGING_DB_HOST}:{STAGING_DB_PORT}/{STAGING_DB_NAME}'
+        app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{STAGING_DB_USER}:{STAGING_DB_PASSWORD}@{STAGING_DB_HOST}:{STAGING_DB_PORT}/Staging-Database'
     else:
         DB_HOST = os.environ.get('DB_HOST', 'localhost')
         DB_NAME = os.environ.get('DB_NAME', 'job_board')
         DB_USER = os.environ.get('DB_USER', 'jai')
         DB_PASSWORD = os.environ.get('DB_PASSWORD', 'techboard')
         app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+
+    app.logger.debug(f"SQLALCHEMY_DATABASE_URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
 
     # Session configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', webapp_secret_key)
@@ -122,7 +125,6 @@ def create_app():
     # Initialize extensions
     CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
     db.init_app(app)
-    bcrypt.init_app(app)
     migrate.init_app(app, db)
     mail.init_app(app)
 

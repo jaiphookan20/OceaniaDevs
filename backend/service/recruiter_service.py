@@ -1,4 +1,4 @@
-from extensions import db, bcrypt
+from extensions import db
 from models import Job, Recruiter, Company, TechnologyAlias, Technology, JobTechnology, Application, Bookmark, salary_type_enum, contract_duration_enum, daily_range_enum, hourly_range_enum
 from service.jobs_service import JobsService    
 from flask import session, jsonify, current_app, request

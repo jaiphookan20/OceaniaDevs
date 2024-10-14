@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app, jsonify
-from extensions import bcrypt, db
+from extensions import db
 from models import Seeker, Recruiter
 from authlib.integrations.flask_client import OAuth
 from urllib.parse import quote_plus, urlencode
