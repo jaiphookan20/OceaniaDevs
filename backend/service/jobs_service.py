@@ -189,12 +189,18 @@ class JobsService:
         }
 
     def _format_job_results(self, jobs, user_statuses=None):
-        """Format job results for API responses, including saved and applied status."""
-        try:
-            results = []
-            for job in jobs:
+        results = []
+        for job in jobs:
+            try:
                 technologies = db.session.query(Technology.name).join(JobTechnology).filter(JobTechnology.job_id == job.job_id).all()
                 tech_stack = [tech.name for tech in technologies]
+
+                current_app.logger.debug(f"Processing job: {job.job_id}, Company: {job.company.name}, Logo URL: {job.company.logo_url}")
+
+                if job.company.logo_url:
+                    logo_url = f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.company.logo_url)}"
+                else:
+                    logo_url = f"{config.BASE_URL}/uploads/upload_company_logo/backend/uploads/upload_company_logo/safetyculture-logo.png"  # Need to change this, Provide a default logo URL
 
                 job_data = {
                     'job_id': job.job_id,
@@ -217,7 +223,7 @@ class JobsService:
                     'daily_range': job.daily_range,
                     'citizens_or_pr_only': job.citizens_or_pr_only,
                     'security_clearance_required': job.security_clearance_required,
-                    'logo': f"{config.BASE_URL}/uploads/upload_company_logo/{os.path.basename(job.company.logo_url)}",
+                    'logo': logo_url,
                 }
                 
                 if user_statuses:
@@ -225,10 +231,9 @@ class JobsService:
                     job_data['is_applied'] = job.job_id in user_statuses['applied_jobs']
                 
                 results.append(job_data)
-            return results
-        except Exception as e:
-            current_app.logger.error(f"Error in _format_job_results: {str(e)}")
-            raise
+            except Exception as e:
+                current_app.logger.error(f"Error processing job {job.job_id}: {str(e)}")
+        return results
     
     @cache.memoize(timeout=86400)
     def get_technologies(self):

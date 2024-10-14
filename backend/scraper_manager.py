@@ -10,9 +10,26 @@ from werkzeug.utils import secure_filename
 import config
 from celery import Celery
 import logging
+import sys
 from sqlalchemy.exc import SQLAlchemyError
 from flask import current_app
 from extensions import db
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# If you want to log to both console and file
+file_handler = logging.FileHandler('scraper.log')
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
 
 # Define constants for output directories
 SCRAPER_OUTPUT_DIR = 'scraper_output'
@@ -53,32 +70,28 @@ def run_seek_scraper():
     subprocess.run(['node', '../frontend/apify_seek_scraper.js', '--output', output_file], check=True)
 
 def process_scraped_data():
-    """
-    Process the scraped data from all sources.
-    This function reads the scraped data, processes it, and archives the original files.
-    """
-    # CHANGE: Updated date format to DD-MM-YYYY
+    logger.info("Starting process_scraped_data function")
     date_str = datetime.now().strftime('%d-%m-%Y')
     
-    # Iterate through each job source (currently only 'seek')
-    for source in ['seek']:  # Add other sources here in the future
-        # Construct the paths for input and archive files
+    for source in ['seek']:
         input_file = os.path.join(SCRAPER_OUTPUT_DIR, f'{source}.json')
         archive_file = os.path.join(ARCHIVE_DIR, f"{source}_{date_str}.json")
         
-        # Check if the input file exists
+        logger.info(f"Checking for input file: {input_file}")
         if os.path.exists(input_file):
-            # Process the jobs from the input file
+            logger.info(f"Processing jobs from {input_file}")
             process_jobs_from_file(input_file, source)
             
-            # Archive the processed file
-            # Create the archive directory if it doesn't exist
+            logger.info(f"Archiving file to {archive_file}")
             os.makedirs(os.path.dirname(archive_file), exist_ok=True)
-            # Move the processed file to the archive location
             os.rename(input_file, archive_file)
+        else:
+            logger.warning(f"Input file not found: {input_file}")
+    
+    logger.info("Finished process_scraped_data function")
 
 def process_jobs_from_file(file_path, source):
-    current_app.logger.info(f"Starting to process jobs from {file_path}")
+    logger.info(f"Starting to process jobs from {file_path}")
     with open(file_path, 'r') as file:
         jobs_data = json.load(file)
     
@@ -88,7 +101,7 @@ def process_jobs_from_file(file_path, source):
 
     for job_data in jobs_data:
         try:
-            with db.session.begin_nested():
+            with db.session.begin():
                 company = get_or_create_company(job_data['companyName'], job_data.get('companyLogo'))
                 
                 job_details = {
@@ -99,7 +112,7 @@ def process_jobs_from_file(file_path, source):
                     'city': job_data.get('location', ''),
                     'job_arrangement': job_data.get('workType', ''),
                     'country': 'Australia',
-                    'description': job_data['content'],
+                    'description': job_data['description'],
                     'teaser': job_data.get('teaser', ''),
                     'salary': job_data.get('salary', ''),
                     'subClassification': job_data.get('subClassification', '')
@@ -110,12 +123,12 @@ def process_jobs_from_file(file_path, source):
                     raise Exception(error)
                 
                 processed_jobs += 1
-                current_app.logger.info(f"Successfully processed job: {job_data['title']}")
+                logger.info(f"Successfully processed job: {job_data['title']}")
         except Exception as e:
             errors.append(f"Error processing job '{job_data.get('title', 'Unknown')}': {str(e)}")
-            current_app.logger.error(f"Error processing job from {source}: {str(e)}", exc_info=True)
+            logger.error(f"Error processing job from {source}: {str(e)}", exc_info=True)
     
-    current_app.logger.info(f"Finished processing jobs from {file_path}. Processed {processed_jobs} jobs with {len(errors)} errors.")
+    logger.info(f"Finished processing jobs from {file_path}. Processed {processed_jobs} jobs with {len(errors)} errors.")
     return processed_jobs, errors
 
 def get_or_create_company(company_name, logo_url=None):
@@ -129,11 +142,11 @@ def get_or_create_company(company_name, logo_url=None):
     Returns:
     Company: The company object from the database
     """
-    company = Company.query.filter_by(name=company_name).first()
-    if not company:
-        company = Company(name=company_name)
-        db.session.add(company)
-        db.session.commit()
+    with db.session.begin_nested():
+        company = Company.query.filter_by(name=company_name).first()
+        if not company:
+            company = Company(name=company_name)
+            db.session.add(company)
     
     if logo_url:
         download_and_save_logo(company, logo_url)
@@ -161,10 +174,9 @@ def download_and_save_logo(company, logo_url):
             
             # Update the company's logo URL in the database
             company.logo_url = f"{config.BASE_URL}/uploads/upload_company_logo/{filename}"
-            db.session.commit()
     except Exception as e:
         # Log any errors that occur during the logo download process
-        print(f"Error downloading logo for {company.name}: {str(e)}")
+        logger.error(f"Error downloading logo for {company.name}: {str(e)}")
 
 if __name__ == '__main__':
-    run_daily_job_processing()
+    process_scraped_data()

@@ -36,19 +36,21 @@ async function runActor() {
         
         // Process and filter the results
         const processedItems = items.map(item => ({
-            companyName: item.companyName || item.advertiser.description || "",
+            companyName: item.companyName || (item.advertiser && item.advertiser.description) || "",
             listingDate: item.listingDate,
             workType: item.workType,
             description: item.content,
-            companyLogo: item.branding?.assets?.logo?.strategies?.jdpLogo || item.branding?.assets?.logo?.strategies?.serpLogo || "",
+            companyLogo: (item.branding && item.branding.assets && item.branding.assets.logo && item.branding.assets.logo.strategies && 
+                         (item.branding.assets.logo.strategies.jdpLogo || item.branding.assets.logo.strategies.serpLogo)) || "",
             location: item.location,
             teaser: item.teaser,
             title: item.title,
             bulletPoints: item.bulletPoints,
             salary: item.salary,
-            workArrangements: item.workArrangements?.data?.map(arr => arr.label.text).join(", "),
+            workArrangements: (item.workArrangements && item.workArrangements.data) ? 
+                              item.workArrangements.data.map(arr => arr.label && arr.label.text).join(", ") : "",
             url: item.url,
-            subClassification: item.subClassification?.description
+            subClassification: item.subClassification ? item.subClassification.description : ""
         }));
 
         // Call processScrapedJobs to add staged jobs
@@ -60,7 +62,20 @@ async function runActor() {
         });
 
         // Write processed results to file
-        const outputPath = path.join(__dirname, 'results', 'seek_scraper_results.json');
+        // The current code doesn't handle the case where the 'results' directory doesn't exist
+        // We need to create the directory if it doesn't exist before writing the file
+
+        const resultsDir = path.join(__dirname, 'results');
+        const outputPath = path.join(resultsDir, 'seek_scraper_results.json');
+
+        // Create the 'results' directory if it doesn't exist
+        if (!fs.existsSync(resultsDir)) {
+            // Add a comment to highlight the new code
+            // Create the 'results' directory
+            fs.mkdirSync(resultsDir, { recursive: true });
+        }
+
+        // Write the file
         fs.writeFileSync(outputPath, JSON.stringify(processedItems, null, 2), 'utf8');
         console.log('Filtered results have been written to seek_scraper_results.json');
     } catch (error) {
@@ -73,12 +88,12 @@ async function processScrapedJobs(jobs) {
     for (const job of jobs) {
         const jobData = {
             title: job.title,
-            description: job.content,
+            description: job.description,
             company_name: job.companyName,
             // The following fields are added based on the available data from the scraped job
             listing_date: job.listingDate,
             work_type: job.workType,
-            logo_url: job.jdpLogo,
+            logo_url: job.companyLogo,
             location: job.location,
             teaser: job.teaser,
             bullet_points: job.bulletPoints,
