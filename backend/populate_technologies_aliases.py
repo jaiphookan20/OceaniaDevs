@@ -1,4 +1,3 @@
-from app import create_app
 from extensions import db
 from models import Technology, TechnologyAlias
 from flask import Flask
