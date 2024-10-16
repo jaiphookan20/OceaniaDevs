@@ -116,7 +116,7 @@ class Company(db.Model):
 
     def delete_logo(self):
         if self.logo_url:
-            logo_path = os.path.join(current_app.root_path, 'static', self.logo_url.split('/')[-2], self.logo_url.split('/')[-1])
+            logo_path = os.path.join(current_app.root_path, '..', self.logo_url)
             if os.path.exists(logo_path):
                 os.remove(logo_path)
 

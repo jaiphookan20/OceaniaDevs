@@ -20,6 +20,7 @@ import logging
 from werkzeug.utils import secure_filename
 import os
 from markupsafe import Markup
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -160,14 +161,30 @@ class CompanyView(SecureModelView):
     form_extra_fields = {
         'logo': ImageUploadField('Logo',
                                  base_path=os.path.join(os.path.dirname(__file__), '..', 'uploads', 'upload_company_logo'),
-                                 relative_path='uploads/upload_company_logo/')
+                                 url_relative_path='uploads/upload_company_logo/')
     }
 
     def on_model_change(self, form, model, is_created):
         if form.logo.data:
-            filename = secure_filename(form.logo.data.filename)
-            form.logo.data.save(os.path.join(self.form_extra_fields['logo'].base_path, filename))
-            model.logo_url = f'uploads/upload_company_logo/{filename}'
+            # Get the uploaded file
+            file_data = form.logo.data
+
+            # Generate the new filename using lowercase company name
+            new_filename = f"{model.name.lower().replace(' ', '_')}.webp"
+
+            # Open the image using Pillow
+            image = Image.open(file_data)
+
+            # Convert to RGB if the image is in RGBA mode (for PNG files with transparency)
+            if image.mode == 'RGBA':
+                image = image.convert('RGB')
+
+            # Save the file as WebP
+            file_path = os.path.join(self.form_extra_fields['logo'].base_path, new_filename)
+            image.save(file_path, 'WEBP')
+
+            # Update the model's logo_url
+            model.logo_url = os.path.join(self.form_extra_fields['logo'].url_relative_path, new_filename)
 
     # Add this to ensure logo_url is displayed in the list view
     column_list = ['name', 'website_url', 'country', 'industry', 'logo_url']  # Add other fields as needed
@@ -388,6 +405,9 @@ class ReportView(BaseView):
 #             flash(f'Error processing jobs: {str(e)}', 'error')
 #             logger.error(f'Error in job processing: {str(e)}', exc_info=True)
 #         return redirect(url_for('.index'))
+
+
+
 
 
 
