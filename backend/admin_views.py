@@ -148,14 +148,13 @@ class CompanyView(SecureModelView):
         ]
     }
 
-    # Add this method to handle logo upload
-    def _list_thumbnail(view, context, model, name):
+    def _list_thumbnail_and_url(view, context, model, name):
         if not model.logo_url:
             return ''
-        return Markup(f'<img src="/{model.logo_url}" width="100">')
+        return Markup(f'<img src="/{model.logo_url}" width="100"><br>{model.logo_url}')
 
     column_formatters = {
-        'logo_url': _list_thumbnail
+        'logo_url': _list_thumbnail_and_url
     }
 
     form_extra_fields = {
@@ -169,6 +168,9 @@ class CompanyView(SecureModelView):
             filename = secure_filename(form.logo.data.filename)
             form.logo.data.save(os.path.join(self.form_extra_fields['logo'].base_path, filename))
             model.logo_url = f'uploads/upload_company_logo/{filename}'
+
+    # Add this to ensure logo_url is displayed in the list view
+    column_list = ['name', 'website_url', 'country', 'industry', 'logo_url']  # Add other fields as needed
 
 # Custom view for Job model
 class JobView(SecureModelView):
@@ -386,5 +388,6 @@ class ReportView(BaseView):
 #             flash(f'Error processing jobs: {str(e)}', 'error')
 #             logger.error(f'Error in job processing: {str(e)}', exc_info=True)
 #         return redirect(url_for('.index'))
+
 
 
