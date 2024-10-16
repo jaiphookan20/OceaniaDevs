@@ -470,9 +470,6 @@ class ReportView(BaseView):
 
 
 
-<<<<<<< HEAD
-=======
 
 
 
->>>>>>> 93954a0ac6e2c538b223989b98c5b126dccecc2a
