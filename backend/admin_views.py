@@ -69,6 +69,7 @@ class RecruiterView(SecureModelView):
 
 # Custom view for Company model
 class CompanyView(SecureModelView):
+    logger.info(f"Available image formats: {', '.join(Image.registered_extensions().keys())}")
     column_searchable_list = ['name', 'company_id']
     column_filters = ['country', 'industry', 'state', 'city', 'type', 'size']
     form_choices = {
@@ -184,21 +185,35 @@ class CompanyView(SecureModelView):
             try:
                 # Open the image using Pillow
                 image = Image.open(file_data)
+                logger.info(f"Image opened successfully. Format: {image.format}, Size: {image.size}, Mode: {image.mode}")
 
                 # Convert to RGB if the image is in RGBA mode (for PNG files with transparency)
                 if image.mode == 'RGBA':
+                    logger.info("Converting RGBA image to RGB")
                     image = image.convert('RGB')
 
                 # Save the file as WebP
                 file_path = os.path.join(self.upload_path, new_filename)
                 logger.info(f"Attempting to save file to: {file_path}")
+                logger.info(f"Current working directory: {os.getcwd()}")
+                logger.info(f"Upload path exists: {os.path.exists(self.upload_path)}")
+                logger.info(f"Upload path is writable: {os.access(self.upload_path, os.W_OK)}")
+                
                 image.save(file_path, 'WEBP')
+                logger.info(f"File saved successfully to {file_path}")
+
+                # Verify the file was actually saved
+                if os.path.exists(file_path):
+                    logger.info(f"File exists at {file_path}")
+                    logger.info(f"File size: {os.path.getsize(file_path)} bytes")
+                else:
+                    logger.warning(f"File does not exist at {file_path}")
 
                 # Update the model's logo_url
                 model.logo_url = f'/uploads/upload_company_logo/{new_filename}'
                 logger.info(f"Updated logo_url: {model.logo_url}")
             except Exception as e:
-                logger.error(f"Error processing logo: {str(e)}")
+                logger.error(f"Error processing logo: {str(e)}", exc_info=True)
                 raise
         elif is_created:
             # If it's a new record and no logo was uploaded, set logo_url to None or a default value
@@ -426,6 +441,8 @@ class ReportView(BaseView):
 #             flash(f'Error processing jobs: {str(e)}', 'error')
 #             logger.error(f'Error in job processing: {str(e)}', exc_info=True)
 #         return redirect(url_for('.index'))
+
+
 
 
 
