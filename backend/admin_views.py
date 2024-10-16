@@ -1,5 +1,5 @@
 from flask_admin.contrib.sqla import ModelView
-from flask_admin.form import SecureForm
+from flask_admin.form import SecureForm, ImageUploadField
 from flask_admin import BaseView, expose, AdminIndexView
 from wtforms import PasswordField, StringField, SelectField
 from wtforms.validators import DataRequired, ValidationError
@@ -17,6 +17,9 @@ from flask import flash
 from sqlalchemy.exc import IntegrityError
 # from backend.scraper_manager import process_all_job_files
 import logging
+from werkzeug.utils import secure_filename
+import os
+from markupsafe import Markup
 
 logger = logging.getLogger(__name__)
 
@@ -65,8 +68,107 @@ class RecruiterView(SecureModelView):
 
 # Custom view for Company model
 class CompanyView(SecureModelView):
-    column_searchable_list = ['name', 'website_url']
-    column_filters = ['country', 'industry', 'state']
+    column_searchable_list = ['name', 'company_id']
+    column_filters = ['country', 'industry', 'state', 'city', 'type', 'size']
+    form_choices = {
+        'country': [
+            ('Australia', 'Australia'),
+            ('New Zealand', 'New Zealand')
+        ],
+        'industry': [
+            ('Government', 'Government'),
+            ('Banking & Financial Services', 'Banking & Financial Services'),
+            ('Fashion', 'Fashion'),
+            ('Mining', 'Mining'),
+            ('Healthcare', 'Healthcare'),
+            ('IT - Software Development', 'IT - Software Development'),
+            ('IT - Data Analytics', 'IT - Data Analytics'),
+            ('IT - Cybersecurity', 'IT - Cybersecurity'),
+            ('IT - Cloud Computing', 'IT - Cloud Computing'),
+            ('IT - Artificial Intelligence', 'IT - Artificial Intelligence'),
+            ('Agriculture', 'Agriculture'),
+            ('Automotive', 'Automotive'),
+            ('Construction', 'Construction'),
+            ('Education', 'Education'),
+            ('Energy & Utilities', 'Energy & Utilities'),
+            ('Entertainment', 'Entertainment'),
+            ('Hospitality & Tourism', 'Hospitality & Tourism'),
+            ('Legal', 'Legal'),
+            ('Manufacturing', 'Manufacturing'),
+            ('Marketing & Advertising', 'Marketing & Advertising'),
+            ('Media & Communications', 'Media & Communications'),
+            ('Non-Profit & NGO', 'Non-Profit & NGO'),
+            ('Pharmaceuticals', 'Pharmaceuticals'),
+            ('Real Estate', 'Real Estate'),
+            ('Retail & Consumer Goods', 'Retail & Consumer Goods'),
+            ('Telecommunications', 'Telecommunications'),
+            ('Transportation & Logistics', 'Transportation & Logistics')
+        ],
+        'state': [
+            ('VIC', 'VIC'),
+            ('NSW', 'NSW'),
+            ('ACT', 'ACT'),
+            ('WA', 'WA'),
+            ('QLD', 'QLD'),
+            ('NT', 'NT'),
+            ('TAS', 'TAS'),
+            ('SA', 'SA')
+        ],
+        'city': [
+            ('Sydney', 'Sydney'),
+            ('Melbourne', 'Melbourne'),
+            ('Brisbane', 'Brisbane'),
+            ('Perth', 'Perth'),
+            ('Adelaide', 'Adelaide'),
+            ('Gold Coast', 'Gold Coast'),
+            ('Newcastle', 'Newcastle'),
+            ('Canberra', 'Canberra'),
+            ('Sunshine Coast', 'Sunshine Coast'),
+            ('Wollongong', 'Wollongong'),
+            ('Hobart', 'Hobart'),
+            ('Geelong', 'Geelong'),
+            ('Townsville', 'Townsville'),
+            ('Cairns', 'Cairns'),
+            ('Darwin', 'Darwin'),
+            ('Launceston', 'Launceston'),
+            ('Mackay', 'Mackay'),
+            ('Rockhampton', 'Rockhampton'),
+            ('Toowoomba', 'Toowoomba')
+        ],
+        'type': [
+            ('Agency', 'Agency'),
+            ('Company', 'Company')
+        ],
+        'size': [
+            ('0-9', '0-9'),
+            ('10-49', '10-49'),
+            ('50-249', '50-249'),
+            ('250-999', '250-999'),
+            ('1000+', '1000+')
+        ]
+    }
+
+    # Add this method to handle logo upload
+    def _list_thumbnail(view, context, model, name):
+        if not model.logo_url:
+            return ''
+        return Markup(f'<img src="/{model.logo_url}" width="100">')
+
+    column_formatters = {
+        'logo_url': _list_thumbnail
+    }
+
+    form_extra_fields = {
+        'logo': ImageUploadField('Logo',
+                                 base_path=os.path.join(os.path.dirname(__file__), '..', 'uploads', 'upload_company_logo'),
+                                 relative_path='uploads/upload_company_logo/')
+    }
+
+    def on_model_change(self, form, model, is_created):
+        if form.logo.data:
+            filename = secure_filename(form.logo.data.filename)
+            form.logo.data.save(os.path.join(self.form_extra_fields['logo'].base_path, filename))
+            model.logo_url = f'uploads/upload_company_logo/{filename}'
 
 # Custom view for Job model
 class JobView(SecureModelView):
@@ -284,3 +386,5 @@ class ReportView(BaseView):
 #             flash(f'Error processing jobs: {str(e)}', 'error')
 #             logger.error(f'Error in job processing: {str(e)}', exc_info=True)
 #         return redirect(url_for('.index'))
+
+

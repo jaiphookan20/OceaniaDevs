@@ -5,6 +5,8 @@ from sqlalchemy.schema import DDL
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import UniqueConstraint
 from urllib.parse import urlparse
+import os
+from flask import current_app
 
 # Define all ENUM types
 state_enum = ENUM('VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA', name='state_enum', create_type=False)
@@ -111,6 +113,18 @@ class Company(db.Model):
             
             return domain
         return None
+
+    def delete_logo(self):
+        if self.logo_url:
+            logo_path = os.path.join(current_app.root_path, 'static', self.logo_url.split('/')[-2], self.logo_url.split('/')[-1])
+            if os.path.exists(logo_path):
+                os.remove(logo_path)
+
+    @classmethod
+    def before_delete(cls, mapper, connection, target):
+        target.delete_logo()
+
+db.event.listen(Company, 'before_delete', Company.before_delete)
 
 class Job(db.Model):
     __tablename__ = 'jobs'
