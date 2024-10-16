@@ -157,7 +157,7 @@ const JobCard = ({ job, onSave, onApply, onView, isInSession, userData, userJobS
             // First slide content
             <div className="flex items-center justify-between h-full">
               <div className="flex items-center">
-                <img src={job.logo} alt={job.company} className="w-14 h-14 mr-4" />
+                <img src={job.company_logo_url} alt={job.company_name} className="w-14 h-14 object-contain bg-white" />
                 <div>
                   <h3
                     className="font-bold text-lg flex items-center hover:text-violet-500 text-slate-800"

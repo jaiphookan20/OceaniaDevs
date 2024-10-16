@@ -159,9 +159,9 @@ class CompanyView(SecureModelView):
         'logo_url': _list_thumbnail_and_url
     }
 
-    # Define the upload path
-    upload_path = os.path.join(os.path.dirname(__file__), '..', 'uploads', 'upload_company_logo')
-
+    # Define the upload path as an absolute path
+    upload_path = '/app/uploads/upload_company_logo'
+    
     # Log the upload path
     logger.info(f"Upload path: {upload_path}")
 
@@ -216,14 +216,29 @@ class CompanyView(SecureModelView):
                 logger.error(f"Error processing logo: {str(e)}", exc_info=True)
                 raise
         elif is_created:
-            # If it's a new record and no logo was uploaded, set logo_url to None or a default value
-            model.logo_url = None  # or '/path/to/default/logo.png'
+            model.logo_url = None
             logger.info("No logo uploaded for new company")
         else:
             logger.info("No new logo uploaded for existing company")
 
     # Add this to ensure logo_url is displayed in the list view
     column_list = ['name', 'website_url', 'country', 'industry', 'logo_url']  # Add other fields as needed
+
+    def process_logo(self, logo_file):
+        image = Image.open(logo_file)
+        
+        if image.mode == 'RGBA':
+            image = image.convert('RGB')
+        
+        image.thumbnail((400, 400))
+        background = Image.new('RGB', (400, 400), (255, 255, 255))
+        paste_position = ((400 - image.width) // 2, (400 - image.height) // 2)
+        background.paste(image, paste_position)
+        
+        output = io.BytesIO()
+        background.save(output, format='WEBP', quality=85)
+        output.seek(0)
+        return output
 
 # Custom view for Job model
 class JobView(SecureModelView):
@@ -441,6 +456,10 @@ class ReportView(BaseView):
 #             flash(f'Error processing jobs: {str(e)}', 'error')
 #             logger.error(f'Error in job processing: {str(e)}', exc_info=True)
 #         return redirect(url_for('.index'))
+
+
+
+
 
 
 

@@ -14,6 +14,8 @@ import sys
 from sqlalchemy.exc import SQLAlchemyError
 from flask import current_app
 from extensions import db
+from PIL import Image
+import io
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -154,28 +156,37 @@ def get_or_create_company(company_name, logo_url=None):
     return company
 
 def download_and_save_logo(company, logo_url):
-    """
-    Download and save a company logo.
-    """
     try:
-        # Send a GET request to download the logo
         response = requests.get(logo_url)
         if response.status_code == 200:
-            # Generate a secure filename for the logo
+            image = Image.open(io.BytesIO(response.content))
+            
+            # Convert to RGB if the image is in RGBA mode
+            if image.mode == 'RGBA':
+                image = image.convert('RGB')
+            
+            # Resize the image to 400x400 while maintaining aspect ratio
+            image.thumbnail((400, 400))
+            
+            # Create a new white background image
+            background = Image.new('RGB', (400, 400), (255, 255, 255))
+            
+            # Calculate position to paste the resized image
+            paste_position = ((400 - image.width) // 2, (400 - image.height) // 2)
+            
+            # Paste the resized image onto the white background
+            background.paste(image, paste_position)
+            
             filename = secure_filename(f"{company.company_id}_{os.path.basename(logo_url)}")
-            # Create the full path where the logo will be saved
             logo_path = os.path.join(LOGO_UPLOAD_DIR, filename)
             
-            # Ensure the directory exists
             os.makedirs(os.path.dirname(logo_path), exist_ok=True)
-            # Save the downloaded logo to the file system
-            with open(logo_path, 'wb') as f:
-                f.write(response.content)
             
-            # Update the company's logo URL in the database
+            # Save as WebP format
+            background.save(logo_path, 'WEBP', quality=85)
+            
             company.logo_url = f"{config.BASE_URL}/uploads/upload_company_logo/{filename}"
     except Exception as e:
-        # Log any errors that occur during the logo download process
         logger.error(f"Error downloading logo for {company.name}: {str(e)}")
 
 if __name__ == '__main__':
