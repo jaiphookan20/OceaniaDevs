@@ -1,0 +1,32 @@
+      ?column?       
+---------------------
+ Missing table: jobs
+(1 row)
+
+                 ?column?                 
+------------------------------------------
+ Missing index: jobs_search_vector_idx
+ Missing index: jobs_specialization_idx
+ Missing index: jobs_experience_level_idx
+ Missing index: jobs_work_location_idx
+ Missing index: jobs_city_idx
+(5 rows)
+
+ ?column? 
+----------
+(0 rows)
+
+             ?column?             
+----------------------------------
+ NULL values in companies.name: 0
+(1 row)
+
+              ?column?               
+-------------------------------------
+ Companies with empty name_vector: 0
+(1 row)
+
+ column_name | data_type 
+-------------+-----------
+(0 rows)
+

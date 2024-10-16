@@ -115,7 +115,7 @@ const JobPost = ({ onSave, onApply, isInSession, userJobStatuses, onUnsave }) =>
       <div className="flex-grow container mx-auto bg-white shadow-lg rounded-lg border border-slate-400 ">
       <header className="flex justify-between pb-1 mb-4">
           <div className="flex items-center">
-            <img src={job.logo} alt={job.company} className="p-6 max-w-32" />
+            <img src={job.company_logo_url} alt={job.company_name} className="w-20 h-20 object-contain bg-white" />
           </div>
           <div className="flex mt-4 space-x-4 pr-4 items-center">
             {techStackIcons.slice(0, 5).map((tech) => (
