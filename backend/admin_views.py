@@ -152,16 +152,17 @@ class CompanyView(SecureModelView):
     def _list_thumbnail_and_url(view, context, model, name):
         if not model.logo_url:
             return ''
-        return Markup(f'<img src="/{model.logo_url}" width="100"><br>{model.logo_url}')
+        return Markup(f'<img src="{model.logo_url}" width="100"><br>{model.logo_url}')
 
     column_formatters = {
         'logo_url': _list_thumbnail_and_url
     }
 
+    # Define the upload path
+    upload_path = os.path.join(os.path.dirname(__file__), '..', 'uploads', 'upload_company_logo')
+
     form_extra_fields = {
-        'logo': ImageUploadField('Logo',
-                                 base_path=os.path.join(os.path.dirname(__file__), '..', 'uploads', 'upload_company_logo'),
-                                 url_relative_path='uploads/upload_company_logo/')
+        'logo': ImageUploadField('Logo', base_path=upload_path, url_relative_path='uploads/upload_company_logo/')
     }
 
     def on_model_change(self, form, model, is_created):
@@ -180,11 +181,14 @@ class CompanyView(SecureModelView):
                 image = image.convert('RGB')
 
             # Save the file as WebP
-            file_path = os.path.join(self.form_extra_fields['logo'].base_path, new_filename)
+            file_path = os.path.join(self.upload_path, new_filename)
             image.save(file_path, 'WEBP')
 
             # Update the model's logo_url
-            model.logo_url = os.path.join(self.form_extra_fields['logo'].url_relative_path, new_filename)
+            model.logo_url = f'/uploads/upload_company_logo/{new_filename}'
+        elif is_created:
+            # If it's a new record and no logo was uploaded, set logo_url to None or a default value
+            model.logo_url = None  # or '/path/to/default/logo.png'
 
     # Add this to ensure logo_url is displayed in the list view
     column_list = ['name', 'website_url', 'country', 'industry', 'logo_url']  # Add other fields as needed
@@ -405,6 +409,7 @@ class ReportView(BaseView):
 #             flash(f'Error processing jobs: {str(e)}', 'error')
 #             logger.error(f'Error in job processing: {str(e)}', exc_info=True)
 #         return redirect(url_for('.index'))
+
 
 
 
