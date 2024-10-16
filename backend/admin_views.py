@@ -161,34 +161,51 @@ class CompanyView(SecureModelView):
     # Define the upload path
     upload_path = os.path.join(os.path.dirname(__file__), '..', 'uploads', 'upload_company_logo')
 
+    # Log the upload path
+    logger.info(f"Upload path: {upload_path}")
+
     form_extra_fields = {
-        'logo': ImageUploadField('Logo', base_path=upload_path, url_relative_path='uploads/upload_company_logo/')
+        'logo': ImageUploadField('Logo', 
+                                 base_path=upload_path,
+                                 url_relative_path='uploads/upload_company_logo/')
     }
 
     def on_model_change(self, form, model, is_created):
+        logger.info(f"on_model_change called for company: {model.name}")
         if form.logo.data:
+            logger.info(f"Logo data found: {form.logo.data}")
             # Get the uploaded file
             file_data = form.logo.data
 
             # Generate the new filename using lowercase company name
             new_filename = f"{model.name.lower().replace(' ', '_')}.webp"
+            logger.info(f"New filename: {new_filename}")
 
-            # Open the image using Pillow
-            image = Image.open(file_data)
+            try:
+                # Open the image using Pillow
+                image = Image.open(file_data)
 
-            # Convert to RGB if the image is in RGBA mode (for PNG files with transparency)
-            if image.mode == 'RGBA':
-                image = image.convert('RGB')
+                # Convert to RGB if the image is in RGBA mode (for PNG files with transparency)
+                if image.mode == 'RGBA':
+                    image = image.convert('RGB')
 
-            # Save the file as WebP
-            file_path = os.path.join(self.upload_path, new_filename)
-            image.save(file_path, 'WEBP')
+                # Save the file as WebP
+                file_path = os.path.join(self.upload_path, new_filename)
+                logger.info(f"Attempting to save file to: {file_path}")
+                image.save(file_path, 'WEBP')
 
-            # Update the model's logo_url
-            model.logo_url = f'/uploads/upload_company_logo/{new_filename}'
+                # Update the model's logo_url
+                model.logo_url = f'/uploads/upload_company_logo/{new_filename}'
+                logger.info(f"Updated logo_url: {model.logo_url}")
+            except Exception as e:
+                logger.error(f"Error processing logo: {str(e)}")
+                raise
         elif is_created:
             # If it's a new record and no logo was uploaded, set logo_url to None or a default value
             model.logo_url = None  # or '/path/to/default/logo.png'
+            logger.info("No logo uploaded for new company")
+        else:
+            logger.info("No new logo uploaded for existing company")
 
     # Add this to ensure logo_url is displayed in the list view
     column_list = ['name', 'website_url', 'country', 'industry', 'logo_url']  # Add other fields as needed
@@ -409,6 +426,10 @@ class ReportView(BaseView):
 #             flash(f'Error processing jobs: {str(e)}', 'error')
 #             logger.error(f'Error in job processing: {str(e)}', exc_info=True)
 #         return redirect(url_for('.index'))
+
+
+
+
 
 
 
