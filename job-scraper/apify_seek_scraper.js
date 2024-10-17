@@ -16,7 +16,7 @@ const input = {
     "days": 5,
     "dev_dataset_clear": false,
     "dev_no_strip": false,
-    "limit": 5,
+    "limit": 150,
     "sort": "date",
     "types.casual": false,
     "types.contract": false,
@@ -62,20 +62,7 @@ async function runActor() {
         });
 
         // Write processed results to file
-        // The current code doesn't handle the case where the 'results' directory doesn't exist
-        // We need to create the directory if it doesn't exist before writing the file
-
-        const resultsDir = path.join(__dirname, 'results');
-        const outputPath = path.join(resultsDir, 'seek_scraper_results.json');
-
-        // Create the 'results' directory if it doesn't exist
-        if (!fs.existsSync(resultsDir)) {
-            // Add a comment to highlight the new code
-            // Create the 'results' directory
-            fs.mkdirSync(resultsDir, { recursive: true });
-        }
-
-        // Write the file
+        const outputPath = path.join(__dirname, 'results', 'seek_scraper_results.json');
         fs.writeFileSync(outputPath, JSON.stringify(processedItems, null, 2), 'utf8');
         console.log('Filtered results have been written to seek_scraper_results.json');
     } catch (error) {
@@ -90,7 +77,6 @@ async function processScrapedJobs(jobs) {
             title: job.title,
             description: job.description,
             company_name: job.companyName,
-            // The following fields are added based on the available data from the scraped job
             listing_date: job.listingDate,
             work_type: job.workType,
             logo_url: job.companyLogo,
