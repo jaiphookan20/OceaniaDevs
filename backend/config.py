@@ -33,6 +33,8 @@ MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
 MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
 MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER')
 
+PERPLEXITY_API_KEY = os.environ.get('PERPLEXITY_API_KEY')
+
 # print(f"DB_HOST: {DB_HOST}")
 # print(f"DB_NAME: {DB_NAME}")
 # print(f"DB_USER: {DB_USER}")

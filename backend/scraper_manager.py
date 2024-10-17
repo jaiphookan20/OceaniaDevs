@@ -72,20 +72,35 @@ def run_seek_scraper():
     subprocess.run(['node', '../frontend/apify_seek_scraper.js', '--output', output_file], check=True)
 
 def process_scraped_data():
+    """
+    Process scraped job data from various sources and archive the input files.
+
+    This function iterates through predefined sources (currently only 'seek'),
+    processes the scraped job data, and archives the input files with a timestamp.
+    """
     logger.info("Starting process_scraped_data function")
+    
+    # Generate current date string for archiving
     date_str = datetime.now().strftime('%d-%m-%Y')
     
+    # Iterate through each source (currently only 'seek')
     for source in ['seek']:
+        # Define input and archive file paths
         input_file = os.path.join(SCRAPER_OUTPUT_DIR, f'{source}.json')
         archive_file = os.path.join(ARCHIVE_DIR, f"{source}_{date_str}.json")
         
         logger.info(f"Checking for input file: {input_file}")
+        
+        # Check if the input file exists
         if os.path.exists(input_file):
             logger.info(f"Processing jobs from {input_file}")
+            # Process jobs from the input file
             process_jobs_from_file(input_file, source)
             
             logger.info(f"Archiving file to {archive_file}")
+            # Ensure the archive directory exists
             os.makedirs(os.path.dirname(archive_file), exist_ok=True)
+            # Move the processed file to the archive
             os.rename(input_file, archive_file)
         else:
             logger.warning(f"Input file not found: {input_file}")
@@ -136,6 +151,7 @@ def process_jobs_from_file(file_path, source):
 def get_or_create_company(company_name, logo_url=None):
     """
     Get an existing company or create a new one if it doesn't exist.
+    Use Perplexity API to fill in missing details.
     
     Args:
     company_name (str): Name of the company
@@ -149,11 +165,78 @@ def get_or_create_company(company_name, logo_url=None):
         if not company:
             company = Company(name=company_name)
             db.session.add(company)
+            
+            # Use Perplexity API to get company details
+            company_details = get_company_details_from_perplexity(company_name)
+            
+            # Update company fields with the retrieved information
+            company.description = company_details.get('description', '')
+            company.city = company_details.get('city', '')
+            company.state = company_details.get('state', '')
+            company.industry = company_details.get('industry', '')
     
     if logo_url:
         download_and_save_logo(company, logo_url)
     
     return company
+
+def get_company_details_from_perplexity(company_name):
+    """
+    Use Perplexity API to get company details.
+    
+    Args:
+    company_name (str): Name of the company
+    
+    Returns:
+    dict: Company details including description, city, state, and industry
+    """
+    api_key = current_app.config['PERPLEXITY_API_KEY']
+    logger.info(f"PERPLEXITY_API_KEY: {api_key}")
+    url = "https://api.perplexity.ai/chat/completions"
+    
+    # CHANGE: Updated prompt to be more specific and request JSON output
+    prompt = f"""Provide details for the company '{company_name}', based in Australia, in JSON format with the following keys:
+    1. 'description': A short blurb (max 200 characters) about the company and its activities.
+    2. 'city': The city of the company's headquarters in Australia. Choose from: Sydney, Melbourne, Brisbane, Perth, Adelaide, Gold Coast, Newcastle, Canberra, Geelong, Hobart, Townsville, Cairns, Darwin. You cannot provide a city that is not in the list.
+    3. 'state': The state of the company's headquarters in Australia. Choose from: VIC, NSW, ACT, WA, QLD, NT, TAS, SA. You cannot provide a state that is not in the list.
+    4. 'industry': The primary industry of the company. Choose only one from: Government, Banking & Financial Services, Fashion, Mining, Healthcare, IT - Software Development, IT - Data Analytics, IT - Cybersecurity, IT - Cloud Computing, IT - Artificial Intelligence, Agriculture, Automotive, Construction, Education, Energy & Utilities, Entertainment, Hospitality & Tourism, Legal, Manufacturing, Marketing & Advertising, Media & Communications, Non-Profit & NGO, Pharmaceuticals, Real Estate, Retail & Consumer Goods, Telecommunications, Transportation & Logistics. You cannot provide an industry that is not in the list.
+    
+    Strictly provide ONLY the JSON output, no additional text."""
+    
+    payload = {
+        "model": "llama-3.1-sonar-small-128k-online",
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are a helpful assistant that provides accurate company information in JSON format."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        "max_tokens": 500,
+        "temperature": 0.2,
+        "top_p": 0.9,
+        "stream": False
+    }
+
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "authorization": f"Bearer {api_key}"
+    }
+    
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        response.raise_for_status()
+        result = response.json()
+        # CHANGE: Directly parse the JSON from the content
+        company_details = json.loads(result['choices'][0]['message']['content'])
+        return company_details
+    except Exception as e:
+        logger.error(f"Error fetching company details from Perplexity API: {str(e)}")
+        return {}
 
 def download_and_save_logo(company, logo_url):
     try:
