@@ -11,10 +11,13 @@ async function scrapeWorkableJob(url) {
         const jobDetails = await page.evaluate(() => {
             const details = {};
             const logo = document.querySelector('a[data-ui="company-logo"] img');
+            console.log("logo", logo);
             details.logo = logo ? logo.src : '';
             const jobType = document.querySelector('span[data-ui="job-type"]');
+            console.log("jobType", jobType);
             details.jobType = jobType ? jobType.innerText : '';
             const description = document.querySelector('section[data-ui="job-description"]');
+            console.log("description", description);
             details.description = description ? description.innerText : '';
             return details;
         });
