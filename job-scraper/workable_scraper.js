@@ -3,22 +3,34 @@ const puppeteer = require('puppeteer');
 async function scrapeWorkableJob(url) {
     let browser;
     try {
-        browser = await puppeteer.launch({ headless: true });
+        browser = await puppeteer.launch({ headless: false, slowMo: 50 });  // Non-headless mode and slow down operations
         const page = await browser.newPage();
         console.log(`Navigating to ${url}`);
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
+
+        // Wait for key elements to load
+        await page.waitForSelector('body', { timeout: 10000 });
+        await page.waitForSelector('section[data-ui="job-description"]', { timeout: 10000 });
 
         const jobDetails = await page.evaluate(() => {
             const details = {};
-            const logo = document.querySelector('a[data-ui="company-logo"] img');
-            console.log("logo", logo);
+            
+            const logo = document.querySelector('img[alt][data-object-fit="contain"]');
+            console.log("logo element:", logo);
             details.logo = logo ? logo.src : '';
+            
             const jobType = document.querySelector('span[data-ui="job-type"]');
-            console.log("jobType", jobType);
+            console.log("jobType element:", jobType);
             details.jobType = jobType ? jobType.innerText : '';
+            
+            const location = document.querySelector('span[data-ellipsis-element="true"]');
+            console.log("location element:", location);
+            details.location = location ? location.innerText : '';
+            
             const description = document.querySelector('section[data-ui="job-description"]');
-            console.log("description", description);
+            console.log("description element:", description);
             details.description = description ? description.innerText : '';
+            
             return details;
         });
 
@@ -26,9 +38,12 @@ async function scrapeWorkableJob(url) {
         return jobDetails;
     } catch (error) {
         console.error(`Error scraping Workable job at ${url}:`, error);
-        return { logo: '', jobType: '', description: '' };
+        return { logo: '', jobType: '', location: '', description: '' };
     } finally {
-        if (browser) await browser.close();
+        if (browser) {
+            console.log("Closing browser...");
+            await browser.close();
+        }
     }
 }
 
@@ -39,7 +54,10 @@ if (require.main === module) {
     const jobUrl = process.argv[2];
     if (jobUrl) {
         scrapeWorkableJob(jobUrl)
-            .then(details => console.log(JSON.stringify(details)))
+            .then(details => {
+                console.log("Final scraped details:");
+                console.log(JSON.stringify(details, null, 2));
+            })
             .catch(error => console.error('Error:', error))
             .finally(() => process.exit());
     } else {
