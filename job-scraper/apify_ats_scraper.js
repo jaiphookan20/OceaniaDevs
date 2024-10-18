@@ -12,24 +12,24 @@ const client = new ApifyClient({
 const input = {
     "customquery": {
         "aulogicalis": "workable",
-        "clickview": "workable",
-        "infosys-singaporeand-australia": "workable",
+        // "clickview": "workable",
+        // "infosys-singaporeand-australia": "workable",
         "auspayplus": "workable",
-        "archipro-3": "workable",
+        // "archipro-3": "workable",
         "demystdata": "workable",
         "ofload": "workable",
         "datacom1": "workable",
         "compass-education": "workable",
-        "centorrino-technologies": "workable",
-        "bjak-1": "workable",
-        "employment-hero": "workable",
-        "entaingroup": "workable",
-        "onlife": "workable",
-        "blueapache-pty-ltd": "workable",
-        "engflow": "workable",
-        "creditorwatch": "workable",
-        "shopgrok": "workable",
-        "spinfy-jobs": "workable"
+        // "centorrino-technologies": "workable",
+        // "bjak-1": "workable",
+        // "employment-hero": "workable",
+        // "entaingroup": "workable",
+        // "onlife": "workable",
+        // "blueapache-pty-ltd": "workable",
+        // "engflow": "workable",
+        // "creditorwatch": "workable",
+        // "shopgrok": "workable",
+        // "spinfy-jobs": "workable"
     },
     "delay": 10,
     "greenhouse": true,
@@ -79,6 +79,15 @@ async function runActor() {
     }
 }
 
+export const companyDepartments = {
+    "aulogicalis": ["Managed Services (MS)"],
+    "auspayplus": ["Technology"],
+    "demystdata": ["Delivery", "Customer Success", "Engineering"],
+    "ofload": ["Technology"],
+    "datacom1": ["Technology", "Infrastructure Products"],
+    "compass-education": ["Product"],
+};
+
 async function processScrapedJobs(items) {
     const processedItems = [];
 
@@ -89,8 +98,16 @@ async function processScrapedJobs(items) {
             result: []
         };
 
+        const allowedDepartments = companyDepartments[company.name] || [];
+
         for (const job of company.result) {
             try {
+                // Filter for Australian jobs and specific departments
+                if (!job.location.endsWith(", AU") || 
+                    (allowedDepartments.length > 0 && !allowedDepartments.includes(job.department))) {
+                    continue;  // Skip this job
+                }
+
                 let processedJob = {
                     title: job.title,
                     company: company.name,
@@ -114,7 +131,9 @@ async function processScrapedJobs(items) {
             }
         }
 
-        processedItems.push(processedCompany);
+        if (processedCompany.result.length > 0) {
+            processedItems.push(processedCompany);
+        }
     }
 
     return processedItems;
