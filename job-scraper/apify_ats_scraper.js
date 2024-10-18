@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const { scrapeWorkableJob } = require('./workable_scraper');
 
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 // Initialize the ApifyClient with API token
 const client = new ApifyClient({
     token: 'apify_api_pC4ZbWh2kb7p8EWpmIObMJm2jcUWpW1yNeri',
@@ -120,8 +122,11 @@ async function processScrapedJobs(items) {
                 };
 
                 if (company.source === 'workable') {
+                    console.log(`Scraping additional details for ${job.title} at ${job.url}`);
                     const workableDetails = await scrapeWorkableJob(job.url);
+                    console.log(`Workable details for ${job.title}:`, workableDetails);
                     processedJob = { ...processedJob, ...workableDetails };
+                    await delay(3000); // Add a 2-second delay between scraping jobs
                 }
 
                 processedCompany.result.push(processedJob);

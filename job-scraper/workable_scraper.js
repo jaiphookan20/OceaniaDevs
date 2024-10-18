@@ -5,16 +5,21 @@ async function scrapeWorkableJob(url) {
     try {
         browser = await puppeteer.launch({ headless: true });
         const page = await browser.newPage();
+        console.log(`Navigating to ${url}`);
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
         const jobDetails = await page.evaluate(() => {
             const details = {};
-            details.logo = document.querySelector('a[data-ui="company-logo"] img')?.src || '';
-            details.jobType = document.querySelector('span[data-ui="job-type"]')?.innerText || '';
-            details.description = document.querySelector('section[data-ui="job-description"]')?.innerText || '';
+            const logo = document.querySelector('a[data-ui="company-logo"] img');
+            details.logo = logo ? logo.src : '';
+            const jobType = document.querySelector('span[data-ui="job-type"]');
+            details.jobType = jobType ? jobType.innerText : '';
+            const description = document.querySelector('section[data-ui="job-description"]');
+            details.description = description ? description.innerText : '';
             return details;
         });
 
+        console.log(`Scraped details for ${url}:`, jobDetails);
         return jobDetails;
     } catch (error) {
         console.error(`Error scraping Workable job at ${url}:`, error);
