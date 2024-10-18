@@ -79,7 +79,7 @@ async function runActor() {
     }
 }
 
-export const companyDepartments = {
+const companyDepartments = {
     "aulogicalis": ["Managed Services (MS)"],
     "auspayplus": ["Technology"],
     "demystdata": ["Delivery", "Customer Success", "Engineering"],
