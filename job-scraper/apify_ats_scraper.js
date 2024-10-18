@@ -3,8 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const { scrapeWorkableJob } = require('./workable_scraper');
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
 // Initialize the ApifyClient with API token
 const client = new ApifyClient({
     token: 'apify_api_pC4ZbWh2kb7p8EWpmIObMJm2jcUWpW1yNeri',
@@ -94,20 +92,13 @@ async function processScrapedJobs(items) {
     const processedItems = [];
 
     for (const company of items) {
-        const processedCompany = {
-            name: company.name,
-            source: company.source,
-            result: []
-        };
-
         const allowedDepartments = companyDepartments[company.name] || [];
 
         for (const job of company.result) {
             try {
-                // Filter for Australian jobs and specific departments
                 if (!job.location.endsWith(", AU") || 
                     (allowedDepartments.length > 0 && !allowedDepartments.includes(job.department))) {
-                    continue;  // Skip this job
+                    continue;
                 }
 
                 let processedJob = {
@@ -126,18 +117,14 @@ async function processScrapedJobs(items) {
                     const workableDetails = await scrapeWorkableJob(job.url);
                     console.log(`Workable details for ${job.title}:`, workableDetails);
                     processedJob = { ...processedJob, ...workableDetails };
-                    await delay(3000); // Add a 2-second delay between scraping jobs
+                    await delay(3000);
                 }
 
-                processedCompany.result.push(processedJob);
+                processedItems.push(processedJob);
                 console.log(`Processed job: ${job.title} for ${company.name}`);
             } catch (error) {
                 console.error(`Error processing job ${job.title} for ${company.name}:`, error);
             }
-        }
-
-        if (processedCompany.result.length > 0) {
-            processedItems.push(processedCompany);
         }
     }
 

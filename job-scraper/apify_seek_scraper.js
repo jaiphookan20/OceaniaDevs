@@ -78,7 +78,7 @@ async function processScrapedJobs(jobs) {
             description: job.description,
             company_name: job.companyName,
             listing_date: job.listingDate,
-            work_type: job.workType,
+            jobType: job.workType,
             logo_url: job.companyLogo,
             location: job.location,
             teaser: job.teaser,
