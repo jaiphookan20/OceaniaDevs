@@ -55,10 +55,9 @@ def run_daily_job_processing():
 def run_scrapers():
     """
     Run all configured scrapers.
-    Currently, only the Seek scraper is implemented.
     """
     run_seek_scraper()
-    # Add other scrapers here in the future
+    run_ats_scraper()
 
 def run_seek_scraper():
     """
@@ -71,12 +70,18 @@ def run_seek_scraper():
     output_file = os.path.join(SCRAPER_OUTPUT_DIR, 'seek.json')
     subprocess.run(['node', '../frontend/apify_seek_scraper.js', '--output', output_file], check=True)
 
+def run_ats_scraper():
+    """
+    Execute the ATS scraper using a Node.js script.
+    The scraped data is processed directly by the script.
+    """
+    os.makedirs(SCRAPER_OUTPUT_DIR, exist_ok=True)
+    output_file = os.path.join(SCRAPER_OUTPUT_DIR, 'ats.json')
+    subprocess.run(['node', '../job-scraper/apify_ats_scraper.js', '--output', output_file], check=True)
+
 def process_scraped_data():
     """
     Process scraped job data from various sources and archive the input files.
-
-    This function iterates through predefined sources (currently only 'seek'),
-    processes the scraped job data, and archives the input files with a timestamp.
     """
     logger.info("Starting process_scraped_data function")
     
@@ -105,6 +110,19 @@ def process_scraped_data():
         else:
             logger.warning(f"Input file not found: {input_file}")
     
+    # Process ATS data
+    ats_input_file = os.path.join(SCRAPER_OUTPUT_DIR, 'ats.json')
+    if os.path.exists(ats_input_file):
+        logger.info(f"Processing jobs from {ats_input_file}")
+        process_jobs_from_file(ats_input_file, 'ats')
+        
+        # Archive the processed file
+        archive_file = os.path.join(ARCHIVE_DIR, f"ats_{date_str}.json")
+        os.makedirs(os.path.dirname(archive_file), exist_ok=True)
+        os.rename(ats_input_file, archive_file)
+    else:
+        logger.warning(f"ATS input file not found: {ats_input_file}")
+    
     logger.info("Finished process_scraped_data function")
 
 def process_jobs_from_file(file_path, source):
@@ -119,7 +137,7 @@ def process_jobs_from_file(file_path, source):
     for job_data in jobs_data:
         try:
             with db.session.begin():
-                company = get_or_create_company(job_data['companyName'], job_data.get('companyLogo'))
+                company = get_or_create_company(job_data['company'], job_data.get('logo'))
                 
                 job_details = {
                     'recruiter_id': 1,  # Admin recruiter ID
@@ -131,8 +149,9 @@ def process_jobs_from_file(file_path, source):
                     'country': 'Australia',
                     'description': job_data['description'],
                     'teaser': job_data.get('teaser', ''),
+                    'department': job_data.get('department', ''),
                     'salary': job_data.get('salary', ''),
-                    'subClassification': job_data.get('subClassification', '')
+                    # Add any other fields that are available in the ATS data
                 }
                 
                 new_job, error = recruiter_service.add_job_programmatically_admin(job_details)
@@ -165,16 +184,6 @@ def get_or_create_company(company_name, logo_url=None):
         if not company:
             company = Company(name=company_name)
             db.session.add(company)
-            
-            # Use Perplexity API to get company details
-            company_details = get_company_details_from_perplexity(company_name)
-            
-            # Update company fields with the retrieved information
-            company.description = company_details.get('description', '')
-            company.city = company_details.get('city', '')
-            company.state = company_details.get('state', '')
-            company.industry = company_details.get('industry', '')
-    
     if logo_url:
         download_and_save_logo(company, logo_url)
     
