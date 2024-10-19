@@ -3,6 +3,9 @@ const fs = require('fs');
 const path = require('path');
 const { scrapeWorkableJob } = require('./workable_scraper');
 
+// Add this function at the top of the file, after the imports
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 // Initialize the ApifyClient with API token
 const client = new ApifyClient({
     token: 'apify_api_pC4ZbWh2kb7p8EWpmIObMJm2jcUWpW1yNeri',

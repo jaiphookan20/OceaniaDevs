@@ -145,13 +145,12 @@ def process_jobs_from_file(file_path, source):
                     'title': job_data['title'],
                     'jobpost_url': job_data['url'],
                     'city': job_data.get('location', ''),
-                    'job_arrangement': job_data.get('workType', ''),
+                    'job_arrangement': job_data.get('jobType', ''),
                     'country': 'Australia',
                     'description': job_data['description'],
                     'teaser': job_data.get('teaser', ''),
                     'department': job_data.get('department', ''),
                     'salary': job_data.get('salary', ''),
-                    # Add any other fields that are available in the ATS data
                 }
                 
                 new_job, error = recruiter_service.add_job_programmatically_admin(job_details)
