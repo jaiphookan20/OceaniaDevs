@@ -3,14 +3,21 @@ from extensions import db
 from models import *  # Import all models
 from scraper_manager import process_scraped_data
 import logging
-
+from dotenv import load_dotenv
+load_dotenv()
 # Set up basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+STAGING_DB_HOST = os.environ.get('STAGING_DB_HOST')
+STAGING_DB_PORT = os.environ.get('STAGING_DB_PORT')
+STAGING_DB_NAME = os.environ.get('STAGING_DB_NAME')
+STAGING_DB_USER = os.environ.get('STAGING_DB_USER')
+STAGING_DB_PASSWORD = os.environ.get('STAGING_DB_PASSWORD')
+
 def create_app():
     app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://dbmasteruser:techboard2024@ls-53acb3c0cb2cbe377b5ed78db92fdda1f3db8916.cfe6mimu8bzz.ap-southeast-2.rds.amazonaws.com:5432/Staging-Database'
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{STAGING_DB_USER}:{STAGING_DB_PASSWORD}@{STAGING_DB_HOST}:{STAGING_DB_PORT}/Staging-Database'
     db.init_app(app)
     return app
 
