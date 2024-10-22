@@ -15,6 +15,7 @@ import minExperienceIcon from '../../assets/jobpost/min-experience-icon.webp';
 import specialisationIcon from '../../assets/jobpost/specialisation-icon.webp';
 import workLocationIcon from '../../assets/jobpost/work-location-icon.webp';
 import jobArrangementIcon from '../../assets/jobpost/job-arrangement-icon.webp';  
+import LoginModal from '../HomePage/LoginModal';
 
 const JobPost = ({ onSave, onApply, isInSession, userJobStatuses, onUnsave }) => {
   const { jobId } = useParams();
@@ -27,6 +28,7 @@ const JobPost = ({ onSave, onApply, isInSession, userJobStatuses, onUnsave }) =>
   const [isSaved, setIsSaved] = useState(false);
   const [isApplied, setIsApplied] = useState(false);
   const [applicationDate, setApplicationDate] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const navigate = useNavigate();
 
@@ -110,8 +112,26 @@ const JobPost = ({ onSave, onApply, isInSession, userJobStatuses, onUnsave }) =>
   const responsibilities = parseCustomString(job.responsibilities[0]);
   const requirements = parseCustomString(job.requirements[0]);
   
+  const handleSave = () => {
+    if (!isInSession) {
+      setShowLoginModal(true);
+      return;
+    }
+    onSave(job.job_id);
+  };
+
+  const handleApply = () => {
+    if (!isInSession) {
+      setShowLoginModal(true);
+      return;
+    }
+    onApply(job.job_id);
+  };
+
   return (
     <div className="flex flex-col max-w-6xl mx-auto min-h-screen justify-center">
+      {/* Add LoginModal here */}
+      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
       <div className="flex-grow container mx-auto bg-white shadow-lg rounded-lg border border-slate-400 ">
       <header className="flex justify-between pb-1 mb-4">
           <div className="flex items-center">
@@ -253,7 +273,15 @@ const JobPost = ({ onSave, onApply, isInSession, userJobStatuses, onUnsave }) =>
             </section>
           </div>
           <div className="w-1/4 p-4">
-            <JobPostSideBar job={job} onSave={onSave} onApply={onApply} isInSession={isInSession} onUnsave={onUnsave} isSaved={isSaved} isApplied={isApplied} />
+            <JobPostSideBar 
+              job={job} 
+              onSave={handleSave} 
+              onApply={handleApply} 
+              isInSession={isInSession} 
+              onUnsave={onUnsave} 
+              isSaved={isSaved} 
+              isApplied={isApplied} 
+            />
           </div>
         </div>
         <RecommendedJobs jobs={recommendedJobs} />

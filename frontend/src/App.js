@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "./components/HomePage/Navbar";
@@ -27,6 +26,7 @@ import HashLoader from "react-spinners/HashLoader";
 import { debounce } from 'lodash';  // Make sure to install and import lodash
 import JobBoardProfile from "./components/Misc/JobBoardProfile";
 import RecruiterLandingPage from "./components/Recruiter/RecruiterLandingPage";
+import LoginModal from './components/HomePage/LoginModal';
 
 const App = () => {
   const [homePageJobs, setHomePageJobs] = useState([]);
@@ -41,6 +41,7 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState([]);
   const [userJobStatuses, setUserJobStatuses] = useState({ saved_jobs: [], applied_jobs: [] });
+  const [showLoginModal, setShowLoginModal] = useState(false);
   
   const [filters, setFilters] = useState({
     specialization: "",
@@ -163,7 +164,8 @@ const fetchAllJobs = async (page = 1, filters = {}) => {
 
 const handleSave = useCallback(async (jobId) => {
   if (!isInSession) {
-    toast.error("Please sign in to save a job.");
+    // Change this line
+    setShowLoginModal(true);
     return;
   }
 
@@ -217,7 +219,8 @@ const handleUnsave = useCallback(async (jobId) => {
 
 const handleApply = useCallback(async (jobId) => {
   if (!isInSession) {
-    toast.error("Please sign in to apply for a job.");
+    // Change this line
+    setShowLoginModal(true);
     return;
   }
 
@@ -529,6 +532,8 @@ const handleApply = useCallback(async (jobId) => {
     <div className="bg-slate-40 p-6" style={{ fontFamily: "Roobert-Regular, sans-serif" }}>
       <Toaster />
       {!isInOnboarding && <Navbar />}
+      {/* Add LoginModal here */}
+      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
       <Routes>
         <Route
           exact
@@ -637,7 +642,7 @@ const handleApply = useCallback(async (jobId) => {
         />
         {/* <Route path="/profile" element={<DeveloperProfile />} /> */}
         <Route path="/profile" element={<JobBoardProfile />} />
-        <Route path="/recruiter-page" element={<RecruiterLandingPage />} />
+        <Route path="/pricing" element={<RecruiterLandingPage />} />
         <Route
           path="/saved-jobs"
           element={

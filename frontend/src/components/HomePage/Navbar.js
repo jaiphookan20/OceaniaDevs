@@ -148,11 +148,17 @@ const Navbar = () => {
           >
             Search Jobs
           </a>
-          <a
+          {/* <a
             href="/profile"
             className="text-gray-600 hover:text-gray-800 hover:underline"
           >
             Profile
+          </a> */}
+          <a
+            href="/pricing"
+            className="text-gray-600 hover:text-gray-800 hover:underline"
+          >
+            Pricing
           </a>
         </div>
       </div>
