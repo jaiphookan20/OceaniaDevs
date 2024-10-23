@@ -14,7 +14,12 @@
 
 * This has been a entirely solo effort from the start. Although at the very beginning, it was meant to be a group effort hence why 4 contributors are listed (with one commit each by them at the very start)
 
-* The platform already has double-digit registered users and applications from candidates and growing each day. I am optimistic that this platform will grow to serve thousands more job seekers over the coming months once I release the application to the wider public in end-October.
+* Launched in a limited-beta release; the platform already has 25+ registered users and applications from candidates and growing each day. I am optimistic that this platform will grow to serve thousands more job seekers over the coming months once I release the application to the wider public in end-October.
+
+* ### Upcoming Features:
+* Candidate Database with rich, detailed profile of the technical skillset of each candidate
+* Advanced Candidate Ranking & Recommender System for each job, for Recruiters by using the power of Vector Embeddings + Advanced ML & NLP techniques
+* Automated Candidate Telephonic Qualification for Jobs through Outbound Sales AI Agent
 
 ## Technical Aspects:
 
