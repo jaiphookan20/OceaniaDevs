@@ -20,6 +20,7 @@ import logging
 from werkzeug.utils import secure_filename
 import os
 from markupsafe import Markup
+
 from PIL import Image
 
 logger = logging.getLogger(__name__)
