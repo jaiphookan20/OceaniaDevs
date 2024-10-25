@@ -27,6 +27,7 @@ import { debounce } from 'lodash';  // Make sure to install and import lodash
 import JobBoardProfile from "./components/Misc/JobBoardProfile";
 import RecruiterLandingPage from "./components/Recruiter/RecruiterLandingPage";
 import LoginModal from './components/HomePage/LoginModal';
+import SmallScreenMessage from './components/SmallScreenMessage';
 
 const App = () => {
   const [homePageJobs, setHomePageJobs] = useState([]);
@@ -60,6 +61,19 @@ const App = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsSmallScreen(window.innerWidth < 768); // Adjust this value as needed
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   useEffect(() => {
     // Scroll to the top of the page when the location changes
@@ -527,6 +541,10 @@ const handleApply = useCallback(async (jobId) => {
       </div>
     );
 }
+
+  if (isSmallScreen) {
+    return <SmallScreenMessage />;
+  }
 
   return (
     <div className="bg-slate-40 p-6" style={{ fontFamily: "Roobert-Regular, sans-serif" }}>
