@@ -11,7 +11,7 @@ sys.path.append(parent_dir)
 from service.recruiter_service import RecruiterService
 from models import Company, db, Job
 import logging
-from sqlalchemy import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError
 from dotenv import load_dotenv
 
 load_dotenv()
