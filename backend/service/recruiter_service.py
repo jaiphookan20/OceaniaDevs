@@ -214,6 +214,11 @@ class RecruiterService:
             )
             data = json.loads(response.choices[0].message.content)
 
+             # Validate and fallback for each field
+            valid_specializations = ['Frontend', 'Backend', 'Full-Stack', 'Mobile', 'Data & ML', 
+                               'QA & Testing', 'Cloud & Infra', 'DevOps', 'Project Management', 
+                               'IT Consulting', 'Cybersecurity']
+
             # Validate and fallback for each field
             validated_data = {
                 'work_location': (data.get('work_location') 
@@ -224,7 +229,10 @@ class RecruiterService:
                                 else 'Permanent'),
                 'experience_level': (data.get('experience_level') 
                                 if data.get('experience_level') in ['Junior', 'Mid-Level', 'Senior', 'Executive'] 
-                                else 'Mid-Level')
+                                else 'Mid-Level'),
+                'specialization': (data.get('specialization')
+                             if data.get('specialization') in valid_specializations
+                             else 'Full-Stack')  # Default to Full-Stack if not specified or invalid
             }
             
             return validated_data
@@ -235,7 +243,8 @@ class RecruiterService:
             return {
                 'work_location': 'Office',
                 'job_arrangement': 'Permanent',
-                'experience_level': 'Mid-Level'
+                'experience_level': 'Mid-Level',
+                'specialization': 'Full-Stack'  # Safe default value
             }
 
     def _extract_detailed_job_info(self, title, description, basic_info):
