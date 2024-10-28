@@ -2,6 +2,8 @@ import os
 import sys
 from apify_client import ApifyClient
 from typing import List, Dict, Any, Tuple
+from flask import Flask
+from dotenv import load_dotenv
 
 # Add the parent directory (backend/) to Python's path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -12,12 +14,16 @@ from service.recruiter_service import RecruiterService
 from models import Company, db, Job
 import logging
 from sqlalchemy.exc import SQLAlchemyError
-from dotenv import load_dotenv
 
 load_dotenv()
 
 # Initialize logging
 logger = logging.getLogger(__name__)
+
+# Create Flask app
+app = Flask(__name__)
+app.config.from_object('config.Config')  # Make sure this points to your config
+db.init_app(app)
 
 # Initialize the ApifyClient with API token
 client = ApifyClient(os.environ["APIFY_API_KEY"])
@@ -263,41 +269,26 @@ def process_smartrecruiters_job(company_name: str, job: Dict[str, Any]) -> Dict[
 
 # Usage
 if __name__ == "__main__":
-    input_data = {
-        "customquery": {
-            # "buildkite": "greenhouse",
-            # "compass-education": "workable",
-            "immutable": "lever",
-            "carsales": "smartrecruiters"
-        },
-        "delay": 10,
-        "details": "Yes",
-        "greenhouse": False,
-        "lever": True,
-        "smartrecruiters": True,
-        "workable": False,
-        "recruitee": False,
-        "workday": False,
-        "personio": False,
-        # "maximum": 10,
-        "proxy": {
-            "useApifyProxy": True,
-            "apifyProxyGroups": ["RESIDENTIAL"]
-        },
-        "timeout": 25
-    }
+    with app.app_context():  # This is the key addition
+        input_data = {
+            "customquery": {
+                "immutable": "lever",
+                "carsales": "smartrecruiters"
+            },
+            # ... rest of input_data ...
+        }
 
-    try:
-        logger.info("Starting job scraping process...")
-        results = run_scraper(input_data)
-        successful_adds, errors = process_results(results)
-        
-        logger.info(f"Scraping process completed.")
-        logger.info(f"Successfully added {successful_adds} new jobs to the database.")
-        
-        if errors:
-            logger.warning(f"Encountered {len(errors)} errors during processing:")
-            for error in errors:
-                logger.warning(error)
-    except Exception as e:
-        logger.error(f"Fatal error during scraping: {str(e)}", exc_info=True)
+        try:
+            logger.info("Starting job scraping process...")
+            results = run_scraper(input_data)
+            successful_adds, errors = process_results(results)
+            
+            logger.info(f"Scraping process completed.")
+            logger.info(f"Successfully added {successful_adds} new jobs to the database.")
+            
+            if errors:
+                logger.warning(f"Encountered {len(errors)} errors during processing:")
+                for error in errors:
+                    logger.warning(error)
+        except Exception as e:
+            logger.error(f"Fatal error during scraping: {str(e)}", exc_info=True)
