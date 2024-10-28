@@ -73,84 +73,115 @@ class CompanyView(SecureModelView):
     logger.info(f"Available image formats: {', '.join(Image.registered_extensions().keys())}")
     column_searchable_list = ['name', 'company_id']
     column_filters = ['country', 'industry', 'state', 'city', 'type', 'size']
-    form_choices = {
-        'country': [
-            ('Australia', 'Australia'),
-            ('New Zealand', 'New Zealand')
-        ],
-        'industry': [
-            ('Government', 'Government'),
-            ('Banking & Financial Services', 'Banking & Financial Services'),
-            ('Fashion', 'Fashion'),
-            ('Mining', 'Mining'),
-            ('Healthcare', 'Healthcare'),
-            ('IT - Software Development', 'IT - Software Development'),
-            ('IT - Data Analytics', 'IT - Data Analytics'),
-            ('IT - Cybersecurity', 'IT - Cybersecurity'),
-            ('IT - Cloud Computing', 'IT - Cloud Computing'),
-            ('IT - Artificial Intelligence', 'IT - Artificial Intelligence'),
-            ('Agriculture', 'Agriculture'),
-            ('Automotive', 'Automotive'),
-            ('Construction', 'Construction'),
-            ('Education', 'Education'),
-            ('Energy & Utilities', 'Energy & Utilities'),
-            ('Entertainment', 'Entertainment'),
-            ('Hospitality & Tourism', 'Hospitality & Tourism'),
-            ('Legal', 'Legal'),
-            ('Manufacturing', 'Manufacturing'),
-            ('Marketing & Advertising', 'Marketing & Advertising'),
-            ('Media & Communications', 'Media & Communications'),
-            ('Non-Profit & NGO', 'Non-Profit & NGO'),
-            ('Pharmaceuticals', 'Pharmaceuticals'),
-            ('Real Estate', 'Real Estate'),
-            ('Retail & Consumer Goods', 'Retail & Consumer Goods'),
-            ('Telecommunications', 'Telecommunications'),
-            ('Transportation & Logistics', 'Transportation & Logistics')
-        ],
-        'state': [
-            ('VIC', 'VIC'),
-            ('NSW', 'NSW'),
-            ('ACT', 'ACT'),
-            ('WA', 'WA'),
-            ('QLD', 'QLD'),
-            ('NT', 'NT'),
-            ('TAS', 'TAS'),
-            ('SA', 'SA')
-        ],
-        'city': [
-            ('Sydney', 'Sydney'),
-            ('Melbourne', 'Melbourne'),
-            ('Brisbane', 'Brisbane'),
-            ('Perth', 'Perth'),
-            ('Adelaide', 'Adelaide'),
-            ('Gold Coast', 'Gold Coast'),
-            ('Newcastle', 'Newcastle'),
-            ('Canberra', 'Canberra'),
-            ('Sunshine Coast', 'Sunshine Coast'),
-            ('Wollongong', 'Wollongong'),
-            ('Hobart', 'Hobart'),
-            ('Geelong', 'Geelong'),
-            ('Townsville', 'Townsville'),
-            ('Cairns', 'Cairns'),
-            ('Darwin', 'Darwin'),
-            ('Launceston', 'Launceston'),
-            ('Mackay', 'Mackay'),
-            ('Rockhampton', 'Rockhampton'),
-            ('Toowoomba', 'Toowoomba')
-        ],
-        'type': [
-            ('Agency', 'Agency'),
-            ('Company', 'Company')
-        ],
-        'size': [
-            ('0-9', '0-9'),
-            ('10-49', '10-49'),
-            ('50-249', '50-249'),
-            ('250-999', '250-999'),
-            ('1000+', '1000+')
-        ]
+    
+    # Override the form fields to use SelectField
+    form_overrides = {
+        'country': SelectField,
+        'industry': SelectField,
+        'state': SelectField,
+        'city': SelectField,
+        'type': SelectField,
+        'size': SelectField
     }
 
+    # Configure the form arguments for each SelectField
+    form_args = {
+        'country': {
+            'choices': [
+                ('Australia', 'Australia'),
+                ('New Zealand', 'New Zealand')
+            ],
+            'coerce': str
+        },
+        'industry': {
+            'choices': [
+                ('Government', 'Government'),
+                ('Banking & Financial Services', 'Banking & Financial Services'),
+                ('Fashion', 'Fashion'),
+                ('Mining', 'Mining'),
+                ('Healthcare', 'Healthcare'),
+                ('IT - Software Development', 'IT - Software Development'),
+                ('IT - Data Analytics', 'IT - Data Analytics'),
+                ('IT - Cybersecurity', 'IT - Cybersecurity'),
+                ('IT - Cloud Computing', 'IT - Cloud Computing'),
+                ('IT - Artificial Intelligence', 'IT - Artificial Intelligence'),
+                ('Agriculture', 'Agriculture'),
+                ('Automotive', 'Automotive'),
+                ('Construction', 'Construction'),
+                ('Education', 'Education'),
+                ('Energy & Utilities', 'Energy & Utilities'),
+                ('Entertainment', 'Entertainment'),
+                ('Hospitality & Tourism', 'Hospitality & Tourism'),
+                ('Legal', 'Legal'),
+                ('Manufacturing', 'Manufacturing'),
+                ('Marketing & Advertising', 'Marketing & Advertising'),
+                ('Media & Communications', 'Media & Communications'),
+                ('Non-Profit & NGO', 'Non-Profit & NGO'),
+                ('Pharmaceuticals', 'Pharmaceuticals'),
+                ('Real Estate', 'Real Estate'),
+                ('Retail & Consumer Goods', 'Retail & Consumer Goods'),
+                ('Telecommunications', 'Telecommunications'),
+                ('Transportation & Logistics', 'Transportation & Logistics')
+            ],
+            'coerce': str
+        },
+        'state': {
+            'choices': [
+                ('VIC', 'VIC'),
+                ('NSW', 'NSW'),
+                ('ACT', 'ACT'),
+                ('WA', 'WA'),
+                ('QLD', 'QLD'),
+                ('NT', 'NT'),
+                ('TAS', 'TAS'),
+                ('SA', 'SA')
+            ],
+            'coerce': str
+        },
+        'city': {
+            'choices': [
+                ('Sydney', 'Sydney'),
+                ('Melbourne', 'Melbourne'),
+                ('Brisbane', 'Brisbane'),
+                ('Perth', 'Perth'),
+                ('Adelaide', 'Adelaide'),
+                ('Gold Coast', 'Gold Coast'),
+                ('Newcastle', 'Newcastle'),
+                ('Canberra', 'Canberra'),
+                ('Sunshine Coast', 'Sunshine Coast'),
+                ('Wollongong', 'Wollongong'),
+                ('Hobart', 'Hobart'),
+                ('Geelong', 'Geelong'),
+                ('Townsville', 'Townsville'),
+                ('Cairns', 'Cairns'),
+                ('Darwin', 'Darwin'),
+                ('Launceston', 'Launceston'),
+                ('Mackay', 'Mackay'),
+                ('Rockhampton', 'Rockhampton'),
+                ('Toowoomba', 'Toowoomba')
+            ],
+            'coerce': str
+        },
+        'type': {
+            'choices': [
+                ('Agency', 'Agency'),
+                ('Company', 'Company')
+            ],
+            'coerce': str
+        },
+        'size': {
+            'choices': [
+                ('0-9', '0-9'),
+                ('10-49', '10-49'),
+                ('50-249', '50-249'),
+                ('250-999', '250-999'),
+                ('1000+', '1000+')
+            ],
+            'coerce': str
+        }
+    }
+
+    # Logo handling configuration
     def _list_thumbnail_and_url(view, context, model, name):
         if not model.logo_url:
             return ''
@@ -165,11 +196,11 @@ class CompanyView(SecureModelView):
     
     # Log the upload path
     logger.info(f"Upload path: {upload_path}")
-
+    
     form_extra_fields = {
         'logo': ImageUploadField('Logo', 
-                                 base_path=upload_path,
-                                 url_relative_path='uploads/upload_company_logo/')
+                                base_path=upload_path,
+                                url_relative_path='uploads/upload_company_logo/')
     }
 
     def on_model_change(self, form, model, is_created):
