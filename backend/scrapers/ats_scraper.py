@@ -52,8 +52,17 @@ company_departments = {
     # "datacom1": ["Technology", "Infrastructure Products"],
     "compass-education": ["Product"],
     "buildkite": ["Engineering"],
-    # "immutable": ["Platform | Security & IT"],
+    "immutable": ["Platform | Security & IT"],
+    "octoenergy": ["Software Engineering"],
+    "xero": ["Engineering", "Product", "Reliability"],
+    "recordpoint": ["Application Engineering"],
+    "myob": ["Software Development"],
+    "blinq": ["Engineering"],
+    "octopus": ["110 - Engineering"],
+    "Zeller": ["Devices and Frontend", "Cloud & Security"],
+    "swyftx": ["Engineering"],
     "carsales": ["Data Platform and Engineering", "Technology - Retail", "iMotor"],
+
 }
 
 # Add this near the top with other configurations
@@ -65,13 +74,22 @@ company_name_mapping = {
     "demystdata": "Demyst",
     "aulogicalis": "Logicalis Australia",
     "ofload": "Ofload",
-    
+    "compass-education": "Compass Education",
+
+    # Lever companies
+    "octoenergy": "Octopus Energy",
+    "xero": "Xero",
+    "recordpoint": "RecordPoint",
+    "myob": "MYOB",
+    "blinq": "Blinq",
+    "octopus": "Octopus Deploy",
+    "Zeller": "Zeller",
+    "swyftx": "Swyftx",
+
     # Greenhouse companies
     "buildkite": "Buildkite",
-    
     # Lever companies
     "immutable": "Immutable",
-    
     # SmartRecruiters companies
     "carsales": "Carsales",
     
@@ -208,7 +226,7 @@ def process_job(company_name: str, source: str, job: Dict[str, Any]) -> Dict[str
         raise ValueError(f"Unknown source: {source}")
 
 def is_job_in_australia(location: str, country_code: str = None) -> bool:
-    australia_keywords = ['australia', 'au', 'aus']
+    australia_keywords = ['australia', 'au', 'aus', 'Melbourne', 'Sydney', 'Brisbane', 'Perth', 'Adelaide', 'Gold Coast', 'Newcastle', 'Canberra', 'Wollongong', 'Sunshine Coast', 'Gold Coast', 'Newcastle', 'Canberra', 'Wollongong', 'Sunshine Coast']
     if country_code:
         return country_code.lower() in australia_keywords
     return any(keyword in location.lower() for keyword in australia_keywords)
@@ -300,14 +318,22 @@ if __name__ == "__main__":
     with app.app_context():  # This is the key addition
         input_data = {
         "customquery": {
-        # "buildkite": "greenhouse",
-        "compass-education": "workable",
-        "immutable": "lever",
-        "carsales": "smartrecruiters"
+            "buildkite": "greenhouse",
+            "compass-education": "workable",
+            "immutable": "lever",
+            "octoenergy": "lever",
+            "xero": "lever",
+            "recordpoint": "lever",
+            "myob": "lever",
+            "blinq": "lever",
+            "octopus": "lever",
+            "Zeller": "lever",
+            "swyftx": "lever",
+            "carsales": "smartrecruiters"
     },
     "delay": 10,
     "details": "Yes",
-    "greenhouse": False,
+    "greenhouse": True,
     "lever": True,
     "personio": False,
     "proxy": {
