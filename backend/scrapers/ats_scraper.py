@@ -4,6 +4,7 @@ from apify_client import ApifyClient
 from typing import List, Dict, Any, Tuple
 from flask import Flask, current_app
 from dotenv import load_dotenv
+import logging
 
 # Add the parent directory (backend/) to Python's path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -17,11 +18,19 @@ from sqlalchemy.exc import SQLAlchemyError
 
 load_dotenv()
 
-# Initialize logging
+# Set up logging configuration
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),  # This will output to console
+    ]
+)
 logger = logging.getLogger(__name__)
 
 # Create Flask app
 app = Flask(__name__)
+app.logger.setLevel(logging.INFO)  # Set Flask logger level
 
 # Database configuration - matching your working setup
 STAGING_DB_HOST = os.environ.get('STAGING_DB_HOST')
@@ -110,13 +119,13 @@ def process_results(items: List[Dict[str, Any]]) -> Tuple[int, List[str]]:
     
     # Get all existing job URLs
     existing_urls = get_existing_job_urls()
-    current_app.logger.info(f"Found {len(existing_urls)} existing jobs in database")
+    logger.info(f"Found {len(existing_urls)} existing jobs in database")
 
     for company in items:
         allowed_departments = company_departments.get(company['name'], [])
         company_proper_name = get_proper_company_name(company['name'])
         
-        current_app.logger.info(f"Processing jobs for {company_proper_name}")
+        logger.info(f"Processing jobs for {company_proper_name}")
         company_jobs = company['result']
         stats['total_scraped'] += len(company_jobs)
 
@@ -126,18 +135,18 @@ def process_results(items: List[Dict[str, Any]]) -> Tuple[int, List[str]]:
                 job_url = job.get('url')
                 if job_url in existing_urls:
                     stats['skipped_existing'] += 1
-                    current_app.logger.info(f"Skipping existing job: {job.get('title')} ({job_url})")
+                    logger.info(f"Skipping existing job: {job.get('title')} ({job_url})")
                     continue
 
                 processed_job = process_job(company['name'], company['source'], job)
                 if not processed_job:
                     stats['skipped_non_australia'] += 1
-                    current_app.logger.info(f"Skipping non-Australian job: {job.get('title')}")
+                    logger.info(f"Skipping non-Australian job: {job.get('title')}")
                     continue
 
                 if allowed_departments and processed_job['department'] not in allowed_departments:
                     stats['skipped_department'] += 1
-                    current_app.logger.info(f"Skipping job with non-allowed department: {processed_job['department']}")
+                    logger.info(f"Skipping job with non-allowed department: {processed_job['department']}")
                     continue
 
                 # Get or create company
@@ -160,17 +169,17 @@ def process_results(items: List[Dict[str, Any]]) -> Tuple[int, List[str]]:
                 if error:
                     stats['failed'] += 1
                     errors.append(f"Error adding job {job.get('title')}: {error}")
-                    current_app.logger.error(f"Failed to add job: {error}")
+                    logger.error(f"Failed to add job: {error}")
                     continue  # Continue with next job instead of raising
                 
                 stats['successfully_added'] += 1
-                current_app.logger.info(f"Successfully added new job: {processed_job['title']}")
+                logger.info(f"Successfully added new job: {processed_job['title']}")
 
             except Exception as error:
                 stats['failed'] += 1
                 error_msg = f"Error processing job {job.get('title', 'Unknown')} for {company_proper_name}: {error}"
                 errors.append(error_msg)
-                current_app.logger.error(error_msg)
+                logger.error(error_msg)
                 continue  # Continue with next job
 
     # Log final statistics
@@ -314,17 +323,16 @@ if __name__ == "__main__":
         }
 
         try:
-            current_app.logger.info("Starting job scraping process...")
+            logger.info("Starting job scraping process...")  # Changed from current_app.logger
             results = run_scraper(input_data)
             successful_adds, errors = process_results(results)
             
-            current_app.logger.info(f"Scraping process completed.")
-            current_app.logger.info(f"Successfully added {successful_adds} new jobs to the database.")
+            logger.info(f"Scraping process completed.")  # Changed from current_app.logger
+            logger.info(f"Successfully added {successful_adds} new jobs to the database.")
             
             if errors:
-                current_app.logger.warning(f"Encountered {len(errors)} errors during processing:")
+                logger.warning(f"Encountered {len(errors)} errors during processing:")
                 for error in errors:
                     logger.warning(error)
         except Exception as e:
             logger.error(f"Fatal error during scraping: {str(e)}", exc_info=True)
-
