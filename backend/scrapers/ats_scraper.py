@@ -336,3 +336,4 @@ if __name__ == "__main__":
                     logger.warning(error)
         except Exception as e:
             logger.error(f"Fatal error during scraping: {str(e)}", exc_info=True)
+

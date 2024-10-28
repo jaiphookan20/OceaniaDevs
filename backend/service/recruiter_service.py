@@ -315,73 +315,86 @@ class RecruiterService:
             return processed_data  # Return the original processed data if verification fails
     
     def add_job_programmatically_admin(self, job_data):
+        """Add a job programmatically with admin privileges."""
         try:
-            with db.session.begin_nested():
-                title = job_data.get('title')
-                description = job_data.get('description')
+            title = job_data.get('title')
+            description = job_data.get('description')
+            current_app.logger.info(f"Processing job: {title}")
 
-                current_app.logger.info(f"Processing job: {title}")
+            # Process with OpenAI
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(self.process_job_description_openai, title, description)
+                try:
+                    processed_data = future.result(timeout=180)
+                except TimeoutError:
+                    current_app.logger.error(f"OpenAI API call timed out for job: {title}")
+                    return None, "OpenAI API call timed out after 3 minutes"
 
-                openai_input = f"""
-                Job Title: {title}
-                Job Description: {description}
-                """
+            if not processed_data:
+                error_msg = f"Failed to process job description for: {title}"
+                current_app.logger.error(error_msg)
+                return None, error_msg
 
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(self.process_job_description_openai, title, openai_input)
-                    try:
-                        processed_data = future.result(timeout=180)
-                    except TimeoutError:
-                        current_app.logger.error(f"OpenAI API call timed out for job: {title}")
-                        raise Exception("OpenAI API call timed out after 3 minutes")
+            try:
+                # Create new job instance with proper enum values
+                new_job = Job(
+                    recruiter_id=job_data.get('recruiter_id', 1),  # Default to admin recruiter
+                    company_id=job_data.get('company_id'),
+                    title=job_data.get('title'),
+                    description=job_data.get('description'),
+                    overview=processed_data.get('overview', ''),
+                    responsibilities=processed_data.get('responsibilities', []),
+                    requirements=processed_data.get('requirements', []),
+                    city=job_data.get('city', ''),
+                    state=job_data.get('state', ''),
+                    country=job_data.get('country', 'Australia'),
+                    jobpost_url=job_data.get('jobpost_url', ''),
+                    work_location=processed_data.get('work_location', 'Not Specified'),
+                    work_rights=processed_data.get('work_rights'),
+                    job_arrangement=processed_data.get('job_arrangement', 'Permanent'),
+                    specialization=processed_data.get('specialization', 'Not Specified'),
+                    job_type=processed_data.get('job_type', 'normal'),
+                    industry=processed_data.get('industry', 'Not Specified'),
+                    min_experience_years=processed_data.get('min_experience_years', 0),
+                    experience_level=processed_data.get('experience_level', 'Not Specified'),
+                    tech_stack=None,  # Will be processed separately
+                    salary_range=processed_data.get('salary_range', 'Not Specified'),
+                    salary_type=processed_data.get('salary_type', 'not_specified'),  # Using enum value
+                    contract_duration=processed_data.get('contract_duration', 'not_specified'),  # Using enum value
+                    daily_range=processed_data.get('daily_range', 'not_specified'),  # Using enum value
+                    hourly_range=processed_data.get('hourly_range', 'not_specified'),  # Using enum value
+                    citizens_or_pr_only=processed_data.get('citizens_or_pr_only', False),
+                    security_clearance_required=processed_data.get('security_clearance_required', False)
+                )
 
-                current_app.logger.debug(f"Processed data for job '{title}': {processed_data}")
+                # Add to session and flush to get the job_id
+                db.session.add(new_job)
+                db.session.flush()
 
-                if processed_data:
-                    new_job = Job(
-                        recruiter_id=job_data.get('recruiter_id'),
-                        company_id=job_data.get('company_id'),
-                        title=title,
-                        description=description,
-                        jobpost_url=job_data.get('jobpost_url'),
-                        specialization=job_data.get('specialization') or processed_data.get('specialization'),
-                        industry=job_data.get('industry') or processed_data.get('industry'),
-                        work_location=job_data.get('work_location') or processed_data.get('work_location'),
-                        min_experience_years=job_data.get('min_experience_years') or processed_data.get('min_experience_years') or 0,
-                        experience_level=job_data.get('experience_level') or processed_data.get('experience_level'),
-                        city=job_data.get('city') or processed_data.get('city'),
-                        state=job_data.get('state') or processed_data.get('state'),
-                        country=job_data.get('country') or processed_data.get('country'),
-                        overview=processed_data.get('overview'),
-                        responsibilities=processed_data.get('responsibilities'),
-                        requirements=processed_data.get('requirements'),
-                        job_arrangement=processed_data.get('job_arrangement') or job_data.get('job_arrangement'),
-                        salary_range=job_data.get('salary_range') or processed_data.get('salary_range') or 'Not Listed',
-                        salary_type=processed_data.get('salary_type') or 'annual',
-                        contract_duration=processed_data.get('contract_duration') or 'Not Listed',
-                        daily_range=processed_data.get('daily_range') or 'Not Listed',
-                        hourly_range=processed_data.get('hourly_range') or 'Not Listed',
-                        citizens_or_pr_only=job_data.get('citizens_or_pr_only') or processed_data.get('citizens_or_pr_only', False),
-                        security_clearance_required=job_data.get('security_clearance_required') or processed_data.get('security_clearance_required', False),
-                    )
+                # Process technologies if available
+                tech_stack = processed_data.get('technologies', [])
+                if tech_stack:
+                    current_app.logger.info(f"Processing technologies for job '{title}': {tech_stack}")
+                    added_techs = self._process_technologies(new_job, tech_stack)
+                    current_app.logger.info(f"Added technologies for job '{title}': {added_techs}")
 
-                    db.session.add(new_job)
-                    db.session.flush()  # This will assign an ID to the new job
+                # Commit the transaction
+                db.session.commit()
+                current_app.logger.info(f"Successfully added job: {title}")
+                return new_job, None
 
-                    # Process technologies
-                    tech_stack = job_data.get('tech_stack') or processed_data.get('technologies')
-                    if tech_stack:
-                        self._process_technologies(new_job, tech_stack)
-
-                    current_app.logger.info(f"Successfully added job: {title}")
-                    return new_job, None
-                else:
-                    current_app.logger.error(f"Failed to process job description for: {title}")
-                    raise Exception("Failed to process job description")
+            except SQLAlchemyError as db_error:
+                db.session.rollback()
+                error_msg = f"Database error while adding job: {str(db_error)}"
+                current_app.logger.error(error_msg)
+                return None, error_msg
 
         except Exception as e:
-            current_app.logger.error(f"Error adding job '{title}': {str(e)}", exc_info=True)
-            return None, str(e)
+            if isinstance(e, SQLAlchemyError):
+                db.session.rollback()
+            error_msg = f"Error adding job '{job_data.get('title', 'Unknown')}': {str(e)}"
+            current_app.logger.error(error_msg, exc_info=True)
+            return None, error_msg
 
     def _process_technologies(self, job, tech_stack):
         normalized_technologies = set(self.normalize_technology_name(tech) for tech in tech_stack if tech)
@@ -942,3 +955,4 @@ class RecruiterService:
         if not recruiter:
             return False
         return recruiter.company_id is not None and Company.query.get(recruiter.company_id) is not None
+
