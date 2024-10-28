@@ -174,48 +174,74 @@ class RecruiterService:
         return processed_data
 
     def _extract_basic_job_info(self, title, description):
-        messages = [
-            {
-                "role": "system",
-                "content": "You are an AI assistant specializing in job market analysis. Extract basic job information from the given title and description."
-            },
-            {
-                "role": "user",
-                "content": f"""Analyze the following job description and title. Provide a response in JSON format with these keys: 'specialization', 'technologies', 'industry', 'work_location', 'min_experience_years', 'experience_level', 'city', 'state', 'job_arrangement', 'citizens_or_pr_only', 'security_clearance_required'.
+        try:
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are an AI assistant specializing in job market analysis. Extract basic job information from the given title and description."
+                },
+                {
+                    "role": "user",
+                    "content": f"""Analyze the following job description and title. Provide a response in JSON format with these keys: 'specialization', 'technologies', 'industry', 'work_location', 'min_experience_years', 'experience_level', 'city', 'state', 'job_arrangement', 'citizens_or_pr_only', 'security_clearance_required'.
 
-                Title: {title}
-                Job Description: {description}
+                    Title: {title}
+                    Job Description: {description}
 
-                Instructions:
-                1. 'specialization': Classify the job into ONLY ONE of these categories: Frontend', 'Backend', 'Full-Stack', 'Mobile', 'Data & ML', 'QA & Testing', 'Cloud & Infra', 'DevOps', 'Project Management', 'IT Consulting', 'Cybersecurity'.
-                2. 'technologies': List specific software technologies mentioned (e.g., Java, TypeScript, React, AWS). Exclude general terms like 'LLM services', 'Containers', 'CI/CD' or 'REST APIs'.
-                3. 'industry': Identify the end market or industry of the client that the role serves. If client is federal government, industry = 'government'. Use one of the following: ['Government', 'Banking & Financial Services', 'Fashion', 'Mining', 'Healthcare', 'IT - Software Development', 'IT - Data Analytics', 'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 'Marketing & Advertising', 'Media & Communications', 'Non-Profit & NGO', 'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 'Telecommunications', 'Transportation & Logistics'].
-                4. 'work_location': Specify the work location as one of: 'Remote', 'Hybrid', 'Office'. Default option: 'Office'.
-                5. 'min_experience_years': Extract the highest number of years of experience mentioned for any skill. Only if mentioned. Otherwise, leave empty.
-                6. 'experience_level': Classify as you deem fit into one of: 'Junior', 'Mid-Level', 'Senior', or 'Executive' based on the experience requirements defined in the role and/or title.
-                7. 'city': Extract the city where the job is located. Strictly only do so if mentioned, otherwise empty.
-                8. 'state': Extract the state where the job is located. Use one of the following: ['VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA']. Strictly only do so if mentioned, otherwise empty.
-                9. 'citizens_or_pr_only': Set to true if the job description explicitly states that only Australian citizens or permanent residents can apply. Otherwise, set to false.
-                10. 'security_clearance_required': Set to true if the job description mentions any level of security clearance requirement (Baseline, Negative Vetting 1, Negative Vetting 2, or Positive Vetting). Otherwise, set to false.
+                    Instructions:
+                    1. 'specialization': Classify the job into ONLY ONE of these categories: Frontend', 'Backend', 'Full-Stack', 'Mobile', 'Data & ML', 'QA & Testing', 'Cloud & Infra', 'DevOps', 'Project Management', 'IT Consulting', 'Cybersecurity'.
+                    2. 'technologies': List specific software technologies mentioned (e.g., Java, TypeScript, React, AWS). Exclude general terms like 'LLM services', 'Containers', 'CI/CD' or 'REST APIs'.
+                    3. 'industry': Identify the end market or industry of the client that the role serves. If client is federal government, industry = 'government'. Use one of the following: ['Government', 'Banking & Financial Services', 'Fashion', 'Mining', 'Healthcare', 'IT - Software Development', 'IT - Data Analytics', 'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 'Marketing & Advertising', 'Media & Communications', 'Non-Profit & NGO', 'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 'Telecommunications', 'Transportation & Logistics'].
+                    4. 'work_location': Specify the work location as one of: 'Remote', 'Hybrid', 'Office'. Default option: 'Office'.
+                    5. 'min_experience_years': Extract the highest number of years of experience mentioned for any skill. Provide only numeric values or 0 if not specified.
+                    6. 'experience_level': Classify as you deem fit into one of: 'Junior', 'Mid-Level', 'Senior', or 'Executive' based on the experience requirements defined in the role and/or title.
+                    7. 'city': Extract the city where the job is located. Strictly only do so if mentioned, otherwise empty.
+                    8. 'state': Extract the state where the job is located. Use one of the following: ['VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA']. Strictly only do so if mentioned, otherwise empty.
+                    9. 'citizens_or_pr_only': Set to true if the job description explicitly states that only Australian citizens or permanent residents can apply. Otherwise, set to false.
+                    10. 'security_clearance_required': Set to true if the job description mentions any level of security clearance requirement (Baseline, Negative Vetting 1, Negative Vetting 2, or Positive Vetting). Otherwise, set to false.
 
-                Provide only the JSON object as output, with no additional text.
-                - For 'technologies', use an array of strings, each representing a single technology.
-                
-                """
+                    Provide only the JSON object as output, with no additional text.
+                    - For 'technologies', use an array of strings, each representing a single technology.
+                    
+                    """
+                }
+            ]
+        
+            # Make API call and process response
+            response = self.openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages,
+                response_format={"type": "json_object"}
+            )
+            data = json.loads(response.choices[0].message.content)
+
+            # Validate and fallback for each field
+            validated_data = {
+                'work_location': (data.get('work_location') 
+                                if data.get('work_location') in ['Remote', 'Hybrid', 'Office'] 
+                                else 'Office'),
+                'job_arrangement': (data.get('job_arrangement') 
+                                if data.get('job_arrangement') in ['Permanent', 'Contract/Temp', 'Internship', 'Part-Time'] 
+                                else 'Permanent'),
+                'experience_level': (data.get('experience_level') 
+                                if data.get('experience_level') in ['Junior', 'Mid-Level', 'Senior', 'Executive'] 
+                                else 'Mid-Level')
             }
-        ]
-    
-        # Make API call and process response
-        response = self.openai_client.chat.completions.create(
-            model="gpt-4o",
-            messages=messages,
-            response_format={"type": "json_object"}
-        )
-        return json.loads(response.choices[0].message.content)
+            
+            return validated_data
+        
+        except Exception as e:
+            current_app.logger.error(f"Error in _extract_basic_job_info: {str(e)}")
+            # Return safe default values that match enum constraints
+            return {
+                'work_location': 'Office',
+                'job_arrangement': 'Permanent',
+                'experience_level': 'Mid-Level'
+            }
 
     def _extract_detailed_job_info(self, title, description, basic_info):
-        messages = [
-            {
+        try:
+            messages = [
+                {
                 "role": "system",
                 "content": "You are an AI assistant specializing in detailed job analysis. Extract specific job requirements and responsibilities from the given title and description."
             },
@@ -246,13 +272,44 @@ class RecruiterService:
             }
         ]
         
-        # Make API call and process response
-        response = self.openai_client.chat.completions.create(
-            model="gpt-4o",
-            messages=messages,
-            response_format={"type": "json_object"}
-        )
-        return json.loads(response.choices[0].message.content)
+            # Make API call and process response
+            response = self.openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages,
+                response_format={"type": "json_object"}
+            )
+            
+            data = json.loads(response.choices[0].message.content)
+        
+            # Validate and fallback for each field
+            validated_data = {
+                'contract_duration': (data.get('contract_duration') 
+                                    if data.get('contract_duration') in ['Not Listed', '0-3 months', '4-6 months', '7-9 months', '10-12 months', '12+ months'] 
+                                    else 'Not Listed'),
+                'salary_type': (data.get('salary_type') 
+                            if data.get('salary_type') in ['annual', 'hourly', 'daily'] 
+                            else 'annual'),
+                'min_experience_years': int(data.get('min_experience_years', 0)) if str(data.get('min_experience_years', '')).isdigit() else 0,
+                'daily_range': (data.get('daily_range') 
+                            if data.get('daily_range') in ['Not Listed', '0-200', '200-400', '400-600', '600-800', '800-1000', '1000-1200', '1200-1400', '1400-1600', '1600+'] 
+                            else 'Not Listed'),
+                'hourly_range': (data.get('hourly_range') 
+                            if data.get('hourly_range') in ['Not Listed', '0-20', '20-40', '40-60', '60-80', '80-100', '100-120', '120-140', '140-160', '160+'] 
+                            else 'Not Listed')
+            }
+            
+            return validated_data
+        
+        except Exception as e:
+            current_app.logger.error(f"Error in _extract_detailed_job_info: {str(e)}")
+            # Return safe default values that match enum constraints
+            return {
+                'contract_duration': 'Not Listed',
+                'salary_type': 'annual',
+                'min_experience_years': 0,
+                'daily_range': 'Not Listed',
+                'hourly_range': 'Not Listed'
+            }
 
     def _verify_and_correct_job_info(self, title, description, processed_data):
         # Define the acceptable values for each field
