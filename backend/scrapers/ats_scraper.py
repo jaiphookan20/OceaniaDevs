@@ -260,17 +260,25 @@ def process_smartrecruiters_job(company_name: str, job: Dict[str, Any]) -> Dict[
     country_code = job.get("details", {}).get("location", {}).get("country")
     if not is_job_in_australia(location, country_code):
         return None
+
+    # PROBLEM: Some of these values might be None, causing the join to fail
+    # FIX: Filter out None values and provide default empty strings
+    description_parts = [
+        job.get("details", {}).get("jobAd", {}).get("sections", {}).get("companyDescription", {}).get("text", ""),
+        job.get("details", {}).get("jobAd", {}).get("sections", {}).get("jobDescription", {}).get("text", ""),
+        job.get("details", {}).get("jobAd", {}).get("sections", {}).get("qualifications", {}).get("text", ""),
+        job.get("details", {}).get("jobAd", {}).get("sections", {}).get("additionalInformation", {}).get("text", "")
+    ]
+
+    # Filter out None values and empty strings
+    description_parts = [part for part in description_parts if part]
+
     return {
-        "company": get_proper_company_name(company_name),  # Use mapping here
+        "company": get_proper_company_name(company_name),
         "title": job.get("title"),
         "location": location,
         "url": job.get("url"),
-        "description": "\n\n".join([
-            job.get("details", {}).get("jobAd", {}).get("sections", {}).get("companyDescription", {}).get("text"),
-            job.get("details", {}).get("jobAd", {}).get("sections", {}).get("jobDescription", {}).get("text"),
-            job.get("details", {}).get("jobAd", {}).get("sections", {}).get("qualifications", {}).get("text"),
-            job.get("details", {}).get("jobAd", {}).get("sections", {}).get("additionalInformation", {}).get("text")
-        ]).strip(),
+        "description": "\n\n".join(description_parts).strip(),
         "department": job.get("department")
     }
 
@@ -278,11 +286,27 @@ def process_smartrecruiters_job(company_name: str, job: Dict[str, Any]) -> Dict[
 if __name__ == "__main__":
     with app.app_context():  # This is the key addition
         input_data = {
-            "customquery": {
-                "immutable": "lever",
-                "carsales": "smartrecruiters"
-            },
-            # ... rest of input_data ...
+        "customquery": {
+        "buildkite": "greenhouse",
+        # "compass-education": "workable",
+        "immutable": "lever",
+        # "carsales": "smartrecruiters"
+    },
+    "delay": 10,
+    "details": "Yes",
+    "greenhouse": True,
+    "lever": True,
+    "personio": False,
+    "proxy": {
+        "useApifyProxy": True,
+        "apifyProxyGroups": [
+            "RESIDENTIAL"
+        ]
+    },
+    "recruitee": False,
+    "smartrecruiters": False,
+    "workable": False,
+    "workday": False
         }
 
         try:
