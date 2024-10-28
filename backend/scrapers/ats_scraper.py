@@ -22,7 +22,14 @@ logger = logging.getLogger(__name__)
 
 # Create Flask app
 app = Flask(__name__)
-app.config.from_object('config.Config')  # Make sure this points to your config
+
+# Database configuration - matching your working setup
+STAGING_DB_HOST = os.environ.get('STAGING_DB_HOST')
+STAGING_DB_PORT = os.environ.get('STAGING_DB_PORT')
+STAGING_DB_USER = os.environ.get('STAGING_DB_USER')
+STAGING_DB_PASSWORD = os.environ.get('STAGING_DB_PASSWORD')
+
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{STAGING_DB_USER}:{STAGING_DB_PASSWORD}@{STAGING_DB_HOST}:{STAGING_DB_PORT}/Staging-Database'
 db.init_app(app)
 
 # Initialize the ApifyClient with API token
