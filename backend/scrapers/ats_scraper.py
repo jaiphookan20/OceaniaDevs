@@ -50,10 +50,10 @@ company_departments = {
     # "auspayplus": ["Technology"],
     # "ofload": ["Technology"],
     # "datacom1": ["Technology", "Infrastructure Products"],
-    # "compass-education": ["Product"],
-    # "buildkite": ["Engineering"],
-    "immutable": ["Platform | Security & IT"],
-    "carsales": ["Analytics"],
+    "compass-education": ["Product"],
+    "buildkite": ["Engineering"],
+    # "immutable": ["Platform | Security & IT"],
+    "carsales": ["Data Platform and Engineering", "Technology - Retail", "iMotor"],
 }
 
 # Add this near the top with other configurations
@@ -300,14 +300,14 @@ if __name__ == "__main__":
     with app.app_context():  # This is the key addition
         input_data = {
         "customquery": {
-        "buildkite": "greenhouse",
-        # "compass-education": "workable",
+        # "buildkite": "greenhouse",
+        "compass-education": "workable",
         "immutable": "lever",
-        # "carsales": "smartrecruiters"
+        "carsales": "smartrecruiters"
     },
     "delay": 10,
     "details": "Yes",
-    "greenhouse": True,
+    "greenhouse": False,
     "lever": True,
     "personio": False,
     "proxy": {
@@ -317,8 +317,8 @@ if __name__ == "__main__":
         ]
     },
     "recruitee": False,
-    "smartrecruiters": False,
-    "workable": False,
+    "smartrecruiters": True,
+    "workable": True,
     "workday": False
         }
 
