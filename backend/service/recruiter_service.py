@@ -23,14 +23,16 @@ from flask_mail import Message
 from extensions import mail
 import logging
 
+load_dotenv()
+
 class RecruiterService:
     def __init__(self):
         self.api_url = "https://api.deepinfra.com/v1/openai/chat/completions"
-        self.openai_client = OpenAI(api_key="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")
-        self.headers = {
-            "Authorization": "Bearer nlcQd4gbjG0eFxxwdXwsIHAKqyIIbcQy",
-            "Content-Type": "application/json"
-        }
+        self.openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        # self.headers = {
+        #     "Authorization": f"Bearer {os.getenv('DEEPINFRA_API_KEY')}",
+        #     "Content-Type": "application/json"
+        # }
         current_app.logger.info("RecruiterService initialized.")
 
     def get_recruiter_by_id(self, recruiter_id):
@@ -323,9 +325,6 @@ class RecruiterService:
                 openai_input = f"""
                 Job Title: {title}
                 Job Description: {description}
-                Job Teaser: {job_data.get('teaser', '')}
-                Salary: {job_data.get('salary', '')}
-                Sub-Classification: {job_data.get('subClassification', '')}
                 """
 
                 with concurrent.futures.ThreadPoolExecutor() as executor:

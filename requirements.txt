@@ -102,3 +102,4 @@ Werkzeug==3.0.3
 yarg==0.1.9
 zipp==3.19.2
 Pillow==9.5.0
+apify-client=1.8.1
