@@ -218,6 +218,10 @@ class RecruiterService:
             valid_specializations = ['Frontend', 'Backend', 'Full-Stack', 'Mobile', 'Data & ML', 
                                'QA & Testing', 'Cloud & Infra', 'DevOps', 'Project Management', 
                                'IT Consulting', 'Cybersecurity']
+            
+            valid_industries = ['Government', 'Banking & Financial Services', 'Fashion', 'Mining', 'Healthcare', 'IT - Software Development', 
+                                 'IT - Data Analytics', 'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 'Marketing & Advertising', 'Media & Communications', 
+                                 'Non-Profit & NGO', 'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 'Telecommunications', 'Transportation & Logistics']
 
             # Validate and fallback for each field
             validated_data = {
@@ -232,7 +236,14 @@ class RecruiterService:
                                 else 'Mid-Level'),
                 'specialization': (data.get('specialization')
                              if data.get('specialization') in valid_specializations
-                             else 'Full-Stack')  # Default to Full-Stack if not specified or invalid
+                             else 'Full-Stack'),  # Default to Full-Stack if not specified or invalid
+                'industry': (data.get('industry')
+                        if data.get('industry') in valid_industries
+                        else 'IT - Software Development'),  # Default to IT - Software Development
+                'state': (data.get('state')
+                        if data.get('state') in ['VIC', 'NSW', 'ACT', 'WA', 'QLD', 'NT', 'TAS', 'SA']
+                        else 'NSW')  # Default to NSW if not specified or invalid
+                
             }
             
             return validated_data
@@ -244,7 +255,9 @@ class RecruiterService:
                 'work_location': 'Office',
                 'job_arrangement': 'Permanent',
                 'experience_level': 'Mid-Level',
-                'specialization': 'Full-Stack'  # Safe default value
+                'specialization': 'Full-Stack',  # Safe default value
+                'industry': 'IT - Software Development',
+                'state': 'NSW'
             }
 
     def _extract_detailed_job_info(self, title, description, basic_info):
@@ -299,6 +312,9 @@ class RecruiterService:
                             if data.get('salary_type') in ['annual', 'hourly', 'daily'] 
                             else 'annual'),
                 'min_experience_years': int(data.get('min_experience_years', 0)) if str(data.get('min_experience_years', '')).isdigit() else 0,
+                'salary_range': (data.get('salary_range') 
+                            if data.get('salary_range') in ['Not Listed', '20000 - 40000', '40000 - 60000', '60000 - 80000', '80000 - 100000', '100000 - 120000', '120000 - 140000', '140000 - 160000', '160000 - 180000', '180000 - 200000', '200000 - 220000', '220000 - 240000', '240000 - 260000', '260000+'] 
+                            else 'Not Listed'),
                 'daily_range': (data.get('daily_range') 
                             if data.get('daily_range') in ['Not Listed', '0-200', '200-400', '400-600', '600-800', '800-1000', '1000-1200', '1200-1400', '1400-1600', '1600+'] 
                             else 'Not Listed'),
@@ -317,7 +333,8 @@ class RecruiterService:
                 'salary_type': 'annual',
                 'min_experience_years': 0,
                 'daily_range': 'Not Listed',
-                'hourly_range': 'Not Listed'
+                'hourly_range': 'Not Listed',
+
             }
 
     def _verify_and_correct_job_info(self, title, description, processed_data):
