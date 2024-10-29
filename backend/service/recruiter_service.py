@@ -402,7 +402,7 @@ class RecruiterService:
         try:
             title = job_data.get('title')
             description = job_data.get('description')
-            current_app.logger.info(f"Processing job: {title}")
+            current_app.logger.info(f"Processing job in add_job_programmatically_admin: {title}")
 
             # Process with OpenAI
             with concurrent.futures.ThreadPoolExecutor() as executor:

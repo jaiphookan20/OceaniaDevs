@@ -139,7 +139,7 @@ def process_results(items: List[Dict[str, Any]]) -> Tuple[int, List[str]]:
     stats = {
         'total_scraped': 0,
         'skipped_existing': 0,
-        'skipped_non_australia': 0,
+        'skipped_non_australia': 0,      
         'skipped_department': 0,
         'successfully_added': 0,
         'failed': 0
@@ -164,18 +164,18 @@ def process_results(items: List[Dict[str, Any]]) -> Tuple[int, List[str]]:
                 job_url = job.get('url')
                 if job_url in existing_urls:
                     stats['skipped_existing'] += 1
-                    logger.info(f"Skipping existing job: {job.get('title')} ({job_url})")
+                    # logger.info(f"Skipping existing job: {job.get('title')} ({job_url})")
                     continue
 
                 processed_job = process_job(company['name'], company['source'], job)
                 if not processed_job:
                     stats['skipped_non_australia'] += 1
-                    logger.info(f"Skipping non-Australian job: {job.get('title')}")
+                    # logger.info(f"Skipping non-Australian job: {job.get('title')}")
                     continue
 
                 if allowed_departments and processed_job['department'] not in allowed_departments:
                     stats['skipped_department'] += 1
-                    logger.info(f"Skipping job with non-allowed department: {processed_job['department']}")
+                    # logger.info(f"Skipping job with non-allowed department: {processed_job['department']}")
                     continue
 
                 # Get or create company
@@ -262,7 +262,7 @@ def process_greenhouse_job(company_name: str, job: Dict[str, Any]) -> Dict[str, 
     }
     
     # Add logging for the processed job data
-    logger.info(f"Processed Greenhouse job: {processed_job}")
+    # logger.info(f"Processed Greenhouse job: {processed_job}")
     
     return processed_job
 
@@ -286,7 +286,7 @@ def process_workable_job(company_name: str, job: Dict[str, Any]) -> Dict[str, An
     }
     
     # Add logging for the processed job data
-    logger.info(f"Processed Workable job: {processed_job}")
+    # logger.info(f"Processed Workable job: {processed_job}")
     
     return processed_job
 
@@ -311,7 +311,7 @@ def process_lever_job(company_name: str, job: Dict[str, Any]) -> Dict[str, Any]:
     }
     
     # Add logging for the processed job data
-    logger.info(f"Processed Lever job: {processed_job}")
+    # logger.info(f"Processed Lever job: {processed_job}")
     
     return processed_job
 
@@ -359,7 +359,7 @@ if __name__ == "__main__":
             # "xero": "lever",
             # "recordpoint": "lever",
             # "myob": "lever",
-            "blinq": "lever",
+            # "blinq": "lever",
             # "octopus": "lever",
             # "Zeller": "lever",
             # "swyftx": "lever",
