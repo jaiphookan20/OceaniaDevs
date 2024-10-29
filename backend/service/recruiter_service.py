@@ -27,13 +27,13 @@ load_dotenv()
 
 class RecruiterService:
     def __init__(self):
-        self.api_url = "https://api.deepinfra.com/v1/openai/chat/completions"
+        self.logger = logging.getLogger('app')
         self.openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         # self.headers = {
         #     "Authorization": f"Bearer {os.getenv('DEEPINFRA_API_KEY')}",
         #     "Content-Type": "application/json"
         # }
-        current_app.logger.info("RecruiterService initialized.")
+        self.logger.info("RecruiterService initialized.")
 
     def get_recruiter_by_id(self, recruiter_id):
         try:
@@ -162,16 +162,30 @@ class RecruiterService:
             return False
 
     def process_job_description_openai(self, title, description):
-        # First API call: Extract basic job information
-        basic_info = self._extract_basic_job_info(title, description)
-        
-        # Second API call: Extract detailed job requirements and responsibilities
-        detailed_info = self._extract_detailed_job_info(title, description, basic_info)
+         
+        try:
+            # Use the class logger instead of current_app.logger
+            self.logger.info(f"Processing job description with OpenAI for: {title}")
+            
+            # First API call: Extract basic job information
+            basic_info = self._extract_basic_job_info(title, description)
+            if not basic_info:
+                self.logger.error("Failed to extract basic job info")
+                return None
+            
+            # Second API call: Extract detailed job requirements and responsibilities
+            detailed_info = self._extract_detailed_job_info(title, description, basic_info)
+            if not detailed_info:
+                self.logger.error("Failed to extract detailed job info")
+                return None
 
-        # Combine the results
-        processed_data = {**basic_info, **detailed_info}
-
-        return processed_data
+            # Combine the results
+            processed_data = {**basic_info, **detailed_info}
+            return processed_data;
+    
+        except Exception as e:
+            self.logger.error(f"Error in process_job_description_openai: {str(e)}")
+            return None
 
     def _extract_basic_job_info(self, title, description):
         try:
