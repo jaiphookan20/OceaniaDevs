@@ -417,6 +417,11 @@ class RecruiterService:
                 error_msg = f"Failed to process job description for: {title}"
                 current_app.logger.error(error_msg)
                 return None, error_msg
+            
+            current_app.logger.info(f"For Title: {job_data.get('title')}")
+            current_app.logger.info(f"Adding overview: {processed_data.get('overview', '')}")
+            current_app.logger.info(f"Adding responsibilities: {processed_data.get('responsibilities', [])}")
+            current_app.logger.info(f"Adding requirements: {processed_data.get('requirements', [])}")
 
             try:
                 # Create new job instance with proper enum values
