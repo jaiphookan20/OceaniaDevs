@@ -250,7 +250,9 @@ def process_greenhouse_job(company_name: str, job: Dict[str, Any]) -> Dict[str, 
     location = job.get("location", "")
     if not is_job_in_australia(location):
         return None
-    return {
+    
+    # Create the processed job data
+    processed_job = {
         "company": get_proper_company_name(company_name),  # Use mapping here
         "title": job.get("title"),
         "location": location,
@@ -258,17 +260,23 @@ def process_greenhouse_job(company_name: str, job: Dict[str, Any]) -> Dict[str, 
         "description": job.get("details", {}).get("description"),
         "department": job.get("department")
     }
+    
+    # Add logging for the processed job data
+    logger.info(f"Processed Greenhouse job: {processed_job}")
+    
+    return processed_job
 
 def process_workable_job(company_name: str, job: Dict[str, Any]) -> Dict[str, Any]:
     location = job.get("location", "")
     country_code = job.get("details", {}).get("location", {}).get("countryCode")
     if not is_job_in_australia(location, country_code):
         return None
-    return {
+        
+    processed_job = {
         "company": get_proper_company_name(company_name),  # Use mapping here
         "title": job.get("title"),
         "location": location,
-        "url": job.get("url"),
+        "url": job.get("url"),        
         "description": "\n\n".join([
             job.get("details", {}).get("description", ""),
             job.get("details", {}).get("requirements", ""),
@@ -276,6 +284,11 @@ def process_workable_job(company_name: str, job: Dict[str, Any]) -> Dict[str, An
         ]).strip(),
         "department": job.get("department")
     }
+    
+    # Add logging for the processed job data
+    logger.info(f"Processed Workable job: {processed_job}")
+    
+    return processed_job
 
 def process_lever_job(company_name: str, job: Dict[str, Any]) -> Dict[str, Any]:
     location = job.get("location", "")
@@ -288,7 +301,7 @@ def process_lever_job(company_name: str, job: Dict[str, Any]) -> Dict[str, Any]:
     combined_lists = "\n".join(lists_content)
     description = f"{job.get('details', {}).get('descriptionPlain', '')}\n\n{combined_lists}"
 
-    return {
+    processed_job = {
         "company": get_proper_company_name(company_name),  # Use mapping here,
         "title": job.get("title"),
         "location": location,
@@ -296,6 +309,11 @@ def process_lever_job(company_name: str, job: Dict[str, Any]) -> Dict[str, Any]:
         "description": description.strip(),
         "department": job.get("department")
     }
+    
+    # Add logging for the processed job data
+    logger.info(f"Processed Lever job: {processed_job}")
+    
+    return processed_job
 
 def process_smartrecruiters_job(company_name: str, job: Dict[str, Any]) -> Dict[str, Any]:
     location = job.get("location", "")
@@ -315,7 +333,7 @@ def process_smartrecruiters_job(company_name: str, job: Dict[str, Any]) -> Dict[
     # Filter out None values and empty strings
     description_parts = [part for part in description_parts if part]
 
-    return {
+    processed_job = {
         "company": get_proper_company_name(company_name),
         "title": job.get("title"),
         "location": location,
@@ -323,6 +341,11 @@ def process_smartrecruiters_job(company_name: str, job: Dict[str, Any]) -> Dict[
         "description": "\n\n".join(description_parts).strip(),
         "department": job.get("department")
     }
+    
+    # Add logging for the processed job data
+    logger.info(f"Processed SmartRecruiters job: {processed_job}")
+    
+    return processed_job
 
 # Usage
 if __name__ == "__main__":
@@ -330,16 +353,16 @@ if __name__ == "__main__":
         input_data = {
         "customquery": {
             "buildkite": "greenhouse",
-            "compass-education": "workable",
-            "immutable": "lever",
-            "octoenergy": "lever",
-            "xero": "lever",
-            "recordpoint": "lever",
-            "myob": "lever",
+            # "compass-education": "workable",
+            # "immutable": "lever",
+            # "octoenergy": "lever",
+            # "xero": "lever",
+            # "recordpoint": "lever",
+            # "myob": "lever",
             "blinq": "lever",
-            "octopus": "lever",
-            "Zeller": "lever",
-            "swyftx": "lever",
+            # "octopus": "lever",
+            # "Zeller": "lever",
+            # "swyftx": "lever",
             # "carsales": "smartrecruiters"
     },
     "delay": 10,
