@@ -449,15 +449,29 @@ class RecruiterService:
             current_app.logger.info(f"Adding requirements: {processed_data.get('requirements', [])}")
 
             try:
-                # Create new job instance with proper enum values
+                # Debug the processed data before creating the Job
+                self.logger.info("Processed data for arrays:")
+                self.logger.info(f"Overview type: {type(processed_data.get('overview'))}")
+                self.logger.info(f"Responsibilities type: {type(processed_data.get('responsibilities'))}")
+                self.logger.info(f"Requirements type: {type(processed_data.get('requirements'))}")
+                
+                # Ensure arrays are properly formatted
+                responsibilities = processed_data.get('responsibilities', [])
+                requirements = processed_data.get('requirements', [])
+                
+                if not isinstance(responsibilities, list):
+                    responsibilities = []
+                if not isinstance(requirements, list):
+                    requirements = []
+
                 new_job = Job(
                     recruiter_id=job_data.get('recruiter_id', 1),  # Default to admin recruiter
                     company_id=job_data.get('company_id'),
                     title=job_data.get('title'),
                     description=job_data.get('description'),
                     overview=processed_data.get('overview', ''),
-                    responsibilities=processed_data.get('responsibilities', []),
-                    requirements=processed_data.get('requirements', []),
+                    responsibilities=responsibilities,
+                    requirements=requirements,
                     city=job_data.get('city', ''),
                     state=job_data.get('state', ''),
                     country=job_data.get('country', 'Australia'),
