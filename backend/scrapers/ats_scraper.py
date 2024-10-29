@@ -5,6 +5,7 @@ from typing import List, Dict, Any, Tuple
 from flask import Flask, current_app
 from dotenv import load_dotenv
 import logging
+import json
 
 # Add the parent directory (backend/) to Python's path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -119,9 +120,19 @@ def get_existing_job_urls():
         return set()
 
 def run_scraper(input_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Run the Actor and wait for it to finish"""
+    """Run the Actor and wait for it to finish, saving results to JSON file"""
     run = client.actor("8d7qNCKVcOhIALFgO").call(run_input=input_data)
-    return list(client.dataset(run["defaultDatasetId"]).iterate_items())
+    results = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+        
+    # Get directory of current file
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    output_file = os.path.join(current_dir, 'scraper_results.json')
+    
+    # Write results to JSON file
+    with open(output_file, 'w') as f:
+        json.dump(results, f, indent=2)
+        
+    return results
 
 def process_results(items: List[Dict[str, Any]]) -> Tuple[int, List[str]]:
     recruiter_service = RecruiterService()
@@ -329,7 +340,7 @@ if __name__ == "__main__":
             "octopus": "lever",
             "Zeller": "lever",
             "swyftx": "lever",
-            "carsales": "smartrecruiters"
+            # "carsales": "smartrecruiters"
     },
     "delay": 10,
     "details": "Yes",
