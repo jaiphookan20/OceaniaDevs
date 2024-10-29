@@ -162,30 +162,40 @@ class RecruiterService:
             return False
 
     def process_job_description_openai(self, title, description):
-         
-        try:
-            # Use the class logger instead of current_app.logger
-            self.logger.info(f"Processing job description with OpenAI for: {title}")
+        # First API call: Extract basic job information
+        basic_info = self._extract_basic_job_info(title, description)
+        
+        # Second API call: Extract detailed job requirements
+        detailed_info = self._extract_detailed_job_info(title, description, basic_info)
+        
+        # Combine results properly - detailed_info should take precedence for overlapping keys
+        processed_data = {
+            # Basic info fields
+            'specialization': basic_info.get('specialization'),
+            'industry': basic_info.get('industry'),
+            'work_location': basic_info.get('work_location'),
+            'min_experience_years': basic_info.get('min_experience_years'),
+            'experience_level': basic_info.get('experience_level'),
+            'city': basic_info.get('city'),
+            'state': basic_info.get('state'),
+            'citizens_or_pr_only': basic_info.get('citizens_or_pr_only'),
+            'security_clearance_required': basic_info.get('security_clearance_required'),
             
-            # First API call: Extract basic job information
-            basic_info = self._extract_basic_job_info(title, description)
-            if not basic_info:
-                self.logger.error("Failed to extract basic job info")
-                return None
-            
-            # Second API call: Extract detailed job requirements and responsibilities
-            detailed_info = self._extract_detailed_job_info(title, description, basic_info)
-            if not detailed_info:
-                self.logger.error("Failed to extract detailed job info")
-                return None
-
-            # Combine the results
-            processed_data = {**basic_info, **detailed_info}
-            return processed_data;
-    
-        except Exception as e:
-            self.logger.error(f"Error in process_job_description_openai: {str(e)}")
-            return None
+            # Detailed info fields - these were getting lost in the merge
+            'overview': detailed_info.get('overview'),
+            'responsibilities': detailed_info.get('responsibilities'),
+            'requirements': detailed_info.get('requirements'),
+            'technologies': detailed_info.get('technologies'),
+            'salary_type': detailed_info.get('salary_type'),
+            'salary_range': detailed_info.get('salary_range'),
+            'hourly_range': detailed_info.get('hourly_range'),
+            'daily_range': detailed_info.get('daily_range'),
+            'job_arrangement': detailed_info.get('job_arrangement'),
+            'contract_duration': detailed_info.get('contract_duration')
+        }
+        
+        self.logger.info(f"Combined processed data: {processed_data}")
+        return processed_data
 
     def _extract_basic_job_info(self, title, description):
         try:
