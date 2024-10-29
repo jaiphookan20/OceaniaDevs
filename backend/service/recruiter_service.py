@@ -208,7 +208,7 @@ class RecruiterService:
         
             # Make API call and process response
             response = self.openai_client.chat.completions.create(
-                model="gpt-4o",
+                model="gpt-4o-2024-08-06",
                 messages=messages,
                 response_format={"type": "json_object"}
             )
@@ -296,12 +296,15 @@ class RecruiterService:
         
             # Make API call and process response
             response = self.openai_client.chat.completions.create(
-                model="gpt-4o",
+                model="gpt-4o-2024-08-06",
                 messages=messages,
                 response_format={"type": "json_object"}
             )
             
             data = json.loads(response.choices[0].message.content)
+
+            # Log the extracted data
+            current_app.logger.info(f"Extracted data from OpenAI: {json.dumps(data, indent=2)}")
         
             # Validate and fallback for each field
             validated_data = {
