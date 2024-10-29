@@ -419,22 +419,30 @@ class RecruiterService:
         try:
             title = job_data.get('title')
             description = job_data.get('description')
-            current_app.logger.info(f"Processing job in add_job_programmatically_admin: {title}")
+            self.logger.info(f"Processing job in add_job_programmatically_admin: {title}")
 
-            # Process with OpenAI
+            # Store the current application context
+            ctx = current_app._get_current_object()
+
+            # Process with OpenAI in a thread, but with proper context
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(self.process_job_description_openai, title, description)
+                def process_with_context():
+                    with ctx.app_context():
+                        with db.session.begin():  # Add database session context
+                            return self.process_job_description_openai(title, description)
+
+                future = executor.submit(process_with_context)
                 try:
                     processed_data = future.result(timeout=180)
                 except TimeoutError:
-                    current_app.logger.error(f"OpenAI API call timed out for job: {title}")
+                    self.logger.error(f"OpenAI API call timed out for job: {title}")
                     return None, "OpenAI API call timed out after 3 minutes"
 
             if not processed_data:
                 error_msg = f"Failed to process job description for: {title}"
-                current_app.logger.error(error_msg)
+                self.logger.error(error_msg)
                 return None, error_msg
-            
+
             current_app.logger.info(f"For Title: {job_data.get('title')}")
             current_app.logger.info(f"Adding overview: {processed_data.get('overview', '')}")
             current_app.logger.info(f"Adding responsibilities: {processed_data.get('responsibilities', [])}")
@@ -497,8 +505,8 @@ class RecruiterService:
         except Exception as e:
             if isinstance(e, SQLAlchemyError):
                 db.session.rollback()
-            error_msg = f"Error adding job '{job_data.get('title', 'Unknown')}': {str(e)}"
-            current_app.logger.error(error_msg, exc_info=True)
+            error_msg = f"Error adding job '{title}': {str(e)}"
+            self.logger.error(error_msg)
             return None, error_msg
 
     def _process_technologies(self, job, tech_stack):
