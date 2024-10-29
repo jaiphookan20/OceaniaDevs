@@ -274,9 +274,18 @@ class CompanyView(SecureModelView):
 
 # Custom view for Job model
 class JobView(SecureModelView):
-    column_searchable_list = ['title', 'job_id']
+    # Add company.name to searchable list and include it in column list
+    column_searchable_list = ['title', 'job_id', 'company.name']
     column_exclude_list = ['search_vector', 'description']
     column_filters = ['specialization', 'job_type', 'industry', 'experience_level', 'work_location']
+    
+    # Add company.name to be displayed in list view
+    column_list = ['title', 'company.name', 'city', 'state', 'specialization', 'job_type', 'industry', 'experience_level', 'work_location', 'min_experience_years', 'job_arrangement']
+    
+    # Add label for company.name column
+    column_labels = {
+        'company.name': 'Company'
+    }
 
 class TechnologiesView(SecureModelView):
     column_list = ['id', 'name']
