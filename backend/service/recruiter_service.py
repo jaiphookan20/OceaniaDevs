@@ -417,61 +417,46 @@ class RecruiterService:
     def add_job_programmatically_admin(self, job_data):
         """Add a job programmatically with admin privileges."""
         try:
-            title = job_data.get('title')
-            description = job_data.get('description')
-            self.logger.info(f"Processing job in add_job_programmatically_admin: {title}")
-
-            # Store the current application context
-            ctx = current_app._get_current_object()
-
-            # Process with OpenAI in a thread, but with proper context
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                def process_with_context():
-                    with ctx.app_context():
-                        with db.session.begin():  # Add database session context
+            with db.session.begin_nested():
+                title = job_data.get('title')
+                description = job_data.get('description')
+                
+                self.logger.info(f"Processing job: {title}")
+                
+                # Store the current application context
+                ctx = current_app._get_current_object()
+                
+                # Process with OpenAI
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    def process_with_context():
+                        with ctx.app_context():
                             return self.process_job_description_openai(title, description)
 
-                future = executor.submit(process_with_context)
-                try:
-                    processed_data = future.result(timeout=180)
-                except TimeoutError:
-                    self.logger.error(f"OpenAI API call timed out for job: {title}")
-                    return None, "OpenAI API call timed out after 3 minutes"
+                    future = executor.submit(process_with_context)
+                    try:
+                        processed_data = future.result(timeout=180)
+                        # Debug logging within main context
+                        self.logger.info(f"Raw processed_data keys: {processed_data.keys() if processed_data else 'None'}")
+                        self.logger.info(f"Overview present: {'overview' in processed_data if processed_data else False}")
+                        self.logger.info(f"Responsibilities present: {'responsibilities' in processed_data if processed_data else False}")
+                        self.logger.info(f"Requirements present: {'requirements' in processed_data if processed_data else False}")
+                    except TimeoutError:
+                        self.logger.error(f"OpenAI API call timed out for job: {title}")
+                        return None, "OpenAI API call timed out after 3 minutes"
 
-            if not processed_data:
-                error_msg = f"Failed to process job description for: {title}"
-                self.logger.error(error_msg)
-                return None, error_msg
+                if not processed_data:
+                    self.logger.error("No processed data returned from OpenAI")
+                    return None, "Failed to process job description"
 
-            current_app.logger.info(f"For Title: {job_data.get('title')}")
-            current_app.logger.info(f"Adding overview: {processed_data.get('overview', '')}")
-            current_app.logger.info(f"Adding responsibilities: {processed_data.get('responsibilities', [])}")
-            current_app.logger.info(f"Adding requirements: {processed_data.get('requirements', [])}")
-
-            try:
-                # Debug the processed data before creating the Job
-                self.logger.info("Processed data for arrays:")
-                self.logger.info(f"Overview type: {type(processed_data.get('overview'))}")
-                self.logger.info(f"Responsibilities type: {type(processed_data.get('responsibilities'))}")
-                self.logger.info(f"Requirements type: {type(processed_data.get('requirements'))}")
-                
-                # Ensure arrays are properly formatted
-                responsibilities = processed_data.get('responsibilities', [])
-                requirements = processed_data.get('requirements', [])
-                
-                if not isinstance(responsibilities, list):
-                    responsibilities = []
-                if not isinstance(requirements, list):
-                    requirements = []
-
+                # Create new job
                 new_job = Job(
                     recruiter_id=job_data.get('recruiter_id', 1),  # Default to admin recruiter
                     company_id=job_data.get('company_id'),
                     title=job_data.get('title'),
                     description=job_data.get('description'),
                     overview=processed_data.get('overview', ''),
-                    responsibilities=responsibilities,
-                    requirements=requirements,
+                    responsibilities=processed_data.get('responsibilities'),
+                    requirements=processed_data.get('requirements'),
                     city=job_data.get('city', ''),
                     state=job_data.get('state', ''),
                     country=job_data.get('country', 'Australia'),
@@ -501,20 +486,14 @@ class RecruiterService:
                 # Process technologies if available
                 tech_stack = processed_data.get('technologies', [])
                 if tech_stack:
-                    current_app.logger.info(f"Processing technologies for job '{title}': {tech_stack}")
+                    self.logger.info(f"Processing technologies for job '{title}': {tech_stack}")
                     added_techs = self._process_technologies(new_job, tech_stack)
-                    current_app.logger.info(f"Added technologies for job '{title}': {added_techs}")
+                    self.logger.info(f"Added technologies for job '{title}': {added_techs}")
 
-                # Commit the transaction
-                db.session.commit()
-                current_app.logger.info(f"Successfully added job: {title}")
+                # Log after job creation
+                self.logger.info(f"Job created with ID: {new_job.job_id}")
+
                 return new_job, None
-
-            except SQLAlchemyError as db_error:
-                db.session.rollback()
-                error_msg = f"Database error while adding job: {str(db_error)}"
-                current_app.logger.error(error_msg)
-                return None, error_msg
 
         except Exception as e:
             if isinstance(e, SQLAlchemyError):
@@ -530,22 +509,26 @@ class RecruiterService:
             if technology:
                 job_tech = JobTechnology(job=job, technology=technology)
                 db.session.add(job_tech)
-        current_app.logger.info(f"Added technologies for job '{job.title}': {normalized_technologies}")
+        #current_app.logger.info(f"Added technologies for job '{job.title}': {normalized_technologies}")
+        self.logger.info(f"Added technologies for job '{job.title}': {normalized_technologies}")
 
     def normalize_technology_name(self, tech_name):
         """Normalize technology names using the technology_aliases table."""
         # Print/log the technology name before normalization
-        current_app.logger.info(f"Normalizing technology name: {tech_name}")
+        #current_app.logger.info(f"Normalizing technology name: {tech_name}")
+        self.logger.info(f"Normalizing technology name: {tech_name}")
         
         alias_entry = TechnologyAlias.query.filter(db.func.lower(TechnologyAlias.alias) == tech_name.lower()).first()
         if alias_entry:
             normalized_name = alias_entry.technology.name
             # Print/log the normalized technology name
-            current_app.logger.info(f"Found normalized name: {normalized_name} for alias: {tech_name}")
+            #current_app.logger.info(f"Found normalized name: {normalized_name} for alias: {tech_name}")
+            self.logger.info(f"Found normalized name: {normalized_name} for alias: {tech_name}")
             return normalized_name
         else:
             # Log if no normalization is found
-            current_app.logger.info(f"No normalized name found for alias: {tech_name}")
+            #current_app.logger.info(f"No normalized name found for alias: {tech_name}")
+            self.logger.info(f"No normalized name found for alias: {tech_name}")
             return None    
 
     # NEED TO UPDATE ON FRONTEND FOR SALARY_TYPE, CONTRACT_DURATION, DAILY_RANGE, and HOURLY_RANGE
