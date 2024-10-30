@@ -167,6 +167,8 @@ class RecruiterService:
         
         # Second API call: Extract detailed job requirements
         detailed_info = self._extract_detailed_job_info(title, description, basic_info)
+
+        self.logger.info(f"detailed_info output in 'process_job_description_openai': {processed_data}")
         
         # Combine results properly - detailed_info should take precedence for overlapping keys
         processed_data = {
@@ -249,6 +251,13 @@ class RecruiterService:
 
             # Validate and fallback for each field
             validated_data = {
+                # Add these fields that we were accidentally dropping
+                'min_experience_years': int(data.get('min_experience_years', 0)) if str(data.get('min_experience_years', '')).isdigit() else 0,
+                'city': data.get('city'),
+                'technologies': data.get('technologies', []),
+                'citizens_or_pr_only': bool(data.get('citizens_or_pr_only', False)),
+                'security_clearance_required': bool(data.get('security_clearance_required', False)),
+
                 'work_location': (data.get('work_location') 
                                 if data.get('work_location') in ['Remote', 'Hybrid', 'Office'] 
                                 else 'Office'),
@@ -281,7 +290,12 @@ class RecruiterService:
                 'experience_level': 'Mid-Level',
                 'specialization': 'Full-Stack',  # Safe default value
                 'industry': 'IT - Software Development',
-                'state': 'NSW'
+                'state': 'NSW',
+                'city': 'Sydney',
+                'min_experience_years': 0,
+                'technologies': [],
+                'citizens_or_pr_only': False,
+                'security_clearance_required': False
             }
 
     def _extract_detailed_job_info(self, title, description, basic_info):
@@ -332,6 +346,13 @@ class RecruiterService:
         
             # Validate and fallback for each field
             validated_data = {
+                'overview': data.get('overview'),
+                'responsibilities': data.get('responsibilities', []),
+                'requirements': data.get('requirements', []),
+                'technologies': data.get('technologies', []),
+                'job_arrangement': (data.get('job_arrangement')
+                                if data.get('job_arrangement') in ['Permanent', 'Contract/Temp', 'Internship', 'Part-Time']
+                                else 'Permanent'),
                 'contract_duration': (data.get('contract_duration') 
                                     if data.get('contract_duration') in ['Not Listed', '0-3 months', '4-6 months', '7-9 months', '10-12 months', '12+ months'] 
                                     else 'Not Listed'),
@@ -348,6 +369,7 @@ class RecruiterService:
                 'hourly_range': (data.get('hourly_range') 
                             if data.get('hourly_range') in ['Not Listed', '0-20', '20-40', '40-60', '60-80', '80-100', '100-120', '120-140', '140-160', '160+'] 
                             else 'Not Listed')
+                
             }
             
             return validated_data
@@ -361,6 +383,11 @@ class RecruiterService:
                 'min_experience_years': 0,
                 'daily_range': 'Not Listed',
                 'hourly_range': 'Not Listed',
+                'overview': '',
+                'responsibilities': [],
+                'requirements': [],
+                'technologies': [],
+                'job_arrangement': 'Permanent'
 
             }
 
