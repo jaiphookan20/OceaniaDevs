@@ -144,7 +144,7 @@ def run_scraper(input_data: Dict[str, Any]) -> List[Dict[str, Any]]:
     processed_items = []
     for item in items:
         # Get company name from item or advertiser description
-        company_name = item.get('companyName') or (item.get('advertiser', {}).get('description')) or ""
+        company_name = item.get('companyName') or ""
         
         # Get logo URL with fallback logic
         logo_url = ""
@@ -199,9 +199,8 @@ def process_results(items: List[Dict[str, Any]]) -> Tuple[int, List[str]]:
         existing_urls = get_existing_job_urls()
         logger.info(f"Found {len(existing_urls)} existing jobs in database")
 
-        # Update: Process items directly since they are already processed
         stats['total_scraped'] = len(items)
-
+        
         for job in items:
             try:
                 # Check if job URL already exists
@@ -210,18 +209,17 @@ def process_results(items: List[Dict[str, Any]]) -> Tuple[int, List[str]]:
                     stats['skipped_existing'] += 1
                     continue
 
-                # Get or create company
-                company_obj = get_or_create_company(job.get['company'], job.get('companyLogo'))
+                company_obj = get_or_create_company(job.get('company'), job.get('companyLogo'))
                 
                 # Prepare job details
                 job_details = {
                     'recruiter_id': 1,  # Admin recruiter ID
                     'company_id': company_obj.company_id,
-                    'title': job['title'],
+                    'title': job.get('title'),
                     'jobpost_url': job_url,
-                    'city': job['location'],
+                    'city': job.get('location'),
                     'country': 'Australia',
-                    'description': job['description'],
+                    'description': job.get('description'),
                 }
 
                 # Add job using recruiter service
@@ -242,24 +240,10 @@ def process_results(items: List[Dict[str, Any]]) -> Tuple[int, List[str]]:
 
             except Exception as error:
                 stats['failed'] += 1
-                error_msg = f"Error processing job {job.get('title', 'Unknown')}: {error}"
+                error_msg = f"Error processing job {job.get('title', 'Unknown')}: {str(error)}"
                 errors.append(error_msg)
                 logger.error(error_msg)
-                continue  # Continue with next job
-
-        # Ensure final commit
-        db.session.commit()
-
-        # Log final statistics
-        logger.info("\n=== Job Processing Statistics ===")
-        logger.info(f"Total jobs scraped: {stats['total_scraped']}")
-        logger.info(f"Jobs skipped (already exist): {stats['skipped_existing']}")
-        logger.info(f"Jobs skipped (non-Australian): {stats['skipped_non_australia']}")
-        logger.info(f"Jobs skipped (department): {stats['skipped_department']}")
-        logger.info(f"Jobs successfully added: {stats['successfully_added']}")
-        logger.info(f"Jobs failed to add: {stats['failed']}")
-        logger.info(f"Total errors encountered: {len(errors)}")
-        logger.info("=============================\n")
+                continue
 
         return stats['successfully_added'], errors
         
