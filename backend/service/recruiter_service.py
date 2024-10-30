@@ -167,8 +167,6 @@ class RecruiterService:
         
         # Second API call: Extract detailed job requirements
         detailed_info = self._extract_detailed_job_info(title, description, basic_info)
-
-        self.logger.info(f"detailed_info output in 'process_job_description_openai': {processed_data}")
         
         # Combine results properly - detailed_info should take precedence for overlapping keys
         processed_data = {
