@@ -7,7 +7,6 @@ from flask import Flask, current_app
 from dotenv import load_dotenv
 import logging
 import json
-from extensions import db
 from PIL import Image
 import io
 import requests
