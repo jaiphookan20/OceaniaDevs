@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 from apify_client import ApifyClient
 from typing import List, Dict, Any, Tuple
 from flask import Flask, current_app
@@ -7,14 +8,17 @@ from dotenv import load_dotenv
 import logging
 import json
 
-# Add the parent directory (backend/) to Python's path
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
+# Get the absolute path to the backend directory
+current_dir = Path(__file__).resolve().parent
+backend_dir = current_dir.parent
 
+# Add the backend directory to Python's path
+sys.path.append(str(backend_dir))
+
+# Now import your modules
+from app import create_app
 from service.recruiter_service import RecruiterService
 from models import Company, db, Job
-import logging
 from sqlalchemy.exc import SQLAlchemyError
 
 load_dotenv()
@@ -24,23 +28,18 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.StreamHandler(),  # This will output to console
+        logging.StreamHandler(),
     ]
 )
 logger = logging.getLogger(__name__)
 
 # Create Flask app
-app = Flask(__name__)
-app.logger.setLevel(logging.INFO)  # Set Flask logger level
+app = create_app()
+app.logger.setLevel(logging.INFO)
 
-# Database configuration - matching your working setup
-STAGING_DB_HOST = os.environ.get('STAGING_DB_HOST')
-STAGING_DB_PORT = os.environ.get('STAGING_DB_PORT')
-STAGING_DB_USER = os.environ.get('STAGING_DB_USER')
-STAGING_DB_PASSWORD = os.environ.get('STAGING_DB_PASSWORD')
-
-app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{STAGING_DB_USER}:{STAGING_DB_PASSWORD}@{STAGING_DB_HOST}:{STAGING_DB_PORT}/Staging-Database'
-db.init_app(app)
+# Update database configuration if needed
+if os.environ.get('STAGING_DB_HOST'):
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{os.environ.get("STAGING_DB_USER")}:{os.environ.get("STAGING_DB_PASSWORD")}@{os.environ.get("STAGING_DB_HOST")}:{os.environ.get("STAGING_DB_PORT")}/Staging-Database'
 
 # Initialize the ApifyClient with API token
 client = ApifyClient(os.environ["APIFY_API_KEY"])
@@ -102,13 +101,40 @@ def get_or_create_company(proper_company_name: str):
     
     Args:
         proper_company_name: The proper company name (e.g., 'Datacom', not 'datacom1')
+        
+    Returns:
+        Company: The existing or newly created company object
+        
+    Raises:
+        SQLAlchemyError: If there is a database error
+        ValueError: If proper_company_name is empty or invalid
     """
-    with db.session.begin_nested():
-        company = Company.query.filter_by(name=proper_company_name).first()
-        if not company:
-            company = Company(name=proper_company_name)
-            db.session.add(company)
-    return company
+    # Input validation
+    if not proper_company_name or not isinstance(proper_company_name, str):
+        logger.error(f"Invalid company name provided: {proper_company_name}")
+        raise ValueError("Company name must be a non-empty string")
+
+    try:
+        with db.session.begin_nested():
+            company = Company.query.filter_by(name=proper_company_name).first()
+            if not company:
+                logger.info(f"Creating new company: {proper_company_name}")
+                company = Company(name=proper_company_name)
+                db.session.add(company)
+                db.session.flush()  # Flush to get the company ID
+                logger.info(f"Successfully created company with ID: {company.company_id}")
+            else:
+                logger.info(f"Found existing company: {proper_company_name}")
+            return company
+            
+    except SQLAlchemyError as e:
+        logger.error(f"Database error while getting/creating company {proper_company_name}: {str(e)}")
+        db.session.rollback()
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error while getting/creating company {proper_company_name}: {str(e)}")
+        db.session.rollback()
+        raise
 
 def get_existing_job_urls():
     """Get all existing jobpost_urls from the Jobs table"""
@@ -146,83 +172,96 @@ def process_results(items: List[Dict[str, Any]]) -> Tuple[int, List[str]]:
     }
     errors = []
     
-    # Get all existing job URLs
-    existing_urls = get_existing_job_urls()
-    logger.info(f"Found {len(existing_urls)} existing jobs in database")
+    try:
+        # Get all existing job URLs
+        existing_urls = get_existing_job_urls()
+        logger.info(f"Found {len(existing_urls)} existing jobs in database")
 
-    for company in items:
-        allowed_departments = company_departments.get(company['name'], [])
-        company_proper_name = get_proper_company_name(company['name'])
-        
-        logger.info(f"Processing jobs for {company_proper_name}")
-        company_jobs = company['result']
-        stats['total_scraped'] += len(company_jobs)
+        for company in items:
+            allowed_departments = company_departments.get(company['name'], [])
+            company_proper_name = get_proper_company_name(company['name'])
+            
+            logger.info(f"Processing jobs for {company_proper_name}")
+            company_jobs = company['result']
+            stats['total_scraped'] += len(company_jobs)
 
-        for job in company_jobs:
-            try:
-                # Check if job URL already exists
-                job_url = job.get('url')
-                if job_url in existing_urls:
-                    stats['skipped_existing'] += 1
-                    # logger.info(f"Skipping existing job: {job.get('title')} ({job_url})")
-                    continue
+            for job in company_jobs:
+                try:
+                    # Check if job URL already exists
+                    job_url = job.get('url')
+                    if job_url in existing_urls:
+                        stats['skipped_existing'] += 1
+                        # logger.info(f"Skipping existing job: {job.get('title')} ({job_url})")
+                        continue
 
-                processed_job = process_job(company['name'], company['source'], job)
-                if not processed_job:
-                    stats['skipped_non_australia'] += 1
-                    # logger.info(f"Skipping non-Australian job: {job.get('title')}")
-                    continue
+                    processed_job = process_job(company['name'], company['source'], job)
+                    if not processed_job:
+                        stats['skipped_non_australia'] += 1
+                        # logger.info(f"Skipping non-Australian job: {job.get('title')}")
+                        continue
 
-                if allowed_departments and processed_job['department'] not in allowed_departments:
-                    stats['skipped_department'] += 1
-                    # logger.info(f"Skipping job with non-allowed department: {processed_job['department']}")
-                    continue
+                    if allowed_departments and processed_job['department'] not in allowed_departments:
+                        stats['skipped_department'] += 1
+                        # logger.info(f"Skipping job with non-allowed department: {processed_job['department']}")
+                        continue
 
-                # Get or create company
-                company_obj = get_or_create_company(processed_job['company'])
-                
-                # Prepare job details
-                job_details = {
-                    'recruiter_id': 1,  # Admin recruiter ID
-                    'company_id': company_obj.company_id,
-                    'title': processed_job['title'],
-                    'jobpost_url': job_url,
-                    'city': processed_job['location'],
-                    'country': 'Australia',
-                    'description': processed_job['description'],
-                    'department': processed_job.get('department', '')
-                }
+                    # Get or create company
+                    company_obj = get_or_create_company(processed_job['company'])
+                    
+                    # Prepare job details
+                    job_details = {
+                        'recruiter_id': 1,  # Admin recruiter ID
+                        'company_id': company_obj.company_id,
+                        'title': processed_job['title'],
+                        'jobpost_url': job_url,
+                        'city': processed_job['location'],
+                        'country': 'Australia',
+                        'description': processed_job['description'],
+                        'department': processed_job.get('department', '')
+                    }
 
-                # Add job using recruiter service
-                new_job, error = recruiter_service.add_job_programmatically_admin(job_details)
-                if error:
+                    # Add job using recruiter service
+                    new_job, error = recruiter_service.add_job_programmatically_admin(job_details)
+                    if error:
+                        stats['failed'] += 1
+                        errors.append(f"Error adding job {job.get('title')}: {error}")
+                        logger.error(f"Failed to add job: {error}")
+                        continue
+
+                    # Verify the job was actually created
+                    created_job = Job.query.get(new_job.job_id)
+                    if not created_job:
+                        raise Exception(f"Job with ID {new_job.job_id} not found after creation")
+                    
+                    stats['successfully_added'] += 1
+                    logger.info(f"Successfully added and verified new job: {processed_job['title']} with ID {new_job.job_id}")
+
+                except Exception as error:
                     stats['failed'] += 1
-                    errors.append(f"Error adding job {job.get('title')}: {error}")
-                    logger.error(f"Failed to add job: {error}")
-                    continue  # Continue with next job instead of raising
-                
-                stats['successfully_added'] += 1
-                logger.info(f"Successfully added new job: {processed_job['title']}")
+                    error_msg = f"Error processing job {job.get('title', 'Unknown')} for {company_proper_name}: {error}"
+                    errors.append(error_msg)
+                    logger.error(error_msg)
+                    continue  # Continue with next job
 
-            except Exception as error:
-                stats['failed'] += 1
-                error_msg = f"Error processing job {job.get('title', 'Unknown')} for {company_proper_name}: {error}"
-                errors.append(error_msg)
-                logger.error(error_msg)
-                continue  # Continue with next job
+        # Ensure final commit
+        db.session.commit()
 
-    # Log final statistics
-    logger.info("\n=== Job Processing Statistics ===")
-    logger.info(f"Total jobs scraped: {stats['total_scraped']}")
-    logger.info(f"Jobs skipped (already exist): {stats['skipped_existing']}")
-    logger.info(f"Jobs skipped (non-Australian): {stats['skipped_non_australia']}")
-    logger.info(f"Jobs skipped (department): {stats['skipped_department']}")
-    logger.info(f"Jobs successfully added: {stats['successfully_added']}")
-    logger.info(f"Jobs failed to add: {stats['failed']}")
-    logger.info(f"Total errors encountered: {len(errors)}")
-    logger.info("=============================\n")
+        # Log final statistics
+        logger.info("\n=== Job Processing Statistics ===")
+        logger.info(f"Total jobs scraped: {stats['total_scraped']}")
+        logger.info(f"Jobs skipped (already exist): {stats['skipped_existing']}")
+        logger.info(f"Jobs skipped (non-Australian): {stats['skipped_non_australia']}")
+        logger.info(f"Jobs skipped (department): {stats['skipped_department']}")
+        logger.info(f"Jobs successfully added: {stats['successfully_added']}")
+        logger.info(f"Jobs failed to add: {stats['failed']}")
+        logger.info(f"Total errors encountered: {len(errors)}")
+        logger.info("=============================\n")
 
-    return stats['successfully_added'], errors
+        return stats['successfully_added'], errors
+        
+    except Exception as e:
+        db.session.rollback()
+        raise
 
 def process_job(company_name: str, source: str, job: Dict[str, Any]) -> Dict[str, Any]:
     if source == 'greenhouse':
