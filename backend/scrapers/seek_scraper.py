@@ -11,7 +11,6 @@ from PIL import Image
 import io
 import requests
 from werkzeug.utils import secure_filename
-import config
 
 # Get the absolute path to the backend directory
 current_dir = Path(__file__).resolve().parent
@@ -133,7 +132,7 @@ def download_and_save_logo(company, logo_url):
             # Save as WebP format
             background.save(logo_path, 'WEBP', quality=85)
             
-            company.logo_url = f"{config.BASE_URL}/uploads/upload_company_logo/{filename}"
+            company.logo_url = f"{app.config.BASE_URL}/uploads/upload_company_logo/{filename}"
     except Exception as e:
         logger.error(f"Error downloading logo for {company.name}: {str(e)}")
 
