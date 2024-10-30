@@ -335,7 +335,7 @@ def process_lever_job(company_name: str, job: Dict[str, Any]) -> Dict[str, Any]:
         return None
     
     lists_content = []
-    for item in job.get("lists", []):
+    for item in job.get("details", {}).get("lists", []):
         lists_content.append(f"{item['text']}: {item['content']}")
     combined_lists = "\n".join(lists_content)
     description = f"{job.get('details', {}).get('descriptionPlain', '')}\n\n{combined_lists}"
