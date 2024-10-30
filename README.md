@@ -1,25 +1,10 @@
 
-# **System Design:**
-![image](https://github.com/jaiphookan20/OceaniaDevs/assets/52240311/985ae735-6d10-43b6-be9a-8f4222482e2e)
-
-# **ERD Diagram:**
-![image](https://github.com/jaiphookan20/OceaniaDevs/assets/52240311/fa9d3504-6f96-4d30-967a-5f1d95cc06f9)
-
 # Product Overview:
 ![Screenshot 2024-07-03 at 10 39 56 PM](https://github.com/user-attachments/assets/bbb8bdf8-8de3-4066-81f7-336777789860)
 
-* OceaniaDevs is a new jobs platform focused entirely on the technology industry in Australia and dedicated to serving technology professionals. This job platform is meant to serve as a more precise and tailored alternative for frustrated job seekers in the technology industry with a far better discovery process than that provided by the dominant platforms. 
+## [Live URL](http://54.79.190.69/)
 
-* Borne out of my own frustrations with the job-search process here, I decided to build OceaniaDevs to scratch my own itch of using a more human-friendly jobs platform dedicated to tech professionals and their needs, with a richer, easier search process
-
-* This has been a entirely solo effort from the start. Although at the very beginning, it was meant to be a group effort hence why 4 contributors are listed (with one commit each by them at the very start)
-
-* Launched in a limited-beta release; the platform already has 25+ registered users and applications from candidates and growing each day. I am optimistic that this platform will grow to serve thousands more job seekers over the coming months once I release the application to the wider public in end-October.
-
-* ### Upcoming Features:
-* Candidate Database with rich, detailed profile of the technical skillset of each candidate
-* Advanced Candidate Ranking & Recommender System for each job, for Recruiters by using the power of Vector Embeddings + Advanced ML & NLP techniques
-* Automated Candidate Telephonic Qualification for Jobs through Outbound Sales AI Agent
+* OceaniaDevs is a new jobs platform focused entirely on the technology industry in Australia and dedicated to serving technology professionals. This job platform is meant to serve as a more precise and tailored alternative for frustrated job seekers in the technology industry with a far better discovery process than that provided by the dominant platforms.
 
 ## Technical Aspects:
 
@@ -34,6 +19,25 @@ Tools Used: Python, Flask, PostgreSQL, Javascript, Nginx, Redis, React, Github A
 * Built a **CI/CD** pipeline to automate the deployment of the dockerized application to **AWS** Lightsail using
 **GitHub Actions**, streamlining updates and maintenance
 * Developed a responsive frontend with **React** and **TailwindCSS**, ensuring a modern and user-friendly interface
+
+# **System Design:**
+![image](https://github.com/jaiphookan20/OceaniaDevs/assets/52240311/985ae735-6d10-43b6-be9a-8f4222482e2e)
+
+# **ERD Diagram:**
+![image](https://github.com/jaiphookan20/OceaniaDevs/assets/52240311/fa9d3504-6f96-4d30-967a-5f1d95cc06f9)
+
+
+## Notes:
+* Borne out of my own frustrations with the job-search process here, I decided to build OceaniaDevs to scratch my own itch of using a more human-friendly jobs platform dedicated to tech professionals and their needs, with a richer, easier search process
+
+* This has been a entirely solo effort from the start. Although at the very beginning, it was meant to be a group effort hence why 4 contributors are listed (with one commit each by them at the very start)
+
+* Launched in a limited-beta release; the platform already has 25+ registered users and applications from candidates and growing each day. I am optimistic that this platform will grow to serve thousands more job seekers over the coming months once I release the application to the wider public in end-October.
+
+* ### Upcoming Features:
+* Candidate Database with rich, detailed profile of the technical skillset of each candidate
+* Advanced Candidate Ranking & Recommender System for each job, for Recruiters by using the power of Vector Embeddings + Advanced ML & NLP techniques
+* Automated Candidate Telephonic Qualification for Jobs through Outbound Sales AI Agent
 
 # **Candidate Features:**
 
