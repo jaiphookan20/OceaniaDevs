@@ -205,12 +205,25 @@ def process_results(items: List[Dict[str, Any]]) -> Tuple[int, List[str]]:
             try:
                 # Check if job URL already exists
                 job_url = job.get('url')
-                if job_url in existing_urls:
-                    stats['skipped_existing'] += 1
+                if not job_url:
+                    stats['failed'] += 1
+                    errors.append(f"Missing URL for job: {job.get('title', 'Unknown')}")
                     continue
 
-                company_obj = get_or_create_company(job.get('company'), job.get('companyLogo'))
+                if job_url in existing_urls:
+                    stats['skipped_existing'] += 1
+                    logger.info(f"Skipping existing job: {job.get('title')} ({job_url})")
+                    continue
+
+                # Get or create company
+                company_name = job.get('companyName') or job.get('advertiser', {}).get('description', '')
+                company_obj = get_or_create_company(company_name)
                 
+                if not company_obj:
+                    stats['failed'] += 1
+                    errors.append(f"Failed to create/get company for job: {job.get('title')}")
+                    continue
+
                 # Prepare job details
                 job_details = {
                     'recruiter_id': 1,  # Admin recruiter ID
@@ -224,19 +237,34 @@ def process_results(items: List[Dict[str, Any]]) -> Tuple[int, List[str]]:
 
                 # Add job using recruiter service
                 new_job, error = recruiter_service.add_job_programmatically_admin(job_details)
+                
                 if error:
                     stats['failed'] += 1
-                    errors.append(f"Error adding job {job['title']}: {error}")
+                    errors.append(f"Error adding job {job.get('title')}: {error}")
                     logger.error(f"Failed to add job: {error}")
                     continue
 
                 # Verify the job was actually created
                 created_job = Job.query.get(new_job.job_id)
                 if not created_job:
-                    raise Exception(f"Job with ID {new_job.job_id} not found after creation")
-                
-                stats['successfully_added'] += 1
-                logger.info(f"Successfully added and verified new job: {job['title']} with ID {new_job.job_id}")
+                    stats['failed'] += 1
+                    error_msg = f"Job with ID {new_job.job_id} not found after creation"
+                    errors.append(error_msg)
+                    logger.error(error_msg)
+                    continue
+
+                # Explicitly commit after each successful job addition
+                try:
+                    db.session.commit()
+                    stats['successfully_added'] += 1
+                    logger.info(f"Successfully added and verified job: {job.get('title')} with ID {created_job.job_id}")
+                except SQLAlchemyError as e:
+                    db.session.rollback()
+                    stats['failed'] += 1
+                    error_msg = f"Database commit failed for job {job.get('title')}: {str(e)}"
+                    errors.append(error_msg)
+                    logger.error(error_msg)
+                    continue
 
             except Exception as error:
                 stats['failed'] += 1
@@ -245,11 +273,23 @@ def process_results(items: List[Dict[str, Any]]) -> Tuple[int, List[str]]:
                 logger.error(error_msg)
                 continue
 
+        # Log final statistics
+        logger.info("\n=== Job Processing Statistics ===")
+        logger.info(f"Total jobs scraped: {stats['total_scraped']}")
+        logger.info(f"Jobs skipped (already exist): {stats['skipped_existing']}")
+        logger.info(f"Jobs skipped (non-Australian): {stats['skipped_non_australia']}")
+        logger.info(f"Jobs successfully added: {stats['successfully_added']}")
+        logger.info(f"Jobs failed to add: {stats['failed']}")
+        logger.info(f"Total errors encountered: {len(errors)}")
+        logger.info("=============================\n")
+
         return stats['successfully_added'], errors
-        
+
     except Exception as e:
         db.session.rollback()
-        raise
+        error_msg = f"Fatal error in process_results: {str(e)}"
+        logger.error(error_msg, exc_info=True)
+        return 0, [error_msg]
 
 
 # Usage

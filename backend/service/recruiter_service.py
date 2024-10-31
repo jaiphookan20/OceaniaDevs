@@ -514,9 +514,12 @@ class RecruiterService:
                     security_clearance_required=processed_data.get('security_clearance_required', False)
                 )
 
-                # Add to session and flush to get the job_id
                 db.session.add(new_job)
-                db.session.flush()
+                db.session.flush()  # Flush to get the ID but don't commit yet
+
+                # Verify the job exists after flush
+                if not new_job.job_id:
+                    raise ValueError("Job ID not generated after flush")
 
                 # Process technologies if available
                 tech_stack = processed_data.get('technologies', [])
@@ -525,9 +528,10 @@ class RecruiterService:
                     added_techs = self._process_technologies(new_job, tech_stack)
                     self.logger.info(f"Added technologies for job '{title}': {added_techs}")
 
-                # Log after job creation
+                # Final verification before returning
+                db.session.refresh(new_job)
+                
                 self.logger.info(f"Job created with ID: {new_job.job_id}")
-
                 return new_job, None
 
         except Exception as e:
