@@ -314,41 +314,21 @@ class JobView(SecureModelView):
         'hourly_range': SelectField
     }
 
-    # Add widget configuration
+    # Now, let's specify the widget for each field
     form_widget_args = {
-        'specialization': {
-            'widget': Select2Widget()
-        },
-        'job_type': {
-            'widget': Select2Widget()
-        },
-        'industry': {
-            'widget': Select2Widget()
-        },
-        'experience_level': {
-            'widget': Select2Widget()
-        },
-        'work_location': {
-            'widget': Select2Widget()
-        },
-        'job_arrangement': {
-            'widget': Select2Widget()
-        },
-        'salary_type': {
-            'widget': Select2Widget()
-        },
-        'contract_duration': {
-            'widget': Select2Widget()
-        },
-        'daily_range': {
-            'widget': Select2Widget()
-        },
-        'hourly_range': {
-            'widget': Select2Widget()
-        }
+        'specialization': {'widget': Select2Widget()},
+        'job_type': {'widget': Select2Widget()},
+        'industry': {'widget': Select2Widget()},
+        'experience_level': {'widget': Select2Widget()},
+        'work_location': {'widget': Select2Widget()},
+        'job_arrangement': {'widget': Select2Widget()},
+        'salary_type': {'widget': Select2Widget()},
+        'contract_duration': {'widget': Select2Widget()},
+        'daily_range': {'widget': Select2Widget()},
+        'hourly_range': {'widget': Select2Widget()}
     }
 
-    # Configure form arguments for each SelectField
+    # Define the choices for each field
     form_args = {
         'specialization': {
             'choices': [
@@ -363,15 +343,13 @@ class JobView(SecureModelView):
                 ('Project Management', 'Project Management', False, {}),
                 ('IT Consulting', 'IT Consulting', False, {}),
                 ('Cybersecurity', 'Cybersecurity', False, {})
-            ],
-            'coerce': str
+            ]
         },
         'job_type': {
             'choices': [
-                ('normal', 'Normal', False, {}), 
-                ('featured', 'Featured', False, {})
-            ],
-            'coerce': str
+                ('normal', 'Normal', False, {}),
+                ('premium', 'Premium', False, {})
+            ]
         },
         'industry': {
             'choices': [
@@ -384,26 +362,8 @@ class JobView(SecureModelView):
                 ('IT - Data Analytics', 'IT - Data Analytics', False, {}),
                 ('IT - Cybersecurity', 'IT - Cybersecurity', False, {}),
                 ('IT - Cloud Computing', 'IT - Cloud Computing', False, {}),
-                ('IT - Artificial Intelligence', 'IT - Artificial Intelligence', False, {}),
-                ('Agriculture', 'Agriculture', False, {}),
-                ('Automotive', 'Automotive', False, {}),
-                ('Construction', 'Construction', False, {}),
-                ('Education', 'Education', False, {}),
-                ('Energy & Utilities', 'Energy & Utilities', False, {}),
-                ('Entertainment', 'Entertainment', False, {}),
-                ('Hospitality & Tourism', 'Hospitality & Tourism', False, {}),
-                ('Legal', 'Legal', False, {}),
-                ('Manufacturing', 'Manufacturing', False, {}),
-                ('Marketing & Advertising', 'Marketing & Advertising', False, {}),
-                ('Media & Communications', 'Media & Communications', False, {}),
-                ('Non-Profit & NGO', 'Non-Profit & NGO', False, {}),
-                ('Pharmaceuticals', 'Pharmaceuticals', False, {}),
-                ('Real Estate', 'Real Estate', False, {}),
-                ('Retail & Consumer Goods', 'Retail & Consumer Goods', False, {}),
-                ('Telecommunications', 'Telecommunications', False, {}),
-                ('Transportation & Logistics', 'Transportation & Logistics', False, {})
-            ],
-            'coerce': str
+                ('IT - Artificial Intelligence', 'IT - Artificial Intelligence', False, {})
+            ]
         },
         'experience_level': {
             'choices': [
@@ -411,16 +371,14 @@ class JobView(SecureModelView):
                 ('Mid-Level', 'Mid-Level', False, {}),
                 ('Senior', 'Senior', False, {}),
                 ('Executive', 'Executive', False, {})
-            ],
-            'coerce': str
+            ]
         },
         'work_location': {
             'choices': [
                 ('Remote', 'Remote', False, {}),
                 ('Hybrid', 'Hybrid', False, {}),
                 ('Office', 'Office', False, {})
-            ],
-            'coerce': str
+            ]
         },
         'job_arrangement': {
             'choices': [
@@ -428,16 +386,14 @@ class JobView(SecureModelView):
                 ('Contract/Temp', 'Contract/Temp', False, {}),
                 ('Internship', 'Internship', False, {}),
                 ('Part-Time', 'Part-Time', False, {})
-            ],
-            'coerce': str
+            ]
         },
         'salary_type': {
             'choices': [
-                ('annual', 'Annual', False, {}), 
-                ('hourly', 'Hourly', False, {}), 
+                ('annual', 'Annual', False, {}),
+                ('hourly', 'Hourly', False, {}),
                 ('daily', 'Daily', False, {})
-            ],
-            'coerce': str
+            ]
         },
         'contract_duration': {
             'choices': [
@@ -447,8 +403,7 @@ class JobView(SecureModelView):
                 ('7-9 months', '7-9 months', False, {}),
                 ('10-12 months', '10-12 months', False, {}),
                 ('12+ months', '12+ months', False, {})
-            ],
-            'coerce': str
+            ]
         },
         'daily_range': {
             'choices': [
@@ -462,8 +417,7 @@ class JobView(SecureModelView):
                 ('1200-1400', '1200-1400', False, {}),
                 ('1400-1600', '1400-1600', False, {}),
                 ('1600+', '1600+', False, {})
-            ],
-            'coerce': str
+            ]
         },
         'hourly_range': {
             'choices': [
@@ -477,8 +431,7 @@ class JobView(SecureModelView):
                 ('120-140', '120-140', False, {}),
                 ('140-160', '140-160', False, {}),
                 ('160+', '160+', False, {})
-            ],
-            'coerce': str
+            ]
         }
     }
 
