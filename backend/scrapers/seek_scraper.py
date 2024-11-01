@@ -132,7 +132,9 @@ def download_and_save_logo(company, logo_url):
             # Save as WebP format
             background.save(logo_path, 'WEBP', quality=85)
             
-            company.logo_url = f"{app.config.BASE_URL}/uploads/upload_company_logo/{filename}"
+            # Fix: Use os.getenv directly for BASE_URL
+            base_url = os.getenv('BASE_URL', 'http://54.79.190.69')  # Default value as fallback
+            company.logo_url = f"{base_url}/uploads/upload_company_logo/{filename}"
     except Exception as e:
         logger.error(f"Error downloading logo for {company.name}: {str(e)}")
 
@@ -164,7 +166,7 @@ def run_scraper(input_data: Dict[str, Any]) -> List[Dict[str, Any]]:
             work_arrangements = ", ".join(arrangements)
 
         processed_item = {
-            'company': company_name,
+            'companyName': company_name,
             'companyLogo': logo_url,
             'location': item.get('location'),
             'title': item.get('title'),
@@ -216,7 +218,7 @@ def process_results(items: List[Dict[str, Any]]) -> Tuple[int, List[str]]:
                     continue
 
                 # Get or create company
-                company_name = job.get('companyName') or job.get('advertiser', {}).get('description', '')
+                company_name = job.get('companyName') 
                 company_obj = get_or_create_company(company_name)
                 
                 if not company_obj:
