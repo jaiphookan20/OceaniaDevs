@@ -20,6 +20,8 @@ import logging
 from werkzeug.utils import secure_filename
 import os
 from markupsafe import Markup
+from wtforms.widgets import Select
+from flask_admin.form.widgets import Select2Widget
 
 from PIL import Image
 
@@ -312,128 +314,169 @@ class JobView(SecureModelView):
         'hourly_range': SelectField
     }
 
+    # Add widget configuration
+    form_widget_args = {
+        'specialization': {
+            'widget': Select2Widget()
+        },
+        'job_type': {
+            'widget': Select2Widget()
+        },
+        'industry': {
+            'widget': Select2Widget()
+        },
+        'experience_level': {
+            'widget': Select2Widget()
+        },
+        'work_location': {
+            'widget': Select2Widget()
+        },
+        'job_arrangement': {
+            'widget': Select2Widget()
+        },
+        'salary_type': {
+            'widget': Select2Widget()
+        },
+        'contract_duration': {
+            'widget': Select2Widget()
+        },
+        'daily_range': {
+            'widget': Select2Widget()
+        },
+        'hourly_range': {
+            'widget': Select2Widget()
+        }
+    }
+
     # Configure form arguments for each SelectField
     form_args = {
         'specialization': {
             'choices': [
-                ('Frontend', 'Frontend'),
-                ('Backend', 'Backend'),
-                ('Full-Stack', 'Full-Stack'),
-                ('Mobile', 'Mobile'),
-                ('Data & ML', 'Data & ML'),
-                ('QA & Testing', 'QA & Testing'),
-                ('Cloud & Infra', 'Cloud & Infra'),
-                ('DevOps', 'DevOps'),
-                ('Project Management', 'Project Management'),
-                ('IT Consulting', 'IT Consulting'),
-                ('Cybersecurity', 'Cybersecurity')
+                ('Frontend', 'Frontend', {}),
+                ('Backend', 'Backend', {}),
+                ('Full-Stack', 'Full-Stack', {}),
+                ('Mobile', 'Mobile', {}),
+                ('Data & ML', 'Data & ML', {}),
+                ('QA & Testing', 'QA & Testing', {}),
+                ('Cloud & Infra', 'Cloud & Infra', {}),
+                ('DevOps', 'DevOps', {}),
+                ('Project Management', 'Project Management', {}),
+                ('IT Consulting', 'IT Consulting', {}),
+                ('Cybersecurity', 'Cybersecurity', {})
             ],
             'coerce': str
         },
         'job_type': {
-            'choices': [('normal', 'Normal'), ('featured', 'Featured')],
+            'choices': [
+                ('normal', 'Normal', {}), 
+                ('featured', 'Featured', {})
+            ],
             'coerce': str
         },
         'industry': {
             'choices': [
-               ('Government', 'Government'),
-                ('Banking & Financial Services', 'Banking & Financial Services'),
-                ('Fashion', 'Fashion'),
-                ('Mining', 'Mining'),
-                ('Healthcare', 'Healthcare'),
-                ('IT - Software Development', 'IT - Software Development'),
-                ('IT - Data Analytics', 'IT - Data Analytics'),
-                ('IT - Cybersecurity', 'IT - Cybersecurity'),
-                ('IT - Cloud Computing', 'IT - Cloud Computing'),
-                ('IT - Artificial Intelligence', 'IT - Artificial Intelligence'),
-                ('Agriculture', 'Agriculture'),
-                ('Automotive', 'Automotive'),
-                ('Construction', 'Construction'),
-                ('Education', 'Education'),
-                ('Energy & Utilities', 'Energy & Utilities'),
-                ('Entertainment', 'Entertainment'),
-                ('Hospitality & Tourism', 'Hospitality & Tourism'),
-                ('Legal', 'Legal'),
-                ('Manufacturing', 'Manufacturing'),
-                ('Marketing & Advertising', 'Marketing & Advertising'),
-                ('Media & Communications', 'Media & Communications'),
-                ('Non-Profit & NGO', 'Non-Profit & NGO'),
-                ('Pharmaceuticals', 'Pharmaceuticals'),
-                ('Real Estate', 'Real Estate'),
-                ('Retail & Consumer Goods', 'Retail & Consumer Goods'),
-                ('Telecommunications', 'Telecommunications'),
-                ('Transportation & Logistics', 'Transportation & Logistics')
+                ('Government', 'Government', {}),
+                ('Banking & Financial Services', 'Banking & Financial Services', {}),
+                ('Fashion', 'Fashion', {}),
+                ('Mining', 'Mining', {}),
+                ('Healthcare', 'Healthcare', {}),
+                ('IT - Software Development', 'IT - Software Development', {}),
+                ('IT - Data Analytics', 'IT - Data Analytics', {}),
+                ('IT - Cybersecurity', 'IT - Cybersecurity', {}),
+                ('IT - Cloud Computing', 'IT - Cloud Computing', {}),
+                ('IT - Artificial Intelligence', 'IT - Artificial Intelligence', {}),
+                ('Agriculture', 'Agriculture', {}),
+                ('Automotive', 'Automotive', {}),
+                ('Construction', 'Construction', {}),
+                ('Education', 'Education', {}),
+                ('Energy & Utilities', 'Energy & Utilities', {}),
+                ('Entertainment', 'Entertainment', {}),
+                ('Hospitality & Tourism', 'Hospitality & Tourism', {}),
+                ('Legal', 'Legal', {}),
+                ('Manufacturing', 'Manufacturing', {}),
+                ('Marketing & Advertising', 'Marketing & Advertising', {}),
+                ('Media & Communications', 'Media & Communications', {}),
+                ('Non-Profit & NGO', 'Non-Profit & NGO', {}),
+                ('Pharmaceuticals', 'Pharmaceuticals', {}),
+                ('Real Estate', 'Real Estate', {}),
+                ('Retail & Consumer Goods', 'Retail & Consumer Goods', {}),
+                ('Telecommunications', 'Telecommunications', {}),
+                ('Transportation & Logistics', 'Transportation & Logistics', {})
             ],
             'coerce': str
         },
         'experience_level': {
             'choices': [
-                ('Junior', 'Junior'),
-                ('Mid-Level', 'Mid-Level'),
-                ('Senior', 'Senior'),
-                ('Executive', 'Executive')
+                ('Junior', 'Junior', {}),
+                ('Mid-Level', 'Mid-Level', {}),
+                ('Senior', 'Senior', {}),
+                ('Executive', 'Executive', {})
             ],
             'coerce': str
         },
         'work_location': {
             'choices': [
-                ('Remote', 'Remote'),
-                ('Hybrid', 'Hybrid'),
-                ('Office', 'Office')
+                ('Remote', 'Remote', {}),
+                ('Hybrid', 'Hybrid', {}),
+                ('Office', 'Office', {})
             ],
             'coerce': str
         },
         'job_arrangement': {
             'choices': [
-                ('Permanent', 'Permanent'),
-                ('Contract/Temp', 'Contract/Temp'),
-                ('Internship', 'Internship'),
-                ('Part-Time', 'Part-Time')
+                ('Permanent', 'Permanent', {}),
+                ('Contract/Temp', 'Contract/Temp', {}),
+                ('Internship', 'Internship', {}),
+                ('Part-Time', 'Part-Time', {})
             ],
             'coerce': str
         },
         'salary_type': {
-            'choices': [('annual', 'Annual'), ('hourly', 'Hourly'), ('daily', 'Daily')],
+            'choices': [
+                ('annual', 'Annual', {}), 
+                ('hourly', 'Hourly', {}), 
+                ('daily', 'Daily', {})
+            ],
             'coerce': str
         },
         'contract_duration': {
             'choices': [
-                ('Not Listed', 'Not Listed'),
-                ('0-3 months', '0-3 months'),
-                ('4-6 months', '4-6 months'),
-                ('7-9 months', '7-9 months'),
-                ('10-12 months', '10-12 months'),
-                ('12+ months', '12+ months')
+                ('Not Listed', 'Not Listed', {}),
+                ('0-3 months', '0-3 months', {}),
+                ('4-6 months', '4-6 months', {}),
+                ('7-9 months', '7-9 months', {}),
+                ('10-12 months', '10-12 months', {}),
+                ('12+ months', '12+ months', {})
             ],
             'coerce': str
         },
         'daily_range': {
             'choices': [
-                ('Not Listed', 'Not Listed'),
-                ('0-200', '0-200'),
-                ('200-400', '200-400'),
-                ('400-600', '400-600'),
-                ('600-800', '600-800'),
-                ('800-1000', '800-1000'),
-                ('1000-1200', '1000-1200'),
-                ('1200-1400', '1200-1400'),
-                ('1400-1600', '1400-1600'),
-                ('1600+', '1600+')
+                ('Not Listed', 'Not Listed', {}),
+                ('0-200', '0-200', {}),
+                ('200-400', '200-400', {}),
+                ('400-600', '400-600', {}),
+                ('600-800', '600-800', {}),
+                ('800-1000', '800-1000', {}),
+                ('1000-1200', '1000-1200', {}),
+                ('1200-1400', '1200-1400', {}),
+                ('1400-1600', '1400-1600', {}),
+                ('1600+', '1600+', {})
             ],
             'coerce': str
         },
         'hourly_range': {
             'choices': [
-                ('Not Listed', 'Not Listed'),
-                ('0-20', '0-20'),
-                ('20-40', '20-40'),
-                ('40-60', '40-60'),
-                ('60-80', '60-80'),
-                ('80-100', '80-100'),
-                ('100-120', '100-120'),
-                ('120-140', '120-140'),
-                ('140-160', '140-160'),
-                ('160+', '160+')
+                ('Not Listed', 'Not Listed', {}),
+                ('0-20', '0-20', {}),
+                ('20-40', '20-40', {}),
+                ('40-60', '40-60', {}),
+                ('60-80', '60-80', {}),
+                ('80-100', '80-100', {}),
+                ('100-120', '100-120', {}),
+                ('120-140', '120-140', {}),
+                ('140-160', '140-160', {}),
+                ('160+', '160+', {})
             ],
             'coerce': str
         }
