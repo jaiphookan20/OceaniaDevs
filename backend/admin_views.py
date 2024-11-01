@@ -352,131 +352,131 @@ class JobView(SecureModelView):
     form_args = {
         'specialization': {
             'choices': [
-                ('Frontend', 'Frontend', {}),
-                ('Backend', 'Backend', {}),
-                ('Full-Stack', 'Full-Stack', {}),
-                ('Mobile', 'Mobile', {}),
-                ('Data & ML', 'Data & ML', {}),
-                ('QA & Testing', 'QA & Testing', {}),
-                ('Cloud & Infra', 'Cloud & Infra', {}),
-                ('DevOps', 'DevOps', {}),
-                ('Project Management', 'Project Management', {}),
-                ('IT Consulting', 'IT Consulting', {}),
-                ('Cybersecurity', 'Cybersecurity', {})
+                ('Frontend', 'Frontend', False, {}),
+                ('Backend', 'Backend', False, {}),
+                ('Full-Stack', 'Full-Stack', False, {}),
+                ('Mobile', 'Mobile', False, {}),
+                ('Data & ML', 'Data & ML', False, {}),
+                ('QA & Testing', 'QA & Testing', False, {}),
+                ('Cloud & Infra', 'Cloud & Infra', False, {}),
+                ('DevOps', 'DevOps', False, {}),
+                ('Project Management', 'Project Management', False, {}),
+                ('IT Consulting', 'IT Consulting', False, {}),
+                ('Cybersecurity', 'Cybersecurity', False, {})
             ],
             'coerce': str
         },
         'job_type': {
             'choices': [
-                ('normal', 'Normal', {}), 
-                ('featured', 'Featured', {})
+                ('normal', 'Normal', False, {}), 
+                ('featured', 'Featured', False, {})
             ],
             'coerce': str
         },
         'industry': {
             'choices': [
-                ('Government', 'Government', {}),
-                ('Banking & Financial Services', 'Banking & Financial Services', {}),
-                ('Fashion', 'Fashion', {}),
-                ('Mining', 'Mining', {}),
-                ('Healthcare', 'Healthcare', {}),
-                ('IT - Software Development', 'IT - Software Development', {}),
-                ('IT - Data Analytics', 'IT - Data Analytics', {}),
-                ('IT - Cybersecurity', 'IT - Cybersecurity', {}),
-                ('IT - Cloud Computing', 'IT - Cloud Computing', {}),
-                ('IT - Artificial Intelligence', 'IT - Artificial Intelligence', {}),
-                ('Agriculture', 'Agriculture', {}),
-                ('Automotive', 'Automotive', {}),
-                ('Construction', 'Construction', {}),
-                ('Education', 'Education', {}),
-                ('Energy & Utilities', 'Energy & Utilities', {}),
-                ('Entertainment', 'Entertainment', {}),
-                ('Hospitality & Tourism', 'Hospitality & Tourism', {}),
-                ('Legal', 'Legal', {}),
-                ('Manufacturing', 'Manufacturing', {}),
-                ('Marketing & Advertising', 'Marketing & Advertising', {}),
-                ('Media & Communications', 'Media & Communications', {}),
-                ('Non-Profit & NGO', 'Non-Profit & NGO', {}),
-                ('Pharmaceuticals', 'Pharmaceuticals', {}),
-                ('Real Estate', 'Real Estate', {}),
-                ('Retail & Consumer Goods', 'Retail & Consumer Goods', {}),
-                ('Telecommunications', 'Telecommunications', {}),
-                ('Transportation & Logistics', 'Transportation & Logistics', {})
+                ('Government', 'Government', False, {}),
+                ('Banking & Financial Services', 'Banking & Financial Services', False, {}),
+                ('Fashion', 'Fashion', False, {}),
+                ('Mining', 'Mining', False, {}),
+                ('Healthcare', 'Healthcare', False, {}),
+                ('IT - Software Development', 'IT - Software Development', False, {}),
+                ('IT - Data Analytics', 'IT - Data Analytics', False, {}),
+                ('IT - Cybersecurity', 'IT - Cybersecurity', False, {}),
+                ('IT - Cloud Computing', 'IT - Cloud Computing', False, {}),
+                ('IT - Artificial Intelligence', 'IT - Artificial Intelligence', False, {}),
+                ('Agriculture', 'Agriculture', False, {}),
+                ('Automotive', 'Automotive', False, {}),
+                ('Construction', 'Construction', False, {}),
+                ('Education', 'Education', False, {}),
+                ('Energy & Utilities', 'Energy & Utilities', False, {}),
+                ('Entertainment', 'Entertainment', False, {}),
+                ('Hospitality & Tourism', 'Hospitality & Tourism', False, {}),
+                ('Legal', 'Legal', False, {}),
+                ('Manufacturing', 'Manufacturing', False, {}),
+                ('Marketing & Advertising', 'Marketing & Advertising', False, {}),
+                ('Media & Communications', 'Media & Communications', False, {}),
+                ('Non-Profit & NGO', 'Non-Profit & NGO', False, {}),
+                ('Pharmaceuticals', 'Pharmaceuticals', False, {}),
+                ('Real Estate', 'Real Estate', False, {}),
+                ('Retail & Consumer Goods', 'Retail & Consumer Goods', False, {}),
+                ('Telecommunications', 'Telecommunications', False, {}),
+                ('Transportation & Logistics', 'Transportation & Logistics', False, {})
             ],
             'coerce': str
         },
         'experience_level': {
             'choices': [
-                ('Junior', 'Junior', {}),
-                ('Mid-Level', 'Mid-Level', {}),
-                ('Senior', 'Senior', {}),
-                ('Executive', 'Executive', {})
+                ('Junior', 'Junior', False, {}),
+                ('Mid-Level', 'Mid-Level', False, {}),
+                ('Senior', 'Senior', False, {}),
+                ('Executive', 'Executive', False, {})
             ],
             'coerce': str
         },
         'work_location': {
             'choices': [
-                ('Remote', 'Remote', {}),
-                ('Hybrid', 'Hybrid', {}),
-                ('Office', 'Office', {})
+                ('Remote', 'Remote', False, {}),
+                ('Hybrid', 'Hybrid', False, {}),
+                ('Office', 'Office', False, {})
             ],
             'coerce': str
         },
         'job_arrangement': {
             'choices': [
-                ('Permanent', 'Permanent', {}),
-                ('Contract/Temp', 'Contract/Temp', {}),
-                ('Internship', 'Internship', {}),
-                ('Part-Time', 'Part-Time', {})
+                ('Permanent', 'Permanent', False, {}),
+                ('Contract/Temp', 'Contract/Temp', False, {}),
+                ('Internship', 'Internship', False, {}),
+                ('Part-Time', 'Part-Time', False, {})
             ],
             'coerce': str
         },
         'salary_type': {
             'choices': [
-                ('annual', 'Annual', {}), 
-                ('hourly', 'Hourly', {}), 
-                ('daily', 'Daily', {})
+                ('annual', 'Annual', False, {}), 
+                ('hourly', 'Hourly', False, {}), 
+                ('daily', 'Daily', False, {})
             ],
             'coerce': str
         },
         'contract_duration': {
             'choices': [
-                ('Not Listed', 'Not Listed', {}),
-                ('0-3 months', '0-3 months', {}),
-                ('4-6 months', '4-6 months', {}),
-                ('7-9 months', '7-9 months', {}),
-                ('10-12 months', '10-12 months', {}),
-                ('12+ months', '12+ months', {})
+                ('Not Listed', 'Not Listed', False, {}),
+                ('0-3 months', '0-3 months', False, {}),
+                ('4-6 months', '4-6 months', False, {}),
+                ('7-9 months', '7-9 months', False, {}),
+                ('10-12 months', '10-12 months', False, {}),
+                ('12+ months', '12+ months', False, {})
             ],
             'coerce': str
         },
         'daily_range': {
             'choices': [
-                ('Not Listed', 'Not Listed', {}),
-                ('0-200', '0-200', {}),
-                ('200-400', '200-400', {}),
-                ('400-600', '400-600', {}),
-                ('600-800', '600-800', {}),
-                ('800-1000', '800-1000', {}),
-                ('1000-1200', '1000-1200', {}),
-                ('1200-1400', '1200-1400', {}),
-                ('1400-1600', '1400-1600', {}),
-                ('1600+', '1600+', {})
+                ('Not Listed', 'Not Listed', False, {}),
+                ('0-200', '0-200', False, {}),
+                ('200-400', '200-400', False, {}),
+                ('400-600', '400-600', False, {}),
+                ('600-800', '600-800', False, {}),
+                ('800-1000', '800-1000', False, {}),
+                ('1000-1200', '1000-1200', False, {}),
+                ('1200-1400', '1200-1400', False, {}),
+                ('1400-1600', '1400-1600', False, {}),
+                ('1600+', '1600+', False, {})
             ],
             'coerce': str
         },
         'hourly_range': {
             'choices': [
-                ('Not Listed', 'Not Listed', {}),
-                ('0-20', '0-20', {}),
-                ('20-40', '20-40', {}),
-                ('40-60', '40-60', {}),
-                ('60-80', '60-80', {}),
-                ('80-100', '80-100', {}),
-                ('100-120', '100-120', {}),
-                ('120-140', '120-140', {}),
-                ('140-160', '140-160', {}),
-                ('160+', '160+', {})
+                ('Not Listed', 'Not Listed', False, {}),
+                ('0-20', '0-20', False, {}),
+                ('20-40', '20-40', False, {}),
+                ('40-60', '40-60', False, {}),
+                ('60-80', '60-80', False, {}),
+                ('80-100', '80-100', False, {}),
+                ('100-120', '100-120', False, {}),
+                ('120-140', '120-140', False, {}),
+                ('140-160', '140-160', False, {}),
+                ('160+', '160+', False, {})
             ],
             'coerce': str
         }
