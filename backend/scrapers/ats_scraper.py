@@ -7,7 +7,7 @@ from flask import Flask, current_app
 from dotenv import load_dotenv
 import logging
 import json
-from celery_app import celery  # Import the celery instance directly
+from celery_app import celery  # Update import
 from utils.email_utils import send_scraper_report
 
 # Get the absolute path to the backend directory
