@@ -26,7 +26,7 @@ from flask import render_template
 import sys
 from flask.cli import with_appcontext
 # from backend.scraper_manager import run_daily_job_processing
-from celery_app import create_celery_app, celery
+from celery_app import app as celery
 load_dotenv()
 
 class SecureModelView(ModelView):
