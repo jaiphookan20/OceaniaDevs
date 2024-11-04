@@ -280,6 +280,66 @@ class JobView(SecureModelView):
     column_exclude_list = ['search_vector', 'description']
     column_filters = ['specialization', 'job_type', 'industry', 'experience_level', 'work_location']
 
+    # Override the default widget for ENUM fields
+    form_overrides = {
+        'specialization': SelectField,
+        'job_type': SelectField,
+        'industry': SelectField,
+        'experience_level': SelectField,
+        'work_location': SelectField,
+        'job_arrangement': SelectField,
+        'salary_type': SelectField,
+        'contract_duration': SelectField,
+        'daily_range': SelectField,
+        'hourly_range': SelectField
+    }
+
+    # Define choices based on your ENUM types
+    form_args = {
+        'specialization': {
+            'choices': [(x, x) for x in ['Frontend', 'Backend', 'Full-Stack', 'Mobile', 'Data & ML', 
+                       'QA & Testing', 'Cloud & Infra', 'DevOps', 'Project Management', 
+                       'IT Consulting', 'Cybersecurity']]
+        },
+        'job_type': {
+            'choices': [(x, x) for x in ['premium', 'normal']]
+        },
+        'industry': {
+            'choices': [(x, x) for x in ['Government', 'Banking & Financial Services', 'Fashion', 
+                       'Mining', 'Healthcare', 'IT - Software Development', 'IT - Data Analytics', 
+                       'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 
+                       'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 
+                       'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 
+                       'Marketing & Advertising', 'Media & Communications', 'Non-Profit & NGO', 
+                       'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 
+                       'Telecommunications', 'Transportation & Logistics']]
+        },
+        'experience_level': {
+            'choices': [(x, x) for x in ['Junior', 'Mid-Level', 'Senior', 'Executive']]
+        },
+        'work_location': {
+            'choices': [(x, x) for x in ['Remote', 'Hybrid', 'Office']]
+        },
+        'job_arrangement': {
+            'choices': [(x, x) for x in ['Permanent', 'Contract/Temp', 'Internship', 'Part-Time']]
+        },
+        'salary_type': {
+            'choices': [(x, x) for x in ['annual', 'hourly', 'daily']]
+        },
+        'contract_duration': {
+            'choices': [(x, x) for x in ['Not Listed', '0-3 months', '4-6 months', 
+                       '7-9 months', '10-12 months', '12+ months']]
+        },
+        'daily_range': {
+            'choices': [(x, x) for x in ['Not Listed', '0-200', '200-400', '400-600', 
+                       '600-800', '800-1000', '1000-1200', '1200-1400', '1400-1600', '1600+']]
+        },
+        'hourly_range': {
+            'choices': [(x, x) for x in ['Not Listed', '0-20', '20-40', '40-60', '60-80', 
+                       '80-100', '100-120', '120-140', '140-160', '160+']]
+        }
+    }
+
 class TechnologiesView(SecureModelView):
     column_list = ['id', 'name']
     form_columns = ['name']
