@@ -21,18 +21,6 @@ from werkzeug.utils import secure_filename
 import os
 from markupsafe import Markup
 from wtforms.widgets import Select
-from models import (
-    specialization_enum,
-    job_type_enum,
-    industry_enum,
-    experience_level_enum,
-    work_location_enum,
-    job_arrangement_enum,
-    salary_type_enum,
-    contract_duration_enum,
-    daily_range_enum,
-    hourly_range_enum
-)
 
 
 from PIL import Image
@@ -292,7 +280,35 @@ class JobView(SecureModelView):
     column_exclude_list = ['search_vector', 'description', 'overview', 'requirements', 'responsibilities']
     column_filters = ['specialization', 'job_type', 'industry', 'experience_level', 'work_location']
 
-    # Define form_args with explicit choices like CompanyView
+    # Add form_overrides to specify field types
+    form_overrides = {
+        'specialization': SelectField,
+        'job_type': SelectField,
+        'industry': SelectField,
+        'experience_level': SelectField,
+        'work_location': SelectField,
+        'job_arrangement': SelectField,
+        'salary_type': SelectField,
+        'contract_duration': SelectField,
+        'daily_range': SelectField,
+        'hourly_range': SelectField
+    }
+
+    # Add form_widget_args to override the default Select2Widget
+    form_widget_args = {
+        'specialization': {'widget': Select()},
+        'job_type': {'widget': Select()},
+        'industry': {'widget': Select()},
+        'experience_level': {'widget': Select()},
+        'work_location': {'widget': Select()},
+        'job_arrangement': {'widget': Select()},
+        'salary_type': {'widget': Select()},
+        'contract_duration': {'widget': Select()},
+        'daily_range': {'widget': Select()},
+        'hourly_range': {'widget': Select()}
+    }
+
+    # Keep your existing form_args
     form_args = {
         'specialization': {
             'choices': [
