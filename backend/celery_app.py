@@ -27,7 +27,7 @@ def create_celery_app(app=None):
     celery.conf.beat_schedule = {
         'run-ats-scraper-daily': {
             'task': 'scrapers.ats_scraper.run_scheduled_scraper',
-            'schedule': crontab(hour=21, minute=13),
+            'schedule': crontab(hour=21, minute=23),
         },
         'run-seek-scraper-daily': {
             'task': 'scrapers.seek_scraper.run_scheduled_scraper',

@@ -26,7 +26,7 @@ from flask import render_template
 import sys
 from flask.cli import with_appcontext
 # from backend.scraper_manager import run_daily_job_processing
-from celery_app import celery
+from celery_app import create_celery_app, celery
 load_dotenv()
 
 class SecureModelView(ModelView):
@@ -139,8 +139,15 @@ def create_app():
 
     Session(app)
 
-    # Initialize Celery
-    celery = create_celery_app(app)
+    # Update the celery instance with the app context
+    celery.conf.update(app.config)
+    
+    class ContextTask(celery.Task):
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return self.run(*args, **kwargs)
+    
+    celery.Task = ContextTask
 
     @app.cli.command("create-tables")
     def create_tables():
