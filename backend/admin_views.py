@@ -21,7 +21,19 @@ from werkzeug.utils import secure_filename
 import os
 from markupsafe import Markup
 from wtforms.widgets import Select
-from flask_admin.form.widgets import Select2Widget
+from models import (
+    specialization_enum,
+    job_type_enum,
+    industry_enum,
+    experience_level_enum,
+    work_location_enum,
+    job_arrangement_enum,
+    salary_type_enum,
+    contract_duration_enum,
+    daily_range_enum,
+    hourly_range_enum
+)
+
 
 from PIL import Image
 
@@ -280,7 +292,41 @@ class JobView(SecureModelView):
     column_exclude_list = ['search_vector', 'description']
     column_filters = ['specialization', 'job_type', 'industry', 'experience_level', 'work_location']
 
-    # Override the default widget for ENUM fields
+    # Use a custom form_args to properly format the choices
+    form_args = {
+        'specialization': {
+            'choices': lambda: [(val, val) for val in specialization_enum.enums]
+        },
+        'job_type': {
+            'choices': lambda: [(val, val) for val in job_type_enum.enums]
+        },
+        'industry': {
+            'choices': lambda: [(val, val) for val in industry_enum.enums]
+        },
+        'experience_level': {
+            'choices': lambda: [(val, val) for val in experience_level_enum.enums]
+        },
+        'work_location': {
+            'choices': lambda: [(val, val) for val in work_location_enum.enums]
+        },
+        'job_arrangement': {
+            'choices': lambda: [(val, val) for val in job_arrangement_enum.enums]
+        },
+        'salary_type': {
+            'choices': lambda: [(val, val) for val in salary_type_enum.enums]
+        },
+        'contract_duration': {
+            'choices': lambda: [(val, val) for val in contract_duration_enum.enums]
+        },
+        'daily_range': {
+            'choices': lambda: [(val, val) for val in daily_range_enum.enums]
+        },
+        'hourly_range': {
+            'choices': lambda: [(val, val) for val in hourly_range_enum.enums]
+        }
+    }
+
+    # Override form field types
     form_overrides = {
         'specialization': SelectField,
         'job_type': SelectField,
@@ -292,52 +338,6 @@ class JobView(SecureModelView):
         'contract_duration': SelectField,
         'daily_range': SelectField,
         'hourly_range': SelectField
-    }
-
-    # Define choices based on your ENUM types
-    form_args = {
-        'specialization': {
-            'choices': [(x, x) for x in ['Frontend', 'Backend', 'Full-Stack', 'Mobile', 'Data & ML', 
-                       'QA & Testing', 'Cloud & Infra', 'DevOps', 'Project Management', 
-                       'IT Consulting', 'Cybersecurity']]
-        },
-        'job_type': {
-            'choices': [(x, x) for x in ['premium', 'normal']]
-        },
-        'industry': {
-            'choices': [(x, x) for x in ['Government', 'Banking & Financial Services', 'Fashion', 
-                       'Mining', 'Healthcare', 'IT - Software Development', 'IT - Data Analytics', 
-                       'IT - Cybersecurity', 'IT - Cloud Computing', 'IT - Artificial Intelligence', 
-                       'Agriculture', 'Automotive', 'Construction', 'Education', 'Energy & Utilities', 
-                       'Entertainment', 'Hospitality & Tourism', 'Legal', 'Manufacturing', 
-                       'Marketing & Advertising', 'Media & Communications', 'Non-Profit & NGO', 
-                       'Pharmaceuticals', 'Real Estate', 'Retail & Consumer Goods', 
-                       'Telecommunications', 'Transportation & Logistics']]
-        },
-        'experience_level': {
-            'choices': [(x, x) for x in ['Junior', 'Mid-Level', 'Senior', 'Executive']]
-        },
-        'work_location': {
-            'choices': [(x, x) for x in ['Remote', 'Hybrid', 'Office']]
-        },
-        'job_arrangement': {
-            'choices': [(x, x) for x in ['Permanent', 'Contract/Temp', 'Internship', 'Part-Time']]
-        },
-        'salary_type': {
-            'choices': [(x, x) for x in ['annual', 'hourly', 'daily']]
-        },
-        'contract_duration': {
-            'choices': [(x, x) for x in ['Not Listed', '0-3 months', '4-6 months', 
-                       '7-9 months', '10-12 months', '12+ months']]
-        },
-        'daily_range': {
-            'choices': [(x, x) for x in ['Not Listed', '0-200', '200-400', '400-600', 
-                       '600-800', '800-1000', '1000-1200', '1200-1400', '1400-1600', '1600+']]
-        },
-        'hourly_range': {
-            'choices': [(x, x) for x in ['Not Listed', '0-20', '20-40', '40-60', '60-80', 
-                       '80-100', '100-120', '120-140', '140-160', '160+']]
-        }
     }
 
 class TechnologiesView(SecureModelView):
