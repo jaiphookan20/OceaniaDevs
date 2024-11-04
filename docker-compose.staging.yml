@@ -27,8 +27,7 @@ services:
       dockerfile: Dockerfile
     entrypoint: celery
     command: >
-      -A celery_app.create_celery_app 
-      worker 
+      -A celery_app worker 
       --loglevel=info 
       --concurrency=1 
       --pool=solo
@@ -57,7 +56,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: celery -A celery_app.create_celery_app beat --loglevel=info
+    command: celery -A celery_app beat --loglevel=info
     env_file:
       - .env
     environment:

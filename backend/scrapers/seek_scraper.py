@@ -11,9 +11,8 @@ from PIL import Image
 import io
 import requests
 from werkzeug.utils import secure_filename
-from celery_app import create_celery_app
+from celery_app import celery  # Import the celery instance directly
 from utils.email_utils import send_scraper_report
-celery = create_celery_app()
 
 # Get the absolute path to the backend directory
 current_dir = Path(__file__).resolve().parent
@@ -300,14 +299,7 @@ def process_results(items: List[Dict[str, Any]]) -> Tuple[int, List[str]]:
         logger.error(error_msg, exc_info=True)
         return 0, [error_msg]
 
-@celery.task(
-    name='scrapers.ats_scraper.run_scheduled_scraper',
-    rate_limit='1/h',           # Max 1 run per hour
-    soft_time_limit=1500,       # 25 minutes soft timeout
-    time_limit=1800,            # 30 minutes hard timeout
-    max_retries=1,              # Only retry once
-    retry_backoff=300,          # 5 minutes between retries
-)
+@celery.task(name='scrapers.seek_scraper.run_scheduled_scraper')
 def run_scheduled_scraper():
     with app.app_context():
         input_data = {
