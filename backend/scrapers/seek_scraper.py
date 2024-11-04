@@ -85,6 +85,10 @@ def get_or_create_company(company_name: str, logo_url=None):
                 # CHANGE: Process logo inside transaction if new company
                 if logo_url:
                     download_and_save_logo(company, logo_url)
+                else:
+                    # Add default logo if no logo_url provided
+                    base_url = os.getenv('BASE_URL', 'http://54.79.190.69')
+                    company.logo_url = f"{base_url}/uploads/upload_company_logo/oceaniadevs-logo.png"
                     
                 db.session.flush()  # Flush to get the company ID
                 logger.info(f"Successfully created company with ID: {company.company_id}")
