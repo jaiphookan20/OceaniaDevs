@@ -26,6 +26,7 @@ from flask import render_template
 import sys
 from flask.cli import with_appcontext
 # from backend.scraper_manager import run_daily_job_processing
+from celery_app import create_celery_app
 load_dotenv()
 
 class SecureModelView(ModelView):
@@ -137,6 +138,9 @@ def create_app():
         app.logger.error(f"Failed to initialize cache: {str(e)}")
 
     Session(app)
+
+    # Initialize Celery
+    celery = create_celery_app(app)
 
     @app.cli.command("create-tables")
     def create_tables():
@@ -285,16 +289,24 @@ def create_app():
     def catch_all(path):
         app.logger.debug(f"Catch-all route hit: {path}")
         return f"You accessed path: {path}"
-    
-    # celery.conf.update(app.config)
-    
-    # class ContextTask(celery.Task):
-    #     def __call__(self, *args, **kwargs):
-    #         with app.app_context():
-    #             return self.run(*args, **kwargs)
+        
+    @app.route('/worker-status')
+    def worker_status():
+        try:
+            i = celery.control.inspect()
+            availability = i.ping()
+            stats = i.stats()
+            active = i.active()
+            scheduled = i.scheduled()
+            return jsonify({
+                'available': bool(availability),
+                'stats': stats,
+                'active_tasks': active,
+                'scheduled_tasks': scheduled
+            })
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
 
-    # celery.Task = ContextTask
-    
     return app
 
 if __name__ == '__main__':
