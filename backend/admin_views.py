@@ -280,7 +280,6 @@ class JobView(SecureModelView):
     column_exclude_list = ['search_vector', 'description', 'overview', 'requirements', 'responsibilities']
     column_filters = ['specialization', 'job_type', 'industry', 'experience_level', 'work_location']
 
-    # Add form_overrides to specify field types
     form_overrides = {
         'specialization': SelectField,
         'job_type': SelectField,
@@ -294,21 +293,8 @@ class JobView(SecureModelView):
         'hourly_range': SelectField
     }
 
-    # Add form_widget_args to override the default Select2Widget
-    form_widget_args = {
-        'specialization': {'widget': Select()},
-        'job_type': {'widget': Select()},
-        'industry': {'widget': Select()},
-        'experience_level': {'widget': Select()},
-        'work_location': {'widget': Select()},
-        'job_arrangement': {'widget': Select()},
-        'salary_type': {'widget': Select()},
-        'contract_duration': {'widget': Select()},
-        'daily_range': {'widget': Select()},
-        'hourly_range': {'widget': Select()}
-    }
+    # Remove form_widget_args as it's causing issues with Select2Widget
 
-    # Keep your existing form_args
     form_args = {
         'specialization': {
             'choices': [
@@ -323,17 +309,19 @@ class JobView(SecureModelView):
                 ('Project Management', 'Project Management'),
                 ('IT Consulting', 'IT Consulting'),
                 ('Cybersecurity', 'Cybersecurity')
-            ]
+            ],
+            'coerce': str
         },
         'job_type': {
             'choices': [
-                ('premium', 'premium'),
-                ('normal', 'normal')
-            ]
+                ('premium', 'Premium'),
+                ('normal', 'Normal')
+            ],
+            'coerce': str
         },
         'industry': {
             'choices': [
-               ('Government', 'Government'),
+                ('Government', 'Government'),
                 ('Banking & Financial Services', 'Banking & Financial Services'),
                 ('Fashion', 'Fashion'),
                 ('Mining', 'Mining'),
@@ -360,7 +348,8 @@ class JobView(SecureModelView):
                 ('Retail & Consumer Goods', 'Retail & Consumer Goods'),
                 ('Telecommunications', 'Telecommunications'),
                 ('Transportation & Logistics', 'Transportation & Logistics')
-            ]
+            ],
+            'coerce': str
         },
         'experience_level': {
             'choices': [
@@ -368,14 +357,16 @@ class JobView(SecureModelView):
                 ('Mid-Level', 'Mid-Level'),
                 ('Senior', 'Senior'),
                 ('Executive', 'Executive')
-            ]
+            ],
+            'coerce': str
         },
         'work_location': {
             'choices': [
                 ('Remote', 'Remote'),
                 ('Hybrid', 'Hybrid'),
                 ('Office', 'Office')
-            ]
+            ],
+            'coerce': str
         },
         'job_arrangement': {
             'choices': [
@@ -383,14 +374,16 @@ class JobView(SecureModelView):
                 ('Contract/Temp', 'Contract/Temp'),
                 ('Internship', 'Internship'),
                 ('Part-Time', 'Part-Time')
-            ]
+            ],
+            'coerce': str
         },
         'salary_type': {
             'choices': [
-                ('annual', 'annual'),
-                ('hourly', 'hourly'),
-                ('daily', 'daily')
-            ]
+                ('annual', 'Annual'),
+                ('hourly', 'Hourly'),
+                ('daily', 'Daily')
+            ],
+            'coerce': str
         },
         'contract_duration': {
             'choices': [
@@ -400,7 +393,8 @@ class JobView(SecureModelView):
                 ('7-9 months', '7-9 months'),
                 ('10-12 months', '10-12 months'),
                 ('12+ months', '12+ months')
-            ]
+            ],
+            'coerce': str
         },
         'daily_range': {
             'choices': [
@@ -414,7 +408,8 @@ class JobView(SecureModelView):
                 ('1200-1400', '1200-1400'),
                 ('1400-1600', '1400-1600'),
                 ('1600+', '1600+')
-            ]
+            ],
+            'coerce': str
         },
         'hourly_range': {
             'choices': [
@@ -428,12 +423,10 @@ class JobView(SecureModelView):
                 ('120-140', '120-140'),
                 ('140-160', '140-160'),
                 ('160+', '160+')
-            ]
+            ],
+            'coerce': str
         }
     }
-
-    # Remove form_widget_args as it's not needed with this approach
-
 class TechnologiesView(SecureModelView):
     column_list = ['id', 'name']
     form_columns = ['name']
