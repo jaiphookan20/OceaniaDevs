@@ -289,55 +289,21 @@ class CompanyView(SecureModelView):
 # Custom view for Job model
 class JobView(SecureModelView):
     column_searchable_list = ['title', 'job_id']
-    column_exclude_list = ['search_vector', 'description']
+    column_exclude_list = ['search_vector', 'description', 'overview', 'requirements', 'responsibilities']
     column_filters = ['specialization', 'job_type', 'industry', 'experience_level', 'work_location']
 
-    # Use a custom form_args to properly format the choices
-    form_args = {
-        'specialization': {
-            'choices': lambda: [(val, val) for val in specialization_enum.enums]
-        },
-        'job_type': {
-            'choices': lambda: [(val, val) for val in job_type_enum.enums]
-        },
-        'industry': {
-            'choices': lambda: [(val, val) for val in industry_enum.enums]
-        },
-        'experience_level': {
-            'choices': lambda: [(val, val) for val in experience_level_enum.enums]
-        },
-        'work_location': {
-            'choices': lambda: [(val, val) for val in work_location_enum.enums]
-        },
-        'job_arrangement': {
-            'choices': lambda: [(val, val) for val in job_arrangement_enum.enums]
-        },
-        'salary_type': {
-            'choices': lambda: [(val, val) for val in salary_type_enum.enums]
-        },
-        'contract_duration': {
-            'choices': lambda: [(val, val) for val in contract_duration_enum.enums]
-        },
-        'daily_range': {
-            'choices': lambda: [(val, val) for val in daily_range_enum.enums]
-        },
-        'hourly_range': {
-            'choices': lambda: [(val, val) for val in hourly_range_enum.enums]
-        }
-    }
-
-    # Override form field types
-    form_overrides = {
-        'specialization': SelectField,
-        'job_type': SelectField,
-        'industry': SelectField,
-        'experience_level': SelectField,
-        'work_location': SelectField,
-        'job_arrangement': SelectField,
-        'salary_type': SelectField,
-        'contract_duration': SelectField,
-        'daily_range': SelectField,
-        'hourly_range': SelectField
+    # Override the default widget for ALL fields that use enums
+    form_widget_args = {
+        'specialization': {'widget': Select()},
+        'job_type': {'widget': Select()},
+        'industry': {'widget': Select()},
+        'experience_level': {'widget': Select()},
+        'work_location': {'widget': Select()},
+        'job_arrangement': {'widget': Select()},
+        'salary_type': {'widget': Select()},
+        'contract_duration': {'widget': Select()},
+        'daily_range': {'widget': Select()},
+        'hourly_range': {'widget': Select()}
     }
 
 class TechnologiesView(SecureModelView):
