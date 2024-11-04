@@ -7,6 +7,10 @@ from flask import Flask, current_app
 from dotenv import load_dotenv
 import logging
 import json
+from celery_app import create_celery_app
+from utils.email_utils import send_scraper_report
+
+celery = create_celery_app()
 
 # Get the absolute path to the backend directory
 current_dir = Path(__file__).resolve().parent
@@ -435,4 +439,58 @@ if __name__ == "__main__":
                     logger.warning(error)
         except Exception as e:
             logger.error(f"Fatal error during scraping: {str(e)}", exc_info=True)
+
+@celery.task(name='scrapers.ats_scraper.run_scheduled_scraper')
+def run_scheduled_scraper():
+    with app.app_context():
+        input_data = {
+            "customquery": {
+                "buildkite": "greenhouse",
+                "compass-education": "workable",
+                "immutable": "lever",
+                "octoenergy": "lever",
+                "xero": "lever",
+                "recordpoint": "lever",
+                "myob": "lever",
+                "blinq": "lever",
+            },
+            "delay": 10,
+            "details": "Yes",
+            "greenhouse": True,
+            "lever": True,
+            "personio": False,
+            "proxy": {
+                "useApifyProxy": True,
+                "apifyProxyGroups": ["RESIDENTIAL"]
+            },
+            "recruitee": False,
+            "smartrecruiters": True,
+            "workable": True,
+            "workday": False
+        }
+
+        try:
+            logger.info("Starting job scraping process...")
+            results = run_scraper(input_data)
+            successful_adds, errors = process_results(results)
+            
+            # Get the stats from process_results
+            stats = {
+                'total_scraped': len(results),
+                'successfully_added': successful_adds,
+                'skipped_existing': len(results) - successful_adds - len(errors),
+                'failed': len(errors)
+            }
+            
+            # Send email report
+            send_scraper_report('ATS', stats, errors)
+            
+            return {'successful_adds': successful_adds, 'errors': errors}
+        except Exception as e:
+            logger.error(f"Fatal error during scraping: {str(e)}", exc_info=True)
+            # Send error notification
+            send_scraper_report('ATS', 
+                              {'failed': 1, 'total_scraped': 0, 'successfully_added': 0}, 
+                              [f"Fatal error: {str(e)}"])
+            raise
 

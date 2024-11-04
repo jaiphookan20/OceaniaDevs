@@ -26,6 +26,7 @@ from flask import render_template
 import sys
 from flask.cli import with_appcontext
 # from backend.scraper_manager import run_daily_job_processing
+from celery_app import create_celery_app
 load_dotenv()
 
 class SecureModelView(ModelView):
@@ -137,6 +138,9 @@ def create_app():
         app.logger.error(f"Failed to initialize cache: {str(e)}")
 
     Session(app)
+
+    # Initialize Celery
+    celery = create_celery_app(app)
 
     @app.cli.command("create-tables")
     def create_tables():
@@ -285,16 +289,7 @@ def create_app():
     def catch_all(path):
         app.logger.debug(f"Catch-all route hit: {path}")
         return f"You accessed path: {path}"
-    
-    # celery.conf.update(app.config)
-    
-    # class ContextTask(celery.Task):
-    #     def __call__(self, *args, **kwargs):
-    #         with app.app_context():
-    #             return self.run(*args, **kwargs)
-
-    # celery.Task = ContextTask
-    
+        
     return app
 
 if __name__ == '__main__':
