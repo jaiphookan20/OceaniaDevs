@@ -25,11 +25,14 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: celery -A celery_app.create_celery_app worker 
-            --loglevel=info 
-            --concurrency=1  
-            --pool=prefork   
-            --max-tasks-per-child=10  # Restart worker after 10 tasks
+    entrypoint: celery
+    command: >
+      -A celery_app.create_celery_app 
+      worker 
+      --loglevel=info 
+      --concurrency=1 
+      --pool=solo
+      --max-tasks-per-child=10
     env_file:
       - .env
     environment:
@@ -44,8 +47,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.30'   # Limit to 30% of a CPU
-          memory: 256M   # Strict memory limit
+          cpus: '0.30'
+          memory: 256M
     depends_on:
       - redis
       - backend
