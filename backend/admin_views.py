@@ -292,19 +292,131 @@ class JobView(SecureModelView):
     column_exclude_list = ['search_vector', 'description', 'overview', 'requirements', 'responsibilities']
     column_filters = ['specialization', 'job_type', 'industry', 'experience_level', 'work_location']
 
-    # Override the default widget for ALL fields that use enums
-    form_widget_args = {
-        'specialization': {'widget': Select()},
-        'job_type': {'widget': Select()},
-        'industry': {'widget': Select()},
-        'experience_level': {'widget': Select()},
-        'work_location': {'widget': Select()},
-        'job_arrangement': {'widget': Select()},
-        'salary_type': {'widget': Select()},
-        'contract_duration': {'widget': Select()},
-        'daily_range': {'widget': Select()},
-        'hourly_range': {'widget': Select()}
+    # Define form_args with explicit choices like CompanyView
+    form_args = {
+        'specialization': {
+            'choices': [
+                ('Frontend', 'Frontend'),
+                ('Backend', 'Backend'),
+                ('Full-Stack', 'Full-Stack'),
+                ('Mobile', 'Mobile'),
+                ('Data & ML', 'Data & ML'),
+                ('QA & Testing', 'QA & Testing'),
+                ('Cloud & Infra', 'Cloud & Infra'),
+                ('DevOps', 'DevOps'),
+                ('Project Management', 'Project Management'),
+                ('IT Consulting', 'IT Consulting'),
+                ('Cybersecurity', 'Cybersecurity')
+            ]
+        },
+        'job_type': {
+            'choices': [
+                ('premium', 'premium'),
+                ('normal', 'normal')
+            ]
+        },
+        'industry': {
+            'choices': [
+               ('Government', 'Government'),
+                ('Banking & Financial Services', 'Banking & Financial Services'),
+                ('Fashion', 'Fashion'),
+                ('Mining', 'Mining'),
+                ('Healthcare', 'Healthcare'),
+                ('IT - Software Development', 'IT - Software Development'),
+                ('IT - Data Analytics', 'IT - Data Analytics'),
+                ('IT - Cybersecurity', 'IT - Cybersecurity'),
+                ('IT - Cloud Computing', 'IT - Cloud Computing'),
+                ('IT - Artificial Intelligence', 'IT - Artificial Intelligence'),
+                ('Agriculture', 'Agriculture'),
+                ('Automotive', 'Automotive'),
+                ('Construction', 'Construction'),
+                ('Education', 'Education'),
+                ('Energy & Utilities', 'Energy & Utilities'),
+                ('Entertainment', 'Entertainment'),
+                ('Hospitality & Tourism', 'Hospitality & Tourism'),
+                ('Legal', 'Legal'),
+                ('Manufacturing', 'Manufacturing'),
+                ('Marketing & Advertising', 'Marketing & Advertising'),
+                ('Media & Communications', 'Media & Communications'),
+                ('Non-Profit & NGO', 'Non-Profit & NGO'),
+                ('Pharmaceuticals', 'Pharmaceuticals'),
+                ('Real Estate', 'Real Estate'),
+                ('Retail & Consumer Goods', 'Retail & Consumer Goods'),
+                ('Telecommunications', 'Telecommunications'),
+                ('Transportation & Logistics', 'Transportation & Logistics')
+            ]
+        },
+        'experience_level': {
+            'choices': [
+                ('Junior', 'Junior'),
+                ('Mid-Level', 'Mid-Level'),
+                ('Senior', 'Senior'),
+                ('Executive', 'Executive')
+            ]
+        },
+        'work_location': {
+            'choices': [
+                ('Remote', 'Remote'),
+                ('Hybrid', 'Hybrid'),
+                ('Office', 'Office')
+            ]
+        },
+        'job_arrangement': {
+            'choices': [
+                ('Permanent', 'Permanent'),
+                ('Contract/Temp', 'Contract/Temp'),
+                ('Internship', 'Internship'),
+                ('Part-Time', 'Part-Time')
+            ]
+        },
+        'salary_type': {
+            'choices': [
+                ('annual', 'annual'),
+                ('hourly', 'hourly'),
+                ('daily', 'daily')
+            ]
+        },
+        'contract_duration': {
+            'choices': [
+                ('Not Listed', 'Not Listed'),
+                ('0-3 months', '0-3 months'),
+                ('4-6 months', '4-6 months'),
+                ('7-9 months', '7-9 months'),
+                ('10-12 months', '10-12 months'),
+                ('12+ months', '12+ months')
+            ]
+        },
+        'daily_range': {
+            'choices': [
+                ('Not Listed', 'Not Listed'),
+                ('0-200', '0-200'),
+                ('200-400', '200-400'),
+                ('400-600', '400-600'),
+                ('600-800', '600-800'),
+                ('800-1000', '800-1000'),
+                ('1000-1200', '1000-1200'),
+                ('1200-1400', '1200-1400'),
+                ('1400-1600', '1400-1600'),
+                ('1600+', '1600+')
+            ]
+        },
+        'hourly_range': {
+            'choices': [
+                ('Not Listed', 'Not Listed'),
+                ('0-20', '0-20'),
+                ('20-40', '20-40'),
+                ('40-60', '40-60'),
+                ('60-80', '60-80'),
+                ('80-100', '80-100'),
+                ('100-120', '100-120'),
+                ('120-140', '120-140'),
+                ('140-160', '140-160'),
+                ('160+', '160+')
+            ]
+        }
     }
+
+    # Remove form_widget_args as it's not needed with this approach
 
 class TechnologiesView(SecureModelView):
     column_list = ['id', 'name']
