@@ -24,11 +24,13 @@ from extensions import mail
 import logging
 
 load_dotenv()
+OPENAI_API_KEY=os.getenv('OPENAI_API_KEY')
 
 class RecruiterService:
+    
     def __init__(self):
         self.logger = logging.getLogger('app')
-        self.openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        self.openai_client = OpenAI(api_key=OPENAI_API_KEY)
         # self.headers = {
         #     "Authorization": f"Bearer {os.getenv('DEEPINFRA_API_KEY')}",
         #     "Content-Type": "application/json"
