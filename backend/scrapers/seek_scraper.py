@@ -11,8 +11,6 @@ from PIL import Image
 import io
 import requests
 from werkzeug.utils import secure_filename
-from celery_app import celery  # Update import
-from utils.email_utils import send_scraper_report
 
 # Get the absolute path to the backend directory
 current_dir = Path(__file__).resolve().parent
@@ -299,53 +297,38 @@ def process_results(items: List[Dict[str, Any]]) -> Tuple[int, List[str]]:
         logger.error(error_msg, exc_info=True)
         return 0, [error_msg]
 
-@celery.task(name='scrapers.seek_scraper.run_scheduled_scraper')
-def run_scheduled_scraper():
-    with app.app_context():
-        input_data = {
-            "category": ["6281"],
-            "country": "australia",
-            "days": 1,
-            "dev_dataset_clear": False,
-            "dev_no_strip": False,
-            "sort": "date",
-            "types.casual": False,
-            "types.contract": False,
-            "types.full": False,
-            "types.part": False,
-            "limit": 10,
-        }
 
+# Usage
+if __name__ == "__main__":
+    with app.app_context():  # This is the key addition
+        input_data = {
+    "category": [
+        "6281"
+    ],
+    "country": "australia",
+    "days": 1,
+    "dev_dataset_clear": False,
+    "dev_no_strip": False,
+    "sort": "date",
+    "types.casual": False,
+    "types.contract": False,
+    "types.full": False,
+    "types.part": False,
+    "limit": 10,
+    }
+ 
         try:
-            logger.info("Starting job scraping process...")
+            logger.info("Starting job scraping process...")  # Changed from current_app.logger
             results = run_scraper(input_data)
             successful_adds, errors = process_results(results)
-
-            logger.info(f"Scraping process completed.")
+            
+            logger.info(f"Scraping process completed.")  # Changed from current_app.logger
             logger.info(f"Successfully added {successful_adds} new jobs to the database.")
             
-            # Get the stats from process_results
-            stats = {
-                'total_scraped': len(results),
-                'successfully_added': successful_adds,
-                'skipped_existing': len(results) - successful_adds - len(errors),
-                'failed': len(errors)
-            }
-            
-            # Send email report
-            send_scraper_report('Seek', stats, errors)
-
             if errors:
                 logger.warning(f"Encountered {len(errors)} errors during processing:")
                 for error in errors:
                     logger.warning(error)
-            
-            return {'successful_adds': successful_adds, 'errors': errors}
         except Exception as e:
             logger.error(f"Fatal error during scraping: {str(e)}", exc_info=True)
-            # Send error notification
-            send_scraper_report('Seek', 
-                              {'failed': 1, 'total_scraped': 0, 'successfully_added': 0}, 
-                              [f"Fatal error: {str(e)}"])
-            raise
 
